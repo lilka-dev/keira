@@ -1,34 +1,34 @@
-# name: code-quality
+name: code-quality
 
-# on:
-#   pull_request: {}
-#   push:
-#     branches:
-#       - main
+on:
+  pull_request: {}
+  push:
+    branches:
+      - main
 
-# jobs:
-#   clang-format:
-#     runs-on: ubuntu-latest
-#     container: ubuntu:24.04
+jobs:
+  clang-format:
+    runs-on: ubuntu-latest
+    container: ubuntu:24.04
 
-#     steps:
-#       - uses: actions/checkout@v3
-#       - name: Install and Run clang-format
-#         run: |
-#           apt update -y
-#           apt install -y make clang-format-17
-#           make clang-format
-#         continue-on-error: false
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install and Run clang-format
+        run: |
+          apt update -y
+          apt install -y make clang-format-17
+          make clang-format
+        continue-on-error: false
 
-#   cppcheck:
-#     runs-on: ubuntu-latest
-#     container: ubuntu:24.04
+  cppcheck:
+    runs-on: ubuntu-latest
+    container: ubuntu:24.04
 
-#     steps:
-#       - uses: actions/checkout@v3
-#       - name: Install and Run cppcheck
-#         run: |
-#           apt update -y
-#           apt install -y make cppcheck
-#           make cppcheck
-#         continue-on-error: false
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install and Run cppcheck
+        run: |
+          apt update -y
+          apt install -y make cppcheck
+          make cppcheck
+        continue-on-error: false
