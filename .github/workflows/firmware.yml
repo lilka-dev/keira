@@ -1,0 +1,88 @@
+name: firmware
+
+# For now, this workflow is used for checks, not for releases.
+# So all release stuff is commented out.
+
+on:
+  push:
+    branches:
+      - dev
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+  pull_request: {}
+
+permissions:
+  contents: write
+
+jobs:
+  keira:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive  # or 'true' for non-recursive
+          fetch-depth: 0         # fetch full history, required for submodules to work properly
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.platformio/.cache
+            ./firmware/keira/.pio
+          key: ${{ runner.os }}-keira
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      - name: Install PlatformIO Core
+        run: pip install --upgrade platformio
+
+      - name: Build PlatformIO Project
+        working-directory: ./firmware/keira
+        run: pio run -e v2
+
+      - name: Copy firmware
+        working-directory: ./firmware/keira
+        run: |
+          cp .pio/build/v2/firmware.bin keira.bin
+          cp .pio/build/v2/partition-table.bin partition-table.bin
+          cp .pio/build/v2/bootloader.bin bootloader.bin
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install esptool
+        run: pip install esptool
+
+      - name: Combine firmware files
+        working-directory: ./firmware/keira
+        run: |
+          idf.py -p . set-target esp32
+          idf.py build -DPARTITION_TABLE_FILENAME=default_16MB.csv
+
+          cp build/bootloader/bootloader.bin ./bootloader.bin
+          cp build/partition_table/partition-table.bin ./partition-table.bin
+          cp build/keira.bin ./keira.bin
+
+          esptool.py --chip esp32 merge_bin \
+          -o KeiraOS.bin \
+          --flash_mode dio \
+          --flash_freq 40m \
+          --flash_size 16MB \
+          0x1000 ./bootloader.bin \
+          0x8000 ./partition-table.bin \
+          0x10000 ./keira.bin
+
+      - name: Upload firmware artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: KeiraOS-firmware
+          path: ./KeiraOS.bin
+
+      - name: Upload KeiraOS.bin to Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: ./KeiraOS.bin
+          
