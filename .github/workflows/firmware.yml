@@ -44,7 +44,7 @@ jobs:
         working-directory: ./
         run: |
           cp .pio/build/v2/firmware.bin keira.bin
-          cp .pio/build/v2/partition-table.bin partition-table.bin
+          cp .pio/build/v2/partitions.bin partition.bin
           cp .pio/build/v2/bootloader.bin bootloader.bin
 
       - name: Set up Python
@@ -58,13 +58,6 @@ jobs:
       - name: Combine firmware files
         working-directory: ./
         run: |
-          idf.py -p . set-target esp32
-          idf.py build -DPARTITION_TABLE_FILENAME=default_16MB.csv
-
-          cp build/bootloader/bootloader.bin ./bootloader.bin
-          cp build/partition_table/partition-table.bin ./partition-table.bin
-          cp build/keira.bin ./keira.bin
-
           esptool.py --chip esp32 merge_bin \
           -o KeiraOS.bin \
           --flash_mode dio \
