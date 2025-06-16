@@ -28,7 +28,7 @@ jobs:
           path: |
             ~/.cache/pip
             ~/.platformio/.cache
-            ./firmware/keira/.pio
+            ./.pio
           key: ${{ runner.os }}-keira
       - uses: actions/setup-python@v4
         with:
@@ -37,11 +37,11 @@ jobs:
         run: pip install --upgrade platformio
 
       - name: Build PlatformIO Project
-        working-directory: ./firmware/keira
+        working-directory: ./
         run: pio run -e v2
 
       - name: Copy firmware
-        working-directory: ./firmware/keira
+        working-directory: ./
         run: |
           cp .pio/build/v2/firmware.bin keira.bin
           cp .pio/build/v2/partition-table.bin partition-table.bin
@@ -56,7 +56,7 @@ jobs:
         run: pip install esptool
 
       - name: Combine firmware files
-        working-directory: ./firmware/keira
+        working-directory: ./
         run: |
           idf.py -p . set-target esp32
           idf.py build -DPARTITION_TABLE_FILENAME=default_16MB.csv
