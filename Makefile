@@ -1,5 +1,11 @@
 ENV ?= v2
 
+CPPCHECK ?= cppcheck
+CLANG_FORMAT ?= $(shell command -v clang-format-17 2>/dev/null || echo clang-format)
+
+help: ## Show this help
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-16s\033[0m %s\n", $$1, $$2}'
+
 all:
 	pio -f -c vim run -e $(ENV)
 
@@ -20,7 +26,6 @@ compile_commands:
 
 uploadfs:
 	pio run -t uploadfs -e $(ENV)
-
 
 .PHONY: clang-format
 clang-format: ## Run clang-format check
