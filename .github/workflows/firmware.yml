@@ -44,7 +44,7 @@ jobs:
         working-directory: ./
         run: |
           cp .pio/build/v2/firmware.bin keira.bin
-          cp .pio/build/v2/partitions.bin partition.bin
+          cp .pio/build/v2/partitions.bin partitions.bin
           cp .pio/build/v2/bootloader.bin bootloader.bin
 
       - name: Set up Python
@@ -58,13 +58,13 @@ jobs:
       - name: Combine firmware files
         working-directory: ./
         run: |
-          esptool.py --chip esp32 merge_bin \
+          esptool.py --chip esp32s3 merge_bin \
           -o KeiraOS.bin \
           --flash_mode dio \
           --flash_freq 40m \
           --flash_size 16MB \
           0x1000 ./bootloader.bin \
-          0x8000 ./partition-table.bin \
+          0x8000 ./partitions.bin \
           0x10000 ./keira.bin
 
       - name: Upload firmware artifact
