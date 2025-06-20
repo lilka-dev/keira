@@ -24,6 +24,10 @@
 .. toctree::
     :caption: Посилання
 
+    Головна документація <https://docs.lilka.dev>
+    Документація KeiraOS <https://docs.lilka.dev/projects/keira/>
+    Документація SDK <https://docs.lilka.dev/projects/sdk/>
+
     GitHub (Keira OS) <https://github.com/lilka-dev/keira>
     Discord <https://discord.gg/HU68TaKCu6>
 

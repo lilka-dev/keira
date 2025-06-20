@@ -66,6 +66,13 @@ def setup(app):
     app.add_message_catalog("sphinx", custom_locale_path)
 
 
+# -- Inter-project links -----------------------------------------------------
+extensions.append("sphinx.ext.intersphinx")
+intersphinx_mapping = {
+    "lilka-uk": ("https://docs.lilka.dev/uk/latest/", None),
+    "sdk-uk": ("https://docs.lilka.dev/projects/sdk/uk/latest/", None),
+}
+
 # -- Breathe configuration ---------------------------------------------------
 
 extensions.append("breathe")

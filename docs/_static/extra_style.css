@@ -49,5 +49,14 @@ wy-nav-side li.toctree-l1.current svg {
 }
 
 .wy-menu-vertical header, .wy-menu-vertical p.caption {
-    color: orange;
+    color: #FF8000;
+}
+
+.wy-nav-top {
+    background: #FF8000;
+    color: #000;
+}
+
+.wy-nav-top a {
+    color: #000;
 }
