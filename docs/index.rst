@@ -8,7 +8,11 @@
 Більше інформації про **Keira OS** - на `наступній сторінці <features>`_.
 
 .. toctree::
+    << Назад до головної документації <https://docs.lilka.dev>
+
+.. toctree::
     :maxdepth: 3
+    :caption: Зміст
 
     features
     flashing
@@ -20,7 +24,7 @@
 .. toctree::
     :caption: Посилання
 
-    GitHub <https://github.com/lilka-dev/keira>
+    GitHub (Keira OS) <https://github.com/lilka-dev/keira>
     Discord <https://discord.gg/HU68TaKCu6>
 
 .. .. toctree::
