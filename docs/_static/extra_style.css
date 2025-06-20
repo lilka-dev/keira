@@ -41,3 +41,13 @@ wy-nav-side li.toctree-l1.current svg {
 .rst-content table.docutils td, .rst-content table.docutils th, .rst-content table.field-list td, .rst-content table.field-list th, .wy-table td, .wy-table th {
 	padding: 8px;
 }
+
+/* Colors */
+
+.wy-side-nav-search {
+    background: #343131;
+}
+
+.wy-menu-vertical header, .wy-menu-vertical p.caption {
+    color: orange;
+}

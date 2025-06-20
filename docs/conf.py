@@ -10,7 +10,7 @@ import sys
 import os
 from os import path
 
-project = "Лілка"
+project = "KeiraOS для Лілки"
 copyright = "2024, Andrew Dunai"
 author = "Andrew Dunai"
 
