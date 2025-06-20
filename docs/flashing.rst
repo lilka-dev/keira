@@ -22,7 +22,7 @@
    .. image:: ./images/09_clone_cropped.png
        :width: 80%
 
-2. Після клонування репозиторію перейдіть на вкладку **PlatformIO** та імпортуйте проєкт прошивки Keira для Лілки. Для цього натисніть "**Open Project**" та виберіть директорію ``lilka/firmware/keira``.
+2. Після клонування репозиторію перейдіть на вкладку **PlatformIO** та імпортуйте проєкт прошивки Keira для Лілки. Для цього натисніть "**Open Project**" та виберіть директорію Кіри.
 
    .. image:: ./images/11_open_pio_project_cropped.png
        :width: 80%
