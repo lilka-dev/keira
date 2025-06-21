@@ -207,9 +207,7 @@
 #define K_S_FMANAGER_CANT_DO_OP                     "Не можу виконати операцію"
 #define K_S_FMANAGER_FILE_ADDED_TO_BUFFER_EXCHANGE  "Файл додано в буфер обміну"
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// apps/liltracker/liltracker.cpp /////////////////////////////////////////////////////////////////////
-#define K_S_LILTRACKER_CANT_CREATE_DIR        "Не вдалося створити директорію"
-#define K_S_LILTRACKER_CANT_OPEN_DIR          "Не вдалося відкрити директорію"
+// apps/liltracker/liltracker.cpp ////////////////////////////////////////////
 #define K_S_LILTRACKER_SAVE_TRACK             "Зберегти трек"
 #define K_S_LILTRACKER_OPEN_TRACK             "Відкрити трек"
 #define K_S_LILTRACKER_CREATE_NEW_TRACK       "++ Створити новий"

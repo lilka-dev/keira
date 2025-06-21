@@ -653,13 +653,14 @@ void FileManagerApp::fileInfoShowAlert() {
     // TODO: after adding something like long text viewer into ui,
     // add other possible data to show
     if (currentEntry.type == FT_DIR) {
-        info =
-            StringFormat(K_S_FMANAGER_ABOUT_DIR_FMT, lilka::fileutils.joinPath(currentEntry.path, currentEntry.name));
+        info = StringFormat(
+            K_S_FMANAGER_ABOUT_DIR_FMT, lilka::fileutils.joinPath(currentEntry.path, currentEntry.name).c_str()
+        );
     } else {
         info = StringFormat(
             K_S_FMANAGER_ABOUT_FILE_FMT,
-            lilka::fileutils.getHumanFriendlySize(currentEntry.st_size),
-            getFileMD5(lilka::fileutils.joinPath(currentEntry.path, currentEntry.name))
+            lilka::fileutils.getHumanFriendlySize(currentEntry.st_size).c_str(),
+            getFileMD5(lilka::fileutils.joinPath(currentEntry.path, currentEntry.name)).c_str()
         );
     }
 
