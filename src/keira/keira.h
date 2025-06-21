@@ -5,6 +5,8 @@
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#include "keira_lang.h"
+
 // BUTTONS:  //////////////////////////////////////////////////////////////////////////////////////////
 #define K_BTN_BACK         lilka::Button::B
 #define K_BTN_EXIT         K_BTN_BACK
@@ -45,3 +47,8 @@
 #define SET_BIT(data, bit_no, bit_value) \
     ((data) = ((bit_value) & 0b1) ? ((data) | (1 << (bit_no))) : ((data) & ~(1 << (bit_no))))
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// Thing to move to sdk, but cause we now load it from platformio, hehehehehehe
+
+// sdk->stringutils
+String StringFormat(const char* fmt, ...);
