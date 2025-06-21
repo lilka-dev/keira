@@ -6,6 +6,8 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // GUIDELINE: Keira all strings used in messages, or somehow written to serial, should be defined here
 
+//clang-format off
+
 // Multi purpose strings  /////////////////////////////////////////////////////////////////////////////
 #define K_S_ERROR                       "Помилка"
 #define K_S_ATTENTION                   "Увага"
@@ -155,36 +157,35 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // apps/fmanager.cpp/.h ///////////////////////////////////////////////////////////////////////////////
-#define K_S_FMANAGER_COPYING               "Копіювання..."
-#define K_S_FMANAGER_MD5_CALC              "Обчислення МD5"
-#define K_S_FMANAGER_LOADING               "Завантаження"
-#define K_S_FMANAGER_ENTER_NEW_FOLDER_NAME "Введіть назву нової папки"
-#define K_S_FMANAGER_ENTER_NEW_NAME        "Введіть нову назву"
-#define K_S_FMANAGER_OPTIONS               "Опції"
-#define K_S_FMANAGER_OPEN                  "Відкрити"
-#define K_S_FMANAGER_OPEN_WITH             "Відкрити з"
-#define K_S_FMANAGER_CREATE_FOLDER         "Створити папку"
-#define K_S_FMANAGER_RENAME                "Перейменувати"
-#define K_S_FMANAGER_DELETE                "Видалити"
-#define K_S_FMANAGER_INFO_ABOUT_FILE       "Інформація"
-#define K_S_FMANAGER_SELECT_APP            "Оберіть додаток"
-#define K_S_FMANAGER_FILE_MANAGER          "Файловий менеджер"
-#define K_S_FMANAGER_NES_EMULATOR          "Емулятор NES"
-#define K_S_FMANAGER_FIRMWARE_LOADER       "Завантажувач прошивок"
-#define K_S_FMANAGER_LUA                   "Lua"
-#define K_S_FMANAGER_MJS                   "mJS"
-#define K_S_FMANAGER_LILTRACKER            K_S_LAUNCHER_LILTRACKER
-#define K_S_FMANAGER_MOD_PLAYER            "Програвач MOD"
-#define K_S_FMANAGER_ACTIONS_ON_SELECTED   "Дії над вибраним"
-#define K_S_FMANAGER_COPY_SELECTED         "Копіювати вибране"
-#define K_S_FMANAGER_MOVE_SELECTED         "Перемістити вибране"
-#define K_S_FMANAGER_DELETE_SELECTED       "Видалити вибране"
-#define K_S_FMANAGER_CLEAR_SELECTION       "Очистити вибране"
-#define K_S_FMANAGER_CALC_INTERRUPTED      "Не обчислено"
-#define K_S_FMANAGER_ARE_YOU_SURE_ALERT    "Ви впевнені?"
-#define K_S_FMANAGER_THIS_OP_WOULD_DELETE  "Ця операція видалить "
-#define K_S_FMANAGER_FILE_S                " файл(ів)"
-#define K_S_FMANAGER_CONTINUE_OR_EXIT      "\nПродовжити: START\nВихід: B"
+#define K_S_FMANAGER_COPYING                              "Копіювання..."
+#define K_S_FMANAGER_MD5_CALC                             "Обчислення МD5"
+#define K_S_FMANAGER_LOADING                              "Завантаження"
+#define K_S_FMANAGER_ENTER_NEW_FOLDER_NAME                "Введіть назву нової папки"
+#define K_S_FMANAGER_ENTER_NEW_NAME                       "Введіть нову назву"
+#define K_S_FMANAGER_OPTIONS                              "Опції"
+#define K_S_FMANAGER_OPEN                                 "Відкрити"
+#define K_S_FMANAGER_OPEN_WITH                            "Відкрити з"
+#define K_S_FMANAGER_CREATE_FOLDER                        "Створити папку"
+#define K_S_FMANAGER_RENAME                               "Перейменувати"
+#define K_S_FMANAGER_DELETE                               "Видалити"
+#define K_S_FMANAGER_INFO_ABOUT_FILE                      "Інформація"
+#define K_S_FMANAGER_SELECT_APP                           "Оберіть додаток"
+#define K_S_FMANAGER_FILE_MANAGER                         "Файловий менеджер"
+#define K_S_FMANAGER_NES_EMULATOR                         "Емулятор NES"
+#define K_S_FMANAGER_FIRMWARE_LOADER                      "Завантажувач прошивок"
+#define K_S_FMANAGER_LUA                                  "Lua"
+#define K_S_FMANAGER_MJS                                  "mJS"
+#define K_S_FMANAGER_LILTRACKER                           K_S_LAUNCHER_LILTRACKER
+#define K_S_FMANAGER_MOD_PLAYER                           "Програвач MOD"
+#define K_S_FMANAGER_ACTIONS_ON_SELECTED                  "Дії над вибраним"
+#define K_S_FMANAGER_COPY_SELECTED                        "Копіювати вибране"
+#define K_S_FMANAGER_MOVE_SELECTED                        "Перемістити вибране"
+#define K_S_FMANAGER_DELETE_SELECTED                      "Видалити вибране"
+#define K_S_FMANAGER_CLEAR_SELECTION                      "Очистити вибране"
+#define K_S_FMANAGER_CALC_INTERRUPTED                     "Не обчислено"
+#define K_S_FMANAGER_ARE_YOU_SURE_ALERT                   "Ви впевнені?"
+#define K_S_FMANAGER_THIS_OP_WOULD_DELETE_FILE_FMT        "Ця операція видалить файл %s\nПродовжити: START\nВихід: B"
+#define K_S_FMANAGER_THIS_OP_WOULD_DELETE_COUNT_FILES_FMT "Ця операція видалить %d файлів\nПродовжити: START\nВихід: B"
 #define K_S_FMANAGER_ABOUT_DIR_FMT \
     "Тип: директорія\n"            \
     "Шлях: %s"
@@ -257,3 +258,12 @@
 #define K_S_LETRIS_GAME_OVER      "Game over"
 #define K_S_LETRIS_GAME_OVER_LONG "Гру завершено!\nТи намагався. :)"
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// apps/settings/sound.cpp /////////////////////////////////////////////////////////////////////
+#define K_S_SETTINGS_SOUND_VOLUME         "Гучність:"
+#define K_S_SETTINGS_SOUND_STARTRUP       "Звук вітання:"
+#define K_S_SETTINGS_SOUND_BUZZER_STARTUP "Вітання бузером:"
+#define K_S_SETTINGS_SOUND_SAVE           "<< Зберегти"
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//clang-format on

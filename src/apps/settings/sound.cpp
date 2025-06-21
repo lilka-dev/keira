@@ -1,3 +1,4 @@
+#include "keira/keira.h"
 #include "sound.h"
 
 SoundConfigApp::SoundConfigApp() : App("SoundConfig") {
@@ -12,13 +13,13 @@ void SoundConfigApp::saveSettings() {
 }
 
 void SoundConfigApp::run() {
-    lilka::Menu soundMenu("Звук");
+    lilka::Menu soundMenu(K_S_SETTINGS_SOUND);
 
     lilka::MenuItem mItems[] = {
-        {"Гучність:", NULL, lilka::colors::White, String("< ") + String(volumeLevel) + " >"},
-        {"Звук вітання:", NULL, lilka::colors::White, (startupSound) ? "ON" : "OFF"},
-        {"Вітання бузером:", NULL, lilka::colors::White, (startupBuzzer) ? "ON" : "OFF"},
-        {"<< Зберегти", NULL, lilka::colors::White, ""}
+        {K_S_SETTINGS_SOUND_VOLUME, NULL, lilka::colors::White, String("< ") + String(volumeLevel) + " >"},
+        {K_S_SETTINGS_SOUND_STARTRUP, NULL, lilka::colors::White, (startupSound) ? "ON" : "OFF"},
+        {K_S_SETTINGS_SOUND_BUZZER_STARTUP, NULL, lilka::colors::White, (startupBuzzer) ? "ON" : "OFF"},
+        {K_S_SETTINGS_SOUND_SAVE, NULL, lilka::colors::White, ""}
     };
 
     for (auto i = 0; i < sizeof(mItems) / sizeof(mItems[0]); i++)

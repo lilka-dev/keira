@@ -567,8 +567,7 @@ void FileManagerApp::onFileOptionsMenuDelete() {
         if (mode == FM_MODE_SELECT) {
             lilka::Alert checkAlert(
                 K_S_FMANAGER_ARE_YOU_SURE_ALERT,
-                String(K_S_FMANAGER_THIS_OP_WOULD_DELETE) + selectedDirEntries.size() + K_S_FMANAGER_FILE_S +
-                    K_S_FMANAGER_CONTINUE_OR_EXIT
+                StringFormat(K_S_FMANAGER_THIS_OP_WOULD_DELETE_COUNT_FILES_FMT, selectedDirEntries.size())
             );
             checkAlert.addActivationButton(FM_EXIT_BUTTON);
             checkAlert.addActivationButton(FM_CONFIRM_BUTTON);
@@ -970,8 +969,7 @@ void FileManagerApp::deleteEntry(const FMEntry& entry, bool force) {
     // Perform check on user sureness
     if (!force) {
         lilka::Alert checkAlert(
-            K_S_FMANAGER_ARE_YOU_SURE_ALERT,
-            String(K_S_FMANAGER_THIS_OP_WOULD_DELETE_FILE) + path + K_S_FMANAGER_CONTINUE_OR_EXIT
+            K_S_FMANAGER_ARE_YOU_SURE_ALERT, StringFormat(K_S_FMANAGER_THIS_OP_WOULD_DELETE_FILE_FMT, path.c_str())
         );
         checkAlert.addActivationButton(FM_EXIT_BUTTON);
         checkAlert.addActivationButton(FM_CONFIRM_BUTTON);

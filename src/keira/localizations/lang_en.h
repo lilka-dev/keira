@@ -6,6 +6,8 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // GUIDELINE: Keira all strings used in messages, or somehow written to serial, should be defined here
 
+//clang-format off
+
 // Multi purpose strings  /////////////////////////////////////////////////////////////////////////////
 #define K_S_ERROR                       "Error"
 #define K_S_ATTENTION                   "Attention"
@@ -149,42 +151,43 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // apps/demos/transform.cpp ///////////////////////////////////////////////////////////////////////////
-#define K_S_TRANSFORM_CANT_LOAD_FACE     "Can't load face.bmp з SD-карти." // FACEPALM.BMP
+#define K_S_TRANSFORM_CANT_LOAD_FACE     "Can't load face.bmp from SD card." // FACEPALM.BMP
 #define K_S_TRANFORM_DRAWING_FACE_AT_FMT "Drawing face at %d, %d"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // apps/fmanager.cpp/.h ///////////////////////////////////////////////////////////////////////////////
-#define K_S_FMANAGER_COPYING               "Copying..."
-#define K_S_FMANAGER_MD5_CALC              "Calculating МD5"
-#define K_S_FMANAGER_LOADING               "Loading"
-#define K_S_FMANAGER_ENTER_NEW_FOLDER_NAME "Enter new folder name"
-#define K_S_FMANAGER_ENTER_NEW_NAME        "Enter new name"
-#define K_S_FMANAGER_OPTIONS               "Options"
-#define K_S_FMANAGER_OPEN                  "Open"
-#define K_S_FMANAGER_OPEN_WITH             "Open with"
-#define K_S_FMANAGER_CREATE_FOLDER         "Make directory"
-#define K_S_FMANAGER_RENAME                "Rename"
-#define K_S_FMANAGER_DELETE                "Delete"
-#define K_S_FMANAGER_INFO_ABOUT_FILE       "Information"
-#define K_S_FMANAGER_SELECT_APP            "Select app"
-#define K_S_FMANAGER_FILE_MANAGER          "File Manager"
-#define K_S_FMANAGER_NES_EMULATOR          "NES Emulator"
-#define K_S_FMANAGER_FIRMWARE_LOADER       "Flash loader"
-#define K_S_FMANAGER_LUA                   "Lua"
-#define K_S_FMANAGER_MJS                   "mJS"
-#define K_S_FMANAGER_LILTRACKER            K_S_LAUNCHER_LILTRACKER
-#define K_S_FMANAGER_MOD_PLAYER            "MOD Player"
-#define K_S_FMANAGER_ACTIONS_ON_SELECTED   "Actions on selected"
-#define K_S_FMANAGER_COPY_SELECTED         "Copy selected"
-#define K_S_FMANAGER_MOVE_SELECTED         "Move selected"
-#define K_S_FMANAGER_DELETE_SELECTED       "Delete selected"
-#define K_S_FMANAGER_CLEAR_SELECTION       "Clear selection"
-#define K_S_FMANAGER_CALC_INTERRUPTED      "Not calculated"
-#define K_S_FMANAGER_ARE_YOU_SURE_ALERT    "Are you sure"
-#define K_S_FMANAGER_THIS_OP_WOULD_DELETE  "This opereation would delete "
-#define K_S_FMANAGER_FILE_S                " file(s)"
-#define K_S_FMANAGER_CONTINUE_OR_EXIT      "\nProceed: START\nExit: B"
+#define K_S_FMANAGER_COPYING                       "Copying..."
+#define K_S_FMANAGER_MD5_CALC                      "Computing МD5"
+#define K_S_FMANAGER_LOADING                       "Loading"
+#define K_S_FMANAGER_ENTER_NEW_FOLDER_NAME         "Enter new folder name"
+#define K_S_FMANAGER_ENTER_NEW_NAME                "Enter new name"
+#define K_S_FMANAGER_OPTIONS                       "Options"
+#define K_S_FMANAGER_OPEN                          "Open"
+#define K_S_FMANAGER_OPEN_WITH                     "Open with"
+#define K_S_FMANAGER_CREATE_FOLDER                 "Make directory"
+#define K_S_FMANAGER_RENAME                        "Rename"
+#define K_S_FMANAGER_DELETE                        "Delete"
+#define K_S_FMANAGER_INFO_ABOUT_FILE               "Information"
+#define K_S_FMANAGER_SELECT_APP                    "Select app"
+#define K_S_FMANAGER_FILE_MANAGER                  "File Manager"
+#define K_S_FMANAGER_NES_EMULATOR                  "NES Emulator"
+#define K_S_FMANAGER_FIRMWARE_LOADER               "Flash loader"
+#define K_S_FMANAGER_LUA                           "Lua"
+#define K_S_FMANAGER_MJS                           "mJS"
+#define K_S_FMANAGER_LILTRACKER                    K_S_LAUNCHER_LILTRACKER
+#define K_S_FMANAGER_MOD_PLAYER                    "MOD Player"
+#define K_S_FMANAGER_ACTIONS_ON_SELECTED           "Actions on selected"
+#define K_S_FMANAGER_COPY_SELECTED                 "Copy selected"
+#define K_S_FMANAGER_MOVE_SELECTED                 "Move selected"
+#define K_S_FMANAGER_DELETE_SELECTED               "Delete selected"
+#define K_S_FMANAGER_CLEAR_SELECTION               "Clear selection"
+#define K_S_FMANAGER_CALC_INTERRUPTED              "Not computed"
+#define K_S_FMANAGER_ARE_YOU_SURE_ALERT            "Are you sure"
+
+#define K_S_FMANAGER_THIS_OP_WOULD_DELETE_FILE_FMT "This operation would delete file\n %s\nProceed: START\nExit: B"
+#define K_S_FMANAGER_THIS_OP_WOULD_DELETE_COUNT_FILES_FMT \
+    "This operation would delete %d file(s)\nProceed: START\nExit: B"
 #define K_S_FMANAGER_ABOUT_DIR_FMT \
     "Type: directory\n"            \
     "Path: %s"
@@ -257,3 +260,13 @@
 #define K_S_LETRIS_GAME_OVER      "Game over"
 #define K_S_LETRIS_GAME_OVER_LONG "Game over!\nYou tried. :)"
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// apps/settings/sound.cpp /////////////////////////////////////////////////////////////////////
+#define K_S_SETTINGS_SOUND                "Sound"
+#define K_S_SETTINGS_SOUND_VOLUME         "Volume:"
+#define K_S_SETTINGS_SOUND_STARTRUP       "Startup on Boot:"
+#define K_S_SETTINGS_SOUND_BUZZER_STARTUP "Buzzer on Boot:"
+#define K_S_SETTINGS_SOUND_SAVE           "<< Save"
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//clang-format on
