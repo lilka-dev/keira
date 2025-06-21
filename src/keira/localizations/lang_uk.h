@@ -260,6 +260,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // apps/settings/sound.cpp /////////////////////////////////////////////////////////////////////
+#define K_S_SETTINGS_SOUND                "Звук"
 #define K_S_SETTINGS_SOUND_VOLUME         "Гучність:"
 #define K_S_SETTINGS_SOUND_STARTRUP       "Звук вітання:"
 #define K_S_SETTINGS_SOUND_BUZZER_STARTUP "Вітання бузером:"
