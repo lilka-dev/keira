@@ -854,19 +854,19 @@ String LilTrackerApp::filePicker(String ext, bool isSave) {
     // List files
     if (!SD.exists(LILTRACKER_DIR)) {
         if (!SD.mkdir(LILTRACKER_DIR)) {
-            alert(K_S_ERROR, "Не вдалося створити директорію " LILTRACKER_DIR);
+            alert(K_S_ERROR, StringFormat(K_S_CANT_CREATE_DIR_FMT, LILTRACKER_DIR));
             return "";
         }
     }
     File root = SD.open("/liltracker");
     if (!root) {
-        alert(K_S_ERROR, K_S_LILTRACKER_CANT_OPEN_DIR_PREFIX LILTRACKER_DIR);
+        alert(K_S_ERROR, StringFormat(K_S_CANT_OPEN_DIR_FMT, LILTRACKER_DIR));
         return "";
     }
 
     int fileCount = lilka::fileutils.getEntryCount(&SD, LILTRACKER_DIR);
     if (fileCount == 0 && !isSave) {
-        alert(K_S_ERROR, "Директорія " LILTRACKER_DIR " порожня");
+        alert(K_S_ERROR, StringFormat(K_S_DIR_EMPTY_FMT, LILTRACKER_DIR));
         return "";
     }
 
@@ -874,9 +874,9 @@ String LilTrackerApp::filePicker(String ext, bool isSave) {
     std::vector<String> filenames;
     lilka::fileutils.listDir(&SD, LILTRACKER_DIR, entries);
 
-    lilka::Menu menu(isSave ? "Зберегти трек" : "Відкрити трек");
+    lilka::Menu menu(isSave ? K_S_LILTRACKER_SAVE_TRACK : K_S_LILTRACKER_OPEN_TRACK);
     if (isSave) {
-        menu.addItem("++ Створити новий");
+        menu.addItem(K_S_LILTRACKER_CREATE_NEW_TRACK);
     }
     for (int i = 0; i < fileCount; i++) {
         if (entries[i].type == lilka::EntryType::ENT_DIRECTORY) {
@@ -940,7 +940,7 @@ String LilTrackerApp::filePicker(String ext, bool isSave) {
 void LilTrackerApp::loadTrack(Track* track, String filename) {
     File file = SD.open(filename, FILE_READ);
     if (!file) {
-        alert(K_S_ERROR, K_S_LILTRACKER_CANT_OPEN_FILE_PREFIX + filename);
+        alert(K_S_ERROR, StringFormat(K_S_CANT_OPEN_FILE_FMT, filename.c_str()));
         return;
     }
     Defer closeFile([&file]() { file.close(); });
@@ -954,13 +954,13 @@ void LilTrackerApp::saveTrack(Track* track, String filename) {
     if (SD.exists(filename)) {
         // Remove existing file
         if (!SD.remove(filename)) {
-            alert(K_S_ERROR, K_S_LILTRACKER_CANT_REMOVE_FILE_PREFIX + filename);
+            alert(K_S_ERROR, StringFormat(K_S_CANT_REMOVE_FILE_FMT, filename.c_str()));
             return;
         }
     }
     File file = SD.open(filename, FILE_WRITE);
     if (!file) {
-        alert(K_S_ERROR, K_S_LILTRACKER_CANT_OPEN_FILE_PREFIX + filename);
+        alert(K_S_ERROR, StringFormat(K_S_CANT_OPEN_FILE_FMT, filename.c_str()));
         return;
     }
     Defer closeFile([&file]() { file.close(); });

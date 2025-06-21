@@ -770,7 +770,7 @@ void FileManagerApp::fileSelectionOptionsMenuShow() {
 bool FileManagerApp::fileListMenuLoadDir() {
     auto dir = opendir(currentPath.c_str());
     if (dir == NULL) { // Can't open dir
-        alert(K_S_ERROR, K_S_CANT_OPEN_DIR);
+        alert(K_S_ERROR, StringFormat(K_S_CANT_OPEN_DIR_FMT, currentPath.c_str()));
         return false;
     }
 
