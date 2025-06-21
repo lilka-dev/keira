@@ -1,6 +1,6 @@
 #pragma once
 
-#include "keira.h"
+#include "keira/keira.h"
 
 #include <app.h>
 #include "appmanager.h"

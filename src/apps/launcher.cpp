@@ -1,6 +1,6 @@
 #include <ff.h>
 #include <FS.h>
-#include "keira.h"
+#include "keira/keira.h"
 #include "launcher.h"
 #include "appmanager.h"
 
@@ -330,19 +330,18 @@ void LauncherApp::about() {
     alert(K_S_OS_NAME, K_S_OS_DESCRIPTION);
 }
 void LauncherApp::info() {
-    char buf[256];
-    sprintf(
-        buf,
-        K_S_LAUNCHER_CHIP_MODEL "\n" K_S_LAUNCHER_CHIP_REVISION "\n" K_S_LAUNCHER_ESP_IDF_VERSION
-                                "\n" K_S_LAUNCHER_CPU_FREQUENCY "\n" K_S_LAUNCHER_CHIP_CORES "\n" K_S_LAUNCHER_IP,
-        ESP.getChipModel(),
-        ESP.getChipRevision(),
-        esp_get_idf_version(),
-        ESP.getCpuFreqMHz(),
-        ESP.getChipCores(),
-        networkService->getIpAddr().c_str()
+    alert(
+        K_S_LAUNCHER_DEVICE_INFO,
+        StringFormat(
+            K_S_LAUNCHER_DEVICE_INFO_FMT,
+            ESP.getChipModel(),
+            ESP.getChipRevision(),
+            esp_get_idf_version(),
+            ESP.getCpuFreqMHz(),
+            ESP.getChipCores(),
+            networkService->getIpAddr().c_str()
+        )
     );
-    alert(K_S_LAUNCHER_DEVICE_INFO, buf);
 }
 void LauncherApp::partitions() {
     // TODO : support more than 16 partitions
@@ -355,8 +354,11 @@ void LauncherApp::partitions() {
         partitionsMenu.push_back(ITEM::MENU(names[i].c_str(), [this, partition]() {
             alert(
                 partition,
-                String(K_S_LAUNCHER_ADDRESS_PREFIX) + String(lilka::sys.get_partition_address(partition.c_str()), HEX) +
-                    "\n" + K_S_LAUNCHER_SIZE_PREFIX + String(lilka::sys.get_partition_size(partition.c_str()), HEX)
+                StringFormat(
+                    K_S_LAUNCHER_PARTITION_FMT,
+                    String(lilka::sys.get_partition_address(partition.c_str()), HEX).c_str(),
+                    String(lilka::sys.get_partition_size(partition.c_str()), HEX).c_str()
+                )
             );
         }));
     }

@@ -1,5 +1,5 @@
 #include <WiFi.h>
-#include "keira.h"
+#include "keira/keira.h"
 #include "wifi_config.h"
 #include "servicemanager.h"
 #include "services/network.h"
@@ -64,7 +64,7 @@ void WiFiConfigApp::run() {
 
     int16_t count = WiFi.scanNetworks(false);
     if (count < 0) {
-        lilka::Alert alert(K_S_ERROR, K_S_WIFI_CONFIG_SCAN_ERROR_CODE_PREFIX + String(count));
+        lilka::Alert alert(K_S_ERROR, StringFormat(K_S_WIFI_CONFIG_SCAN_ERROR_CODE_FMT, count));
         alert.draw(canvas);
         queueDraw();
         while (!alert.isFinished()) {
@@ -126,10 +126,14 @@ void WiFiConfigApp::run() {
         }
         if (menu.getButton() == lilka::Button::C) {
             int16_t index = menu.getCursor();
-            String networkInfo = K_S_WIFI_CONFIG_CHANNEL_PREFIX + String(WiFi.channel(index)) + "\n";
-            networkInfo += K_S_WIFI_CONFIG_SIGNAL_STRENGTH_PREFIX + String(WiFi.RSSI(index)) + "db\n";
-            networkInfo += K_S_WIFI_CONFIG_MAC_PREFIX + WiFi.BSSIDstr(index) + "\n";
-            networkInfo += K_S_WIFI_CONFIG_SECURITY_PREFIX + getEncryptionTypeStr(WiFi.encryptionType(index)) + "\n";
+            String networkInfo = StringFormat(
+                K_S_WIFI_CONFIG_ABOUT_NETWORK_FMT,
+                WiFi.channel(index),
+                WiFi.RSSI(index),
+                WiFi.BSSIDstr(index).c_str(),
+                getEncryptionTypeStr(WiFi.encryptionType(index))
+            );
+
             lilka::Alert info(networks[menu.getCursor()], networkInfo);
             while (!info.isFinished()) {
                 info.update();
@@ -144,9 +148,7 @@ void WiFiConfigApp::run() {
         // Check if WiFi network is insecure
         if (WiFi.encryptionType(cursor) == WIFI_AUTH_OPEN) {
             lilka::Alert alert(
-                K_S_ATTENTION,
-                K_S_WIFI_CONFIG_CONNECTING_TO_OPEN_NETWORK_PREFIX + ssid +
-                    K_S_WIFI_CONFIG_CONTINUE_OR_SELECT_ANOTHER_NETWORK
+                K_S_ATTENTION, StringFormat(K_S_WIFI_CONFIG_CONNECTING_TO_OPEN_INSECURE_NETWORK_FMT, ssid.c_str())
             );
             alert.addActivationButton(lilka::Button::B);
             alert.draw(canvas);
@@ -196,10 +198,10 @@ void WiFiConfigApp::run() {
         bool success = networkService->getNetworkState() == NETWORK_STATE_ONLINE;
         if (success) {
             alert.setTitle(K_S_SUCCESS);
-            alert.setMessage(K_S_WIFI_CONFIG_CONNECTED_TO_NETWORK_PREFIX + ssid);
+            alert.setMessage(StringFormat(K_S_WIFI_CONFIG_CONNECTED_TO_NETWORK_FMT, ssid.c_str()));
         } else {
             alert.setTitle(K_S_ERROR);
-            alert.setMessage(K_S_WIFI_CONFIG_CANT_CONNECT_TO_NETWORK_PREFIX + ssid);
+            alert.setMessage(StringFormat(K_S_WIFI_CONFIG_CANT_CONNECT_TO_NETWORK_FMT, ssid.c_str()));
         }
 
         alert.draw(canvas);

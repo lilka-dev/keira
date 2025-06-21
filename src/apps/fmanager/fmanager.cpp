@@ -653,12 +653,14 @@ void FileManagerApp::fileInfoShowAlert() {
     // TODO: after adding something like long text viewer into ui,
     // add other possible data to show
     if (currentEntry.type == FT_DIR) {
-        info = K_S_FMANAGER_TYPE_DIR "\n";
-        info += K_S_FMANAGER_PATH_PREFIX + lilka::fileutils.joinPath(currentEntry.path, currentEntry.name);
+        info =
+            StringFormat(K_S_FMANAGER_ABOUT_DIR_FMT, lilka::fileutils.joinPath(currentEntry.path, currentEntry.name));
     } else {
-        info = K_S_FMANAGER_TYPE_FILE "\n";
-        info += K_S_FMANAGER_SIZE_PREFIX + lilka::fileutils.getHumanFriendlySize(currentEntry.st_size) + "\n";
-        info += "MD5: " + getFileMD5(lilka::fileutils.joinPath(currentEntry.path, currentEntry.name)) + "\n";
+        info = StringFormat(
+            K_S_FMANAGER_ABOUT_FILE_FMT,
+            lilka::fileutils.getHumanFriendlySize(currentEntry.st_size),
+            getFileMD5(lilka::fileutils.joinPath(currentEntry.path, currentEntry.name))
+        );
     }
 
     alert(currentEntry.name, info);
@@ -721,10 +723,14 @@ void FileManagerApp::fileLoadAsRom(const String& path) {
     int error;
     error = lilka::multiboot.start(path);
     if (error) {
-        alert(K_S_ERROR, String(K_S_FMANAGER_MULTIBOOT_ERROR_STAGE1_CODE_PREFIX) + error);
+        alert(K_S_ERROR, StringFormat(K_S_FMANAGER_MULTIBOOT_ERROR_FMT, 1, error));
         return;
     }
-    dialog.setMessage(path + "\n\n" K_S_FMANAGER_SIZE_PREFIX + String(lilka::multiboot.getBytesTotal()) + " Б");
+    dialog.setMessage(StringFormat(
+        K_S_FMANAGER_MULTIBOOT_ABOUT_FMT,
+        path.c_str(),
+        lilka::fileutils.getHumanFriendlySize(lilka::multiboot.getBytesTotal()).c_str()
+    ));
     dialog.draw(canvas);
     queueDraw();
     while ((error = lilka::multiboot.process()) > 0) {
@@ -738,12 +744,12 @@ void FileManagerApp::fileLoadAsRom(const String& path) {
         }
     }
     if (error < 0) {
-        alert(K_S_ERROR, String(K_S_FMANAGER_MULTIBOOT_ERROR_STAGE2_CODE_PREFIX) + error);
+        alert(K_S_ERROR, StringFormat(K_S_FMANAGER_MULTIBOOT_ERROR_FMT, 2, error));
         return;
     }
     error = lilka::multiboot.finishAndReboot();
     if (error) {
-        alert(K_S_ERROR, String(K_S_FMANAGER_MULTIBOOT_ERROR_STAGE3_CODE_PREFIX) + error);
+        alert(K_S_ERROR, StringFormat(K_S_FMANAGER_MULTIBOOT_ERROR_FMT, 3, error));
         return;
     }
 }
@@ -1209,7 +1215,7 @@ void FileManagerApp::drawStatusBar() {
     // Other significant data to show
     if (mode == FM_MODE_SELECT) {
         canvas->setTextColor(lilka::colors::White);
-        canvas->printf(K_S_FMANAGER_SELECTED_FILE_S, selectedDirEntries.size());
+        canvas->printf(K_S_FMANAGER_SELECTED_FILES_FMT, selectedDirEntries.size());
     } else if (mode == FM_MODE_VIEW) {
         canvas->setTextColor(lilka::colors::White);
         auto fileListMenuIndex = fileListMenu.getCursor();

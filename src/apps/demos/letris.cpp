@@ -1,5 +1,5 @@
 #include "letris.h"
-#include "keira.h"
+#include "keira/keira.h"
 #include "letris_splash.h"
 
 #define BLOCK_SIZE 10

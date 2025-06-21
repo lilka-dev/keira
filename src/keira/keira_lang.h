@@ -32,8 +32,8 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // service.cpp  ///////////////////////////////////////////////////////////////////////////////////////
-#define K_S_SERVICE_STARTUP "Starting service %s"
-#define K_S_SERVICE_DIE     "Service %s died"
+#define K_S_SERVICE_STARTUP_FMT "Starting service %s"
+#define K_S_SERVICE_DIE_FMT     "Service %s died"
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // apps/launcher.cpp //////////////////////////////////////////////////////////////////////////////////
@@ -87,15 +87,17 @@
 
 #define K_S_LAUNCHER_ENABLE_WIFI_FIRST "Спочатку увімкніть WiFi-адаптер"
 
-#define K_S_LAUNCHER_CHIP_MODEL        "Модель: %s"
-#define K_S_LAUNCHER_CHIP_REVISION     "Ревізія: %d"
-#define K_S_LAUNCHER_ESP_IDF_VERSION   "Версія ESP-IDF: %s"
-#define K_S_LAUNCHER_CPU_FREQUENCY     "Частота: %d МГц"
-#define K_S_LAUNCHER_CHIP_CORES        "Кількість ядер: %d"
-#define K_S_LAUNCHER_IP                "IP: %s"
-#define K_S_LAUNCHER_ADDRESS_PREFIX    "Адреса: 0x"
-#define K_S_LAUNCHER_SIZE_PREFIX       "Розмір: 0x"
-#define K_S_LAUNCHER_FORMAT            "Форматування"
+#define K_S_LAUNCHER_DEVICE_INFO_FMT \
+    "Модель: %s\n"                   \
+    "Ревізія: %d\n"                  \
+    "Версія ESP-IDF: %s\n"           \
+    "Частота: %d МГц\n"              \
+    "Кількість ядер: %d\n"           \
+    "IP: %s"
+
+#define K_S_LAUNCHER_PARTITION_FMT "Адреса: 0x%s\nРозмір: 0x%s"
+
+#define K_S_LAUNCHER_FORMAT        "Форматування"
 
 #define K_S_LAUNCHER_FORMAT_DISCLAIMER_ALERT    \
     "УВАГА: Це очистить ВСІ дані з SD-карти!\n" \
@@ -113,36 +115,38 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // apps/wifi_config.cpp ///////////////////////////////////////////////////////////////////////////////
-#define K_S_WIFI_CONFIG_SCANING_NETWORKS                  "Скануємо мережі WiFi..."
-#define K_S_WIFI_CONFIG_SCAN_ERROR_CODE_PREFIX            "Не вдалося сканувати мережі, код помилки: "
-#define K_S_WIFI_CONFIG_NETWORKS                          "Мережі"
-#define K_S_WIFI_CONFIG_CHANNEL_PREFIX                    "Канал: "
-#define K_S_WIFI_CONFIG_SIGNAL_STRENGTH_PREFIX            "Сила сигналу: "
-#define K_S_WIFI_CONFIG_MAC_PREFIX                        "MAC: "
-#define K_S_WIFI_CONFIG_SECURITY_PREFIX                   "Захист: "
-#define K_S_WIFI_CONFIG_CONNECTING_TO_OPEN_NETWORK_PREFIX "Ви під'єднуєтеся до незахищеної мережі "
+#define K_S_WIFI_CONFIG_SCANING_NETWORKS    "Скануємо мережі WiFi..."
+#define K_S_WIFI_CONFIG_SCAN_ERROR_CODE_FMT "Не вдалося сканувати мережі, код помилки: %d"
+#define K_S_WIFI_CONFIG_NETWORKS            "Мережі"
 
-#define K_S_WIFI_CONFIG_CONTINUE_OR_SELECT_ANOTHER_NETWORK \
-    "\n\n"                                                 \
-    "A - продовжити\n"                                     \
+#define K_S_WIFI_CONFIG_ABOUT_NETWORK_FMT \
+    "Канал: %d\n"                         \
+    "Сила сигналу: %ddb\n"                \
+    "MAC: %s\n"                           \
+    "Захист: %s"
+
+#define K_S_WIFI_CONFIG_CONNECTING_TO_OPEN_INSECURE_NETWORK_FMT \
+    "Ви під'єднуєтеся до незахищеної мережі %s\n\n"             \
+    "A - продовжити\n"                                          \
     "B - обрати іншу мережу"
-#define K_S_WIFI_CONFIG_ENTER_PASSWORD                 "Введіть пароль:"
-#define K_S_WIFI_CONFIG_CONNECTING                     "Під'єднуємось..."
-#define K_S_WIFI_CONFIG_CONNECTED_TO_NETWORK_PREFIX    "Під'єднано до мережі "
-#define K_S_WIFI_CONFIG_CANT_CONNECT_TO_NETWORK_PREFIX "Не вдалося під'єднатись до мережі "
+
+#define K_S_WIFI_CONFIG_ENTER_PASSWORD              "Введіть пароль:"
+#define K_S_WIFI_CONFIG_CONNECTING                  "Під'єднуємось..."
+#define K_S_WIFI_CONFIG_CONNECTED_TO_NETWORK_FMT    "Під'єднано до мережі %s"
+#define K_S_WIFI_CONFIG_CANT_CONNECT_TO_NETWORK_FMT "Не вдалося під'єднатись до мережі %s"
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // apps/demos/scan_i2c.cpp ////////////////////////////////////////////////////////////////////////////
-#define K_S_I2C_SCANNER_SDA_PREFIX    "I2C init: SDA="
-#define K_S_I2C_SCANNER_SCL_PREFIX    ", SCL="
+#define K_S_I2C_INIT_ABOUT            "I2C init: SDA=%d, SCL=%d"
 #define K_S_I2C_SCANNER_SCAN_START    "Starting I2C scan..."
 #define K_S_I2C_SCANNER_SCAN_DONE     "I2C scan done."
 #define K_S_I2C_SCANNER_DEVICES_FOUND "Found %d devices."
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // apps/demos/transform.cpp ///////////////////////////////////////////////////////////////////////////
-#define K_S_TRANSFORM_CANT_LOAD_FACE "Не вдалось завантажити face.bmp з SD-карти." // FACEPALM.BMP
-#define K_S_DRAWING_FACE_AT_PREFIX   "Drawing face at "
+#define K_S_TRANSFORM_CANT_LOAD_FACE     "Не вдалось завантажити face.bmp з SD-карти." // FACEPALM.BMP
+#define K_S_TRANFORM_DRAWING_FACE_AT_FMT "Drawing face at %d, %d"
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // apps/fmanager.cpp/.h ///////////////////////////////////////////////////////////////////////////////
@@ -176,23 +180,26 @@
 #define K_S_FMANAGER_THIS_OP_WOULD_DELETE  "Ця операція видалить "
 #define K_S_FMANAGER_FILE_S                " файл(ів)"
 #define K_S_FMANAGER_CONTINUE_OR_EXIT      "\nПродовжити: START\nВихід: B"
-#define K_S_FMANAGER_TYPE_DIR              "Тип: директорія"
-#define K_S_FMANAGER_PATH_PREFIX           "Шлях: "
-#define K_S_FMANAGER_TYPE_FILE             "Тип: файл"
-#define K_S_FMANAGER_SIZE_PREFIX           "Розмір: "
-#define K_S_FMANAGER_MD5_PREFIX            "MD5: "
+#define K_S_FMANAGER_ABOUT_DIR_FMT \
+    "Тип: директорія\n"            \
+    "Шлях: %s"
+
+#define K_S_FMANAGER_ABOUT_FILE_FMT \
+    "Тип: файл\n"                   \
+    "Розмір: %s\n" \ 
+    "MD5: %s\n"
 // TODO: MOVE MULTIBOOT TO SEPARATE APP
-#define K_S_FMANAGER_MULTIBOOT_STARTING                 "Починаємо..."
-#define K_S_FMANAGER_MULTIBOOT_ERROR_STAGE1_CODE_PREFIX "Етап: 1\nКод: "
-#define K_S_FMANAGER_MULTIBOOT_ERROR_STAGE2_CODE_PREFIX "Етап: 2\nКод: "
-#define K_S_FMANAGER_MULTIBOOT_ERROR_STAGE3_CODE_PREFIX "Етап: 3\nКод: "
-#define K_S_FMANAGER_SORTING                            "Сортування..."
-#define K_S_FMANAGER_ALMOST_DONE                        "Майже готово..."
-#define K_S_FMANAGER_THIS_OP_WOULD_DELETE_FILE          "Ця операція видалить файл\n"
-#define K_S_FMANAGER_NOT_ENOUGH_MEMORY_TO_FINISH_OP     "Недостатньо пам'яті аби завершити операіцю"
-#define K_S_FMANAGER_SELECTED_FILE_S                    "Вибрано %d файл(ів)"
-#define K_S_FMANAGER_CANT_DO_OP                         "Не можу виконати операцію"
-#define K_S_FMANAGER_FILE_ADDED_TO_BUFFER_EXCHANGE      "Файл додано в буфер обміну"
+#define K_S_FMANAGER_MULTIBOOT_ABOUT_FMT            "%s\n\nРозмір: %s"
+
+#define K_S_FMANAGER_MULTIBOOT_STARTING             "Починаємо..."
+#define K_S_FMANAGER_MULTIBOOT_ERROR_FMT            "Етап: %d\nКод: %d"
+#define K_S_FMANAGER_SORTING                        "Сортування..."
+#define K_S_FMANAGER_ALMOST_DONE                    "Майже готово..."
+#define K_S_FMANAGER_THIS_OP_WOULD_DELETE_FILE      "Ця операція видалить файл\n"
+#define K_S_FMANAGER_NOT_ENOUGH_MEMORY_TO_FINISH_OP "Недостатньо пам'яті аби завершити операіцю"
+#define K_S_FMANAGER_SELECTED_FILES_FMT             "Вибрано %d файл(ів)"
+#define K_S_FMANAGER_CANT_DO_OP                     "Не можу виконати операцію"
+#define K_S_FMANAGER_FILE_ADDED_TO_BUFFER_EXCHANGE  "Файл додано в буфер обміну"
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // apps/liltracker/liltracker.cpp /////////////////////////////////////////////////////////////////////
 #define K_S_LILTRACKER_CANT_CREATE_DIR         "Не вдалося створити директорію"

@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include <Wire.h>
-#include "keira.h"
+#include "keira/keira.h"
 #include "scan_i2c.h"
 
 ScanI2CApp::ScanI2CApp() : App("I2C Scanner") {
@@ -16,7 +16,8 @@ void ScanI2CApp::run() {
     buffer.fillScreen(lilka::colors::Black);
     buffer.setTextBound(4, 0, canvas->width() - 8, canvas->height());
     buffer.setCursor(4, 20);
-    buffer.println(K_S_I2C_SCANNER_SDA_PREFIX + String(LILKA_P3) + K_S_I2C_SCANNER_SCL_PREFIX + String(LILKA_P4));
+
+    buffer.println(StringFormat(K_S_I2C_INIT_ABOUT, LILKA_P3, LILKA_P4));
     Wire.begin(LILKA_P3, LILKA_P4, 100000);
     buffer.println(K_S_I2C_SCANNER_SCAN_START);
     canvas->drawCanvas(&buffer);

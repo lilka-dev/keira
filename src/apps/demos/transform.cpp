@@ -1,5 +1,5 @@
 #include "transform.h"
-#include "keira.h"
+#include "keira/keira.h"
 #include <math.h>
 
 TransformApp::TransformApp() : App("Transform") {
@@ -21,7 +21,7 @@ void TransformApp::run() {
     int x = canvas->width() / 2;
     int y = canvas->height() / 2;
 
-    Serial.println(K_S_DRAWING_FACE_AT_PREFIX + String(x) + ", " + String(y));
+    Serial.println(StringFormat(K_S_TRANFORM_DRAWING_FACE_AT_FMT, x, y));
 
     int angle = 0;
 

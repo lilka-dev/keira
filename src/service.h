@@ -1,7 +1,7 @@
 #pragma once
 
 #include <lilka.h>
-#include "keira.h"
+#include "keira/keira.h"
 #include "appmanager.h"
 
 class Service {
