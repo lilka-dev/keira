@@ -178,9 +178,9 @@ void ScreenshotService::run() {
             appManager->renderToCanvas(&canvas);
 
             if (saveScreenshot(&canvas)) {
-                AppManager::getInstance()->startToast("Скріншот збережено");
+                AppManager::getInstance()->startToast(K_S_SCREENSHOT_SAVED);
             } else {
-                AppManager::getInstance()->startToast("Помилка збереження скріншоту");
+                AppManager::getInstance()->startToast(K_S_SCREENSHOT_SAVE_ERROR);
             }
         } else if (!state.select.pressed || !state.start.pressed) {
             activated = false;
