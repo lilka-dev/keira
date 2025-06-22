@@ -260,9 +260,9 @@ void NetworkService::setNetworkState(NetworkState state) {
     if (this->state != state) {
         this->state = state;
         if (state == NETWORK_STATE_OFFLINE) {
-            AppManager::getInstance()->startToast("WiFi втрачено", 2000);
+            AppManager::getInstance()->startToast(K_S_NET_OFFLINE, 2000);
         } else if (state == NETWORK_STATE_ONLINE) {
-            AppManager::getInstance()->startToast("Приєднано до WiFi", 2000);
+            AppManager::getInstance()->startToast(K_S_NET_ONLINE, 2000);
         }
     }
 }
