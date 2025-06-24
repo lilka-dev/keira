@@ -59,7 +59,7 @@ jobs:
         working-directory: ./
         run: |
           esptool.py --chip esp32s3 merge_bin \
-          -o KeiraOS.bin \
+          -o KeiraOS_merged.bin \
           0x0 ./bootloader.bin \
           0x8000 ./partitions.bin \
           0x10000 ./keira.bin
@@ -68,11 +68,11 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: KeiraOS-firmware
-          path: ./KeiraOS.bin
+          path: ./*.bin
 
       - name: Upload KeiraOS.bin to Release
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: ./KeiraOS.bin
+          files: ./*.bin
           
