@@ -8,8 +8,7 @@ LilCatalogApp::LilCatalogApp() : App(K_S_LILCATALOG_APP) {
     setStackSize(8192);
     path_catalog_folder = "/lilcatalog";
     path_catalog_file = "/lilcatalog/catalog.json";
-    catalog_url = "https://raw.githubusercontent.com/lilka-dev/lilka/refs/heads/main/firmware/keira/src/apps/"
-                  "lilcatalog/catalog.json";
+    catalog_url = "https://raw.githubusercontent.com/lilka-dev/keira/refs/heads/main/src/apps/lilcatalog/catalog.json";
 }
 
 void LilCatalogApp::run() {
