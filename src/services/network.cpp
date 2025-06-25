@@ -28,14 +28,28 @@ NetworkService::NetworkService() :
 }
 
 void NetworkService::run() {
+    // Loading settings from NVS
     Preferences prefs;
     prefs.begin(WIFI_KEIRA_NAMESPACE, true);
     bool enabled = prefs.isKey("enabled") ? prefs.getBool("enabled") : false;
+
+    // Set transmit power
     wifi_power_t txPower =
         prefs.isKey("txPower") ? static_cast<wifi_power_t>(prefs.getInt("txPower")) : WIFI_POWER_19_5dBm;
+    WiFi.setTxPower(txPower);
+
     prefs.end();
 
-    WiFi.setTxPower(txPower);
+    // Setting Lilka hostname
+    // Take LILKA_HOSTNAME_PREFIX as a prefix and append MAC to it
+    // This value should be random enough to avoid potential conflicts
+    uint8_t mac[6];
+    WiFi.macAddress(mac);
+    char cstrMac[50];
+    sprintf(cstrMac, LILKA_HOSTNAME_PREFIX STR(LILKA_VERSION) "_%02X%02X%02X", mac[3], mac[4], mac[5]);
+    WiFi.setHostname(cstrMac);
+
+    // Handling events
     WiFi.onEvent([this](WiFiEvent_t event, WiFiEventInfo_t info) {
         switch (event) {
             case ARDUINO_EVENT_WIFI_STA_START: {
@@ -146,14 +160,6 @@ void NetworkService::run() {
 }
 
 void NetworkService::autoConnect() {
-    // Setting Lilka hostname
-    // Take LILKA_HOSTNAME_PREFIX as a prefix and append MAC to it
-    // This value should be random enough to avoid potential conflicts
-    uint8_t mac[6];
-    WiFi.macAddress(mac);
-    char cstrMac[50];
-    sprintf(cstrMac, LILKA_HOSTNAME_PREFIX STR(LILKA_VERSION) "_%02X%02X%02X", mac[3], mac[4], mac[5]);
-    WiFi.setHostname(cstrMac);
     WiFi.mode(WIFI_STA);
 
     // Check if there is a known network to connect to
