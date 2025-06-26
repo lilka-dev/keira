@@ -48,7 +48,9 @@ FileManagerApp::FileManagerApp(const String& path) :
     fileOpenWithMenu.addItem("Lua", 0, 0U, "", FM_CALLBACK_CAST(onFileOpenWithLua), FM_CALLBACK_PTHIS);
     fileOpenWithMenu.addItem("mJS", 0, 0U, "", FM_CALLBACK_CAST(onFileOpenWithMJS), FM_CALLBACK_PTHIS);
     fileOpenWithMenu.addItem("ЛілТрекер", 0, 0U, "", FM_CALLBACK_CAST(onFileOpenWithLilTracker), FM_CALLBACK_PTHIS);
-    fileOpenWithMenu.addItem("Програвач MOD", 0, 0U, "", FM_CALLBACK_CAST(onFileOpenWithMODPlayer), FM_CALLBACK_PTHIS);
+    fileOpenWithMenu.addItem(
+        "Програвач аудіо", 0, 0U, "", FM_CALLBACK_CAST(onFileOpenWithMODPlayer), FM_CALLBACK_PTHIS
+    );
     fileOpenWithMenu.addItem("<< Назад", 0, 0U, "", FM_CALLBACK_CAST(onAnyMenuBack), FM_CALLBACK_PTHIS);
 
     fileOpenWithMenu.addActivationButton(FM_EXIT_BUTTON);
@@ -202,7 +204,7 @@ FMEntry FileManagerApp::pathToEntry(const String& path) {
         newEntry.type = FT_JS_SCRIPT;
         newEntry.icon = FT_JS_SCRIPT_ICON;
         newEntry.color = FT_JS_SCRIPT_COLOR;
-    } else if (lowerCasedPath.endsWith(".mod")) {
+    } else if (lowerCasedPath.endsWith(".mod") || lowerCasedPath.endsWith(".wav") || lowerCasedPath.endsWith(".mp3")) {
         newEntry.type = FT_MOD;
         newEntry.icon = FT_MOD_ICON;
         newEntry.color = FT_MOD_COLOR;
