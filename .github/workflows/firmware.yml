@@ -5,8 +5,6 @@ name: firmware
 
 on:
   push:
-    branches:
-      - dev
     tags:
       - 'v[0-9]+.[0-9]+.[0-9]+'
   pull_request: {}
@@ -36,43 +34,31 @@ jobs:
       - name: Install PlatformIO Core
         run: pip install --upgrade platformio
 
-      - name: Build PlatformIO Project
-        working-directory: ./
-        run: pio run -e v2
-
-      - name: Copy firmware
-        working-directory: ./
+      - name: Build and package firmware for all languages
         run: |
-          cp .pio/build/v2/firmware.bin keira.bin
-          cp .pio/build/v2/partitions.bin partitions.bin
-          cp .pio/build/v2/bootloader.bin bootloader.bin
+          mkdir -p out
+          for lang in $(cat languages.txt); do
+            echo "Building for $lang"
+            PLATFORMIO_BUILD_FLAGS=-D$lang pio run -e v2
+            cp .pio/build/v2/firmware.bin out/keira_${lang}.bin
+            cp .pio/build/v2/partitions.bin out/partitions_${lang}.bin
+            cp .pio/build/v2/bootloader.bin out/bootloader_${lang}.bin
+            pip install esptool
+            esptool.py --chip esp32s3 merge_bin \
+              -o out/KeiraOS_merged_${lang}.bin \
+              0x0 out/bootloader_${lang}.bin \
+              0x8000 out/partitions_${lang}.bin \
+              0x10000 out/keira_${lang}.bin
+          done
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.x'
-
-      - name: Install esptool
-        run: pip install esptool
-
-      - name: Combine firmware files
-        working-directory: ./
-        run: |
-          esptool.py --chip esp32s3 merge_bin \
-          -o KeiraOS_merged.bin \
-          0x0 ./bootloader.bin \
-          0x8000 ./partitions.bin \
-          0x10000 ./keira.bin
-
-      - name: Upload firmware artifact
+      - name: Upload firmware artifacts
         uses: actions/upload-artifact@v4
         with:
           name: KeiraOS-firmware
-          path: ./*.bin
+          path: out/*.bin
 
-      - name: Upload KeiraOS.bin to Release
+      - name: Upload KeiraOS bins to Release
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: ./*.bin
-          
+          files: out/*.bin
