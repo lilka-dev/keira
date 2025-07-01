@@ -41,13 +41,13 @@ jobs:
             echo "Building for $lang"
             PLATFORMIO_BUILD_FLAGS=-D$lang pio run -e v2
             cp .pio/build/v2/firmware.bin out/keira_${lang}.bin
-            cp .pio/build/v2/partitions.bin out/partitions_${lang}.bin
-            cp .pio/build/v2/bootloader.bin out/bootloader_${lang}.bin
+            cp .pio/build/v2/partitions.bin out/partitions.bin
+            cp .pio/build/v2/bootloader.bin out/bootloader.bin
             pip install esptool
             esptool.py --chip esp32s3 merge_bin \
               -o out/KeiraOS_merged_${lang}.bin \
-              0x0 out/bootloader_${lang}.bin \
-              0x8000 out/partitions_${lang}.bin \
+              0x0 out/bootloader.bin \
+              0x8000 out/partitions.bin \
               0x10000 out/keira_${lang}.bin
           done
 
