@@ -279,4 +279,16 @@
 #define K_S_NET_ONLINE  "WiFi connected"
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// apps/demos/combo.cpp ///////////////////////////////////////////////////////////////////////////////
+#define K_S_COMBO_FOR_EXIT_HOLD            "To exit hold"
+#define K_S_COMBO_HOLD_SELECT_FOR_TIME_FMT "[SELECT] for %d s"
+#define K_S_COMBO_PRESS_START              "Press [START]"
+#define K_S_COMBO_TO_CONTINUE              "to continue"
+#define K_S_COMBO_PRESS                    "Press"
+#define K_S_COMBO_HOLD_ANY                 "Hold any"
+#define K_S_COMBO_BUTTON_FOR_ONE_SEC       "button for 1 s"
+#define K_S_COMBO_PRESS_TOGETHER           "Press together"
+#define K_S_COMBO_TIMEOUT_FMT              "Timeout %d ms"
+#define K_S_COMBO_END                      "End!"
+///////////////////////////////////////////////////////////////////////////////////////////////////////
 // clang-format on

@@ -276,4 +276,17 @@
 #define K_S_NET_OFFLINE "WiFi втрачено"
 #define K_S_NET_ONLINE  "Приєднано до WiFi"
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// apps/demos/combo.cpp ///////////////////////////////////////////////////////////////////////////////
+#define K_S_COMBO_FOR_EXIT_HOLD            "Для виходу затисніть"
+#define K_S_COMBO_HOLD_SELECT_FOR_TIME_FMT "[SELECT] на %d сек"
+#define K_S_COMBO_PRESS_START              "Натисніть [START]"
+#define K_S_COMBO_TO_CONTINUE              "для продовження"
+#define K_S_COMBO_PRESS                    "Натисніть"
+#define K_S_COMBO_HOLD_ANY                 "Затисніть будь-яку"
+#define K_S_COMBO_BUTTON_FOR_ONE_SEC       "кнопку на 1 сек"
+#define K_S_COMBO_PRESS_TOGETHER           "Натисніть разом"
+#define K_S_COMBO_TIMEOUT_FMT              "Таймаут %d мс"
+#define K_S_COMBO_END                      "Кінець!"
+///////////////////////////////////////////////////////////////////////////////////////////////////////
 // clang-format on
