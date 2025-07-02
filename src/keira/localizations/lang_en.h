@@ -122,7 +122,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // apps/wifi_config.cpp ///////////////////////////////////////////////////////////////////////////////
-#define K_S_WIFI_CONFIG_SCANING_NETWORKS    "Scanning WiFi neworks..."
+#define K_S_WIFI_CONFIG_SCANING_NETWORKS    "Scanning WiFi networks..."
 #define K_S_WIFI_CONFIG_SCAN_ERROR_CODE_FMT "Can't scan networks, error code: %d"
 #define K_S_WIFI_CONFIG_NETWORKS            "Networks"
 
