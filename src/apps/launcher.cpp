@@ -52,6 +52,13 @@ LauncherApp::LauncherApp() : App("Menu") {
 }
 
 void LauncherApp::run() {
+#ifdef KEIRA_DEBUG_APP
+#    ifdef KEIRA_DEBUG_APP_PARAMS
+    this->runApp<KEIRA_DEBUG_APP>(KEIRA_DEBUG_APP_PARAMS);
+#    else
+    this->runApp<KEIRA_DEBUG_APP>();
+#    endif
+#endif
     for (lilka::Button button : {lilka::Button::UP, lilka::Button::DOWN, lilka::Button::LEFT, lilka::Button::RIGHT}) {
         lilka::controller.setAutoRepeat(button, 10, 300);
     }
