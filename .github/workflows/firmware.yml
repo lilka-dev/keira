@@ -34,22 +34,36 @@ jobs:
       - name: Install PlatformIO Core
         run: pip install --upgrade platformio
 
-      - name: Build and package firmware for all languages
+      - name: Build and package firmware
         run: |
           mkdir -p out
-          for lang in $(cat languages.txt); do
-            echo "Building for $lang"
-            PLATFORMIO_BUILD_FLAGS=-D$lang pio run -e v2
-            cp .pio/build/v2/firmware.bin out/keira_${lang}.bin
+          if [[ "$(git branch --show-current)" == "main" ]]; then
+            for lang in $(cat languages.txt); do
+              echo "Building for $lang"
+              PLATFORMIO_BUILD_FLAGS=-D$lang pio run -e v2
+              cp .pio/build/v2/firmware.bin out/keira_${lang}.bin
+              cp .pio/build/v2/partitions.bin out/partitions.bin
+              cp .pio/build/v2/bootloader.bin out/bootloader.bin
+              pip install esptool
+              esptool.py --chip esp32s3 merge_bin \
+                -o out/KeiraOS_merged_${lang}.bin \
+                0x0 out/bootloader.bin \
+                0x8000 out/partitions.bin \
+                0x10000 out/keira_${lang}.bin
+            done
+          else
+            echo "Building for default language"
+            pio run -e v2
+            cp .pio/build/v2/firmware.bin out/keira.bin
             cp .pio/build/v2/partitions.bin out/partitions.bin
             cp .pio/build/v2/bootloader.bin out/bootloader.bin
             pip install esptool
             esptool.py --chip esp32s3 merge_bin \
-              -o out/KeiraOS_merged_${lang}.bin \
+              -o out/KeiraOS_merged.bin \
               0x0 out/bootloader.bin \
               0x8000 out/partitions.bin \
-              0x10000 out/keira_${lang}.bin
-          done
+              0x10000 out/keira.bin
+          fi
 
       - name: Upload firmware artifacts
         uses: actions/upload-artifact@v4
