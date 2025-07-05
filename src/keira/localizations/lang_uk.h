@@ -289,4 +289,67 @@
 #define K_S_COMBO_TIMEOUT_FMT              "Таймаут %d мс"
 #define K_S_COMBO_END                      "Кінець!"
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// apps/weather/weather.cpp ///////////////////////////////////////////////////////////////////////////
+#define K_S_WEATHER_CLEAR_SKY                     "Чисте небо" // 0
+
+#define K_S_WEATHER_MOSTLY_CLEAR                  "Переважно ясно" // 1
+#define K_S_WEATHER_PARTLY_CLOUDY                 "Частково хмарно" // 2
+#define K_S_WEATHER_OVERCAST                      "Хмарно" //3
+
+#define K_S_WEATHER_FOG                           "Туман" //45
+#define K_S_WEATHER_FREEZING_FOG                  "Паморозь" //48
+
+#define K_S_WEATHER_LIGHT_DRIZZLE                 "Легка мжичка" //51
+#define K_S_WEATHER_DRIZZLE                       "Мжичка" //53
+#define K_S_WEATHER_HEAVY_DRIZZLE                 "Сильна мжичка" //55
+
+#define K_S_WEATHER_LIGHT_FREEZING_DRIZZLE        "Легка мжичка" //56
+#define K_S_WEATHER_HEAVY_FREEZING_DRIZZLE        "Сильна мжичка" //57
+
+#define K_S_WEATHER_LIGHT_RAIN                    "Легкий дощ" //61
+#define K_S_WEATHER_RAIN                          "Дощ" //63
+#define K_S_WEATHER_HEAVY_RAIN                    "Сильний дощ" // 65
+
+#define K_S_WEATHER_LIGHT_FREEZING_RAIN           "Дощ" // 66
+#define K_S_WEATHER_HEAVY_FREEZING_RAIN           "Сильний дощ" //67
+
+#define K_S_WEATHER_LIGHT_SNOW                    "Легкий сніг" // 71
+#define K_S_WEATHER_SNOW                          "Сніг" // 73
+#define K_S_WEATHER_HEAVY_SNOW                    "Сильний сніг" // 75
+
+#define K_S_WEATHER_SNOW_GRAINS                   "Сніжинки" // 77
+
+#define K_S_WEATHER_LIGHT_SHOWERS                 "Легка злива" // 80
+#define K_S_WEATHER_SHOWERS                       "Злива" // 81
+#define K_S_WEATHER_HEAVY_SHOWERS                 "Сильна злива" // 82
+
+#define K_S_WEATHER_RAIN_AND_SNOW                 "Дощ зі снігом" // 85
+#define K_S_WEATHER_HEAVY_RAIN_AND_SNOW           "Сильний дощ зі снігом" // 86
+
+#define K_S_WEATHER_THUNDERSTORM                  "Легка гроза" // 95
+#define K_S_WEATHER_THUNDERSTORM_WITH_HAIL        "Гроза" // 96
+#define K_S_WEATHER_SEVERE_THUNDERSTORM_WITH_HAIL "Сильна гроза" // 99
+
+#define K_S_WEATHER_LOADING_DATA                  "Отримання даних..."
+#define K_S_WEATHER_DATA_PATTERN_ERROR            "Помилка десеріалізації"
+#define K_S_WEATHER_DATA_LOAD_ERROR_FMT           "Помилка отримання даних:\nКод відповіді: %d"
+
+#define K_S_WEATHER_LOCATION_NOT_SET              "Локацію не налаштовано"
+#define K_S_WEATHER_SELECT_TO_SETUP               "[SELECT] - налаштування"
+#define K_S_WEATHER_A_TO_EXIT                     "[A] - вихід" // LOL WHY
+#define K_S_WEATHER_TEMP_FMT                      "%.1f °C"
+#define K_S_WEATHER_WIND_SPEED_FMT                "%.1f км/год"
+
+#define K_S_WEATHER_LATITUDE                      "Широта"
+#define K_S_WEATHER_LATITUDE_S                    "широту"
+#define K_S_WEATHER_LONGITUDE                     "Довгота"
+#define K_S_WEATHER_LONGITUDE_S                   "довготу"
+
+#define K_S_WEATHER_INPUT                         "Введіть"
+
+#define K_S_WEATHER_SAVE                          "Зберегти"
+#define K_S_WEATHER_CANCEL                        "Скасувати"
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////
 // clang-format on
