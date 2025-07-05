@@ -291,4 +291,67 @@
 #define K_S_COMBO_TIMEOUT_FMT              "Timeout %d ms"
 #define K_S_COMBO_END                      "End!"
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// apps/weather/weather.cpp ///////////////////////////////////////////////////////////////////////////
+#define K_S_WEATHER_CLEAR_SKY                     "Clear sky" // 0
+
+#define K_S_WEATHER_MOSTLY_CLEAR                  "Mostly clear" // 1
+#define K_S_WEATHER_PARTLY_CLOUDY                 "Partly Cloudy" // 2
+#define K_S_WEATHER_OVERCAST                      "Overcast" //3
+
+#define K_S_WEATHER_FOG                           "Fog" //45
+#define K_S_WEATHER_FREEZING_FOG                  "Freezing fog" //48
+
+#define K_S_WEATHER_LIGHT_DRIZZLE                 "Light drizzle" //51
+#define K_S_WEATHER_DRIZZLE                       "Drizzle" //53
+#define K_S_WEATHER_HEAVY_DRIZZLE                 "Heavy drizzle" //55
+
+#define K_S_WEATHER_LIGHT_FREEZING_DRIZZLE        "Light freezing drizzle" //56
+#define K_S_WEATHER_HEAVY_FREEZING_DRIZZLE        "Heavy freezing drizzle" //57
+
+#define K_S_WEATHER_LIGHT_RAIN                    "Light rain" //61
+#define K_S_WEATHER_RAIN                          "Rain" //63
+#define K_S_WEATHER_HEAVY_RAIN                    "Heavy rain" // 65
+
+#define K_S_WEATHER_LIGHT_FREEZING_RAIN           "Light freezing rain" // 66
+#define K_S_WEATHER_HEAVY_FREEZING_RAIN           "Heavy freezing rain" //67
+
+#define K_S_WEATHER_LIGHT_SNOW                    "Light snow" // 71
+#define K_S_WEATHER_SNOW                          "Snow" // 73
+#define K_S_WEATHER_HEAVY_SNOW                    "Heavy snow" // 75
+
+#define K_S_WEATHER_SNOW_GRAINS                   "Snow grains" // 77
+
+#define K_S_WEATHER_LIGHT_SHOWERS                 "Light showers" // 80
+#define K_S_WEATHER_SHOWERS                       "Showers" // 81
+#define K_S_WEATHER_HEAVY_SHOWERS                 "Heavy showers" // 82
+
+#define K_S_WEATHER_RAIN_AND_SNOW                 "Rain and snow" // 85
+#define K_S_WEATHER_HEAVY_RAIN_AND_SNOW           "Heavy rain and snow" // 86
+
+#define K_S_WEATHER_THUNDERSTORM                  "Thunderstorm" // 95
+#define K_S_WEATHER_THUNDERSTORM_WITH_HAIL        "Thunderstorm with hail" // 96
+#define K_S_WEATHER_SEVERE_THUNDERSTORM_WITH_HAIL "Severe thunderstorm with hail" // 99
+
+#define K_S_WEATHER_LOADING_DATA                  "Loading data..."
+#define K_S_WEATHER_DATA_PATTERN_ERROR            "Data pattern error"
+#define K_S_WEATHER_DATA_LOAD_ERROR_FMT           "Load data error:\nStatus code: %d"
+
+#define K_S_WEATHER_LOCATION_NOT_SET              "Location isn't set"
+#define K_S_WEATHER_SELECT_TO_SETUP               "[SELECT] - setup"
+#define K_S_WEATHER_A_TO_EXIT                     "[A] - exit" // LOL WHY
+#define K_S_WEATHER_TEMP_FMT                      "%.1f °C"
+#define K_S_WEATHER_WIND_SPEED_FMT                "%.1f km/h"
+
+#define K_S_WEATHER_LATITUDE                      "Latitude"
+#define K_S_WEATHER_LATITUDE_S                    "latitude"
+#define K_S_WEATHER_LONGITUDE                     "Longitude"
+#define K_S_WEATHER_LONGITUDE_S                   "longitude"
+
+#define K_S_WEATHER_INPUT                         "Input"
+
+#define K_S_WEATHER_SAVE                          "Save"
+#define K_S_WEATHER_CANCEL                        "Cancel"
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////
 // clang-format on
