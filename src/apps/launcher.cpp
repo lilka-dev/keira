@@ -52,6 +52,13 @@ LauncherApp::LauncherApp() : App("Menu") {
 }
 
 void LauncherApp::run() {
+#ifdef KEIRA_DEBUG_APP
+#    ifdef KEIRA_DEBUG_APP_PARAMS
+    this->runApp<KEIRA_DEBUG_APP>(KEIRA_DEBUG_APP_PARAMS);
+#    else
+    this->runApp<KEIRA_DEBUG_APP>();
+#    endif
+#endif
     for (lilka::Button button : {lilka::Button::UP, lilka::Button::DOWN, lilka::Button::LEFT, lilka::Button::RIGHT}) {
         lilka::controller.setAutoRepeat(button, 10, 300);
     }
@@ -88,16 +95,11 @@ void LauncherApp::run() {
                         &app_group_img, 0
                     ),
                     ITEM::APP(K_S_LAUNCHER_LILCATALOG, [this]() { this->runApp<LilCatalogApp>(); }),
-                    ITEM::APP(K_S_LAUNCHER_LILTRACKER, [this]() {
-        this->runApp<LilTrackerApp>(); }),
-                    ITEM::APP(K_S_LAUNCHER_LETRIS, [this]() {
-        this->runApp<LetrisApp>(); }),
-                    ITEM::APP(K_S_LAUNCHER_TAMAGOTCHI, [this]() {
-        this->runApp<TamagotchiApp>(); }),
-                    ITEM::APP(K_S_LAUNCHER_WEATHER, [this]() {
-        this->runApp<WeatherApp>(); }),
-                    ITEM::APP(K_S_LAUNCHER_PASTEBIN, [this]() {
-        this->runApp<pastebinApp>(); }),
+                    ITEM::APP(K_S_LAUNCHER_LILTRACKER, [this]() { this->runApp<LilTrackerApp>(); }),
+                    ITEM::APP(K_S_LAUNCHER_LETRIS, [this]() { this->runApp<LetrisApp>(); }),
+                    ITEM::APP(K_S_LAUNCHER_TAMAGOTCHI, [this]() { this->runApp<TamagotchiApp>(); }),
+                    ITEM::APP(K_S_LAUNCHER_WEATHER, [this]() { this->runApp<WeatherApp>(); }),
+                    ITEM::APP(K_S_LAUNCHER_PASTEBIN, [this]() { this->runApp<pastebinApp>(); }),
                 },
                 &demos_img,
                 lilka::colors::Pink
