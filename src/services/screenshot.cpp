@@ -64,7 +64,7 @@ public:
             }
         }
         if (offset != length) {
-            lilka::serial_err("BMPEncoder error: offset != length");
+            lilka::serial.err("BMPEncoder error: offset != length");
             return false;
         }
         return true;
@@ -154,7 +154,7 @@ bool ScreenshotService::writeScreenshot(uint8_t* buffer, uint32_t length, const 
         time.tm_sec,
         ext
     );
-    lilka::serial_log("Screenshot filename: %s", filename);
+    lilka::serial.log("Screenshot filename: %s", filename);
 
     File file = SD.open(filename, FILE_WRITE, true);
     if (file) {
@@ -178,9 +178,9 @@ void ScreenshotService::run() {
             appManager->renderToCanvas(&canvas);
 
             if (saveScreenshot(&canvas)) {
-                AppManager::getInstance()->startToast("Скріншот збережено");
+                AppManager::getInstance()->startToast(K_S_SCREENSHOT_SAVED);
             } else {
-                AppManager::getInstance()->startToast("Помилка збереження скріншоту");
+                AppManager::getInstance()->startToast(K_S_SCREENSHOT_SAVE_ERROR);
             }
         } else if (!state.select.pressed || !state.start.pressed) {
             activated = false;

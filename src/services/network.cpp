@@ -28,23 +28,37 @@ NetworkService::NetworkService() :
 }
 
 void NetworkService::run() {
+    // Loading settings from NVS
     Preferences prefs;
     prefs.begin(WIFI_KEIRA_NAMESPACE, true);
     bool enabled = prefs.isKey("enabled") ? prefs.getBool("enabled") : false;
+
+    // Set transmit power
     wifi_power_t txPower =
         prefs.isKey("txPower") ? static_cast<wifi_power_t>(prefs.getInt("txPower")) : WIFI_POWER_19_5dBm;
+    WiFi.setTxPower(txPower);
+
     prefs.end();
 
-    WiFi.setTxPower(txPower);
+    // Setting Lilka hostname
+    // Take LILKA_HOSTNAME_PREFIX as a prefix and append MAC to it
+    // This value should be random enough to avoid potential conflicts
+    uint8_t mac[6];
+    WiFi.macAddress(mac);
+    char cstrMac[50];
+    sprintf(cstrMac, LILKA_HOSTNAME_PREFIX STR(LILKA_VERSION) "_%02X%02X%02X", mac[3], mac[4], mac[5]);
+    WiFi.setHostname(cstrMac);
+
+    // Handling events
     WiFi.onEvent([this](WiFiEvent_t event, WiFiEventInfo_t info) {
         switch (event) {
             case ARDUINO_EVENT_WIFI_STA_START: {
-                lilka::serial_log("NetworkService: got event: connecting to WiFi");
+                lilka::serial.log("NetworkService: got event: connecting to WiFi");
                 setNetworkState(NETWORK_STATE_CONNECTING);
                 break;
             }
             case ARDUINO_EVENT_WIFI_STA_CONNECTED: {
-                lilka::serial_log("NetworkService: got event: connected to WiFi");
+                lilka::serial.log("NetworkService: got event: connected to WiFi");
                 setNetworkState(NETWORK_STATE_ONLINE);
                 Preferences prefs;
                 String connectedSSID = String(info.wifi_sta_connected.ssid, info.wifi_sta_connected.ssid_len);
@@ -52,7 +66,7 @@ void NetworkService::run() {
                 if (!prefs.isKey("last_ssid") || !String(prefs.getString("last_ssid")).equals(connectedSSID)) {
                     // Set current SSID as last connected
                     prefs.putString("last_ssid", String(connectedSSID));
-                    lilka::serial_log("NetworkService: last SSID set to  %s", connectedSSID.c_str());
+                    lilka::serial.log("NetworkService: last SSID set to  %s", connectedSSID.c_str());
                 }
                 prefs.end();
                 String ssidHash = hash(connectedSSID);
@@ -61,13 +75,13 @@ void NetworkService::run() {
                 if (savedPassword != lastPassword) {
                     // Save password for the connected network
                     prefs.putString(String(ssidHash + "_pw").c_str(), lastPassword);
-                    lilka::serial_log("NetworkService: password for %s saved", connectedSSID.c_str());
+                    lilka::serial.log("NetworkService: password for %s saved", connectedSSID.c_str());
                 }
                 prefs.end();
                 break;
             }
             case ARDUINO_EVENT_WIFI_STA_DISCONNECTED: {
-                lilka::serial_log(
+                lilka::serial.log(
                     "NetworkService: got event: disconnected from WiFi, reason: %d", info.wifi_sta_disconnected.reason
                 );
                 setNetworkState(NETWORK_STATE_OFFLINE);
@@ -78,18 +92,18 @@ void NetworkService::run() {
             case ARDUINO_EVENT_WIFI_STA_GOT_IP6: {
                 IPAddress ip = WiFi.localIP();
                 ipAddr = ip.toString();
-                lilka::serial_log("NetworkService: got event: got IP address: %s", ipAddr.c_str());
+                lilka::serial.log("NetworkService: got event: got IP address: %s", ipAddr.c_str());
                 setNetworkState(NETWORK_STATE_ONLINE);
                 break;
             }
             case ARDUINO_EVENT_WIFI_STA_LOST_IP: {
-                lilka::serial_log("NetworkService: got event: lost IP address");
+                lilka::serial.log("NetworkService: got event: lost IP address");
                 ipAddr = "";
                 setNetworkState(NETWORK_STATE_OFFLINE);
                 break;
             }
             case ARDUINO_EVENT_WIFI_STA_STOP: {
-                lilka::serial_log("NetworkService: got event: WiFi stopped");
+                lilka::serial.log("NetworkService: got event: WiFi stopped");
                 setNetworkState(NETWORK_STATE_DISABLED);
                 break;
             }
@@ -99,12 +113,12 @@ void NetworkService::run() {
     });
 
     if (enabled) {
-        lilka::serial_log("NetworkService: WiFi is enabled, starting auto connection");
+        lilka::serial.log("NetworkService: WiFi is enabled, starting auto connection");
         setNetworkState(NETWORK_STATE_OFFLINE);
         WiFi.mode(WIFI_STA);
         autoConnect();
     } else {
-        lilka::serial_log("NetworkService: WiFi is disabled, not starting auto connection");
+        lilka::serial.log("NetworkService: WiFi is disabled, not starting auto connection");
         setNetworkState(NETWORK_STATE_DISABLED);
         WiFi.disconnect(true, true);
         WiFi.mode(WIFI_OFF);
@@ -116,10 +130,10 @@ void NetworkService::run() {
         if (esp_wifi_get_mode(&mode) == ESP_ERR_WIFI_NOT_INIT) {
             // WiFi was deallocated
             // TODO: This is a crutch to avoid using WiFi after deallocation by apps (e. g. LilTracker). /AD
-            // lilka::serial_log("NetworkService: WiFi deallocated");
+            // lilka::serial.log("NetworkService: WiFi deallocated");
         } else if (WiFi.status() == WL_DISCONNECTED) {
             // WiFi is disconnected
-            // lilka::serial_log("NetworkService: WiFi disconnected");
+            // lilka::serial.log("NetworkService: WiFi disconnected");
         } else {
             const int8_t rssi = WiFi.RSSI();
             if (rssi == 0) {
@@ -146,27 +160,19 @@ void NetworkService::run() {
 }
 
 void NetworkService::autoConnect() {
-    // Setting Lilka hostname
-    // Take LILKA_HOSTNAME_PREFIX as a prefix and append MAC to it
-    // This value should be random enough to avoid potential conflicts
-    uint8_t mac[6];
-    WiFi.macAddress(mac);
-    char cstrMac[50];
-    sprintf(cstrMac, LILKA_HOSTNAME_PREFIX STR(LILKA_VERSION) "_%02X%02X%02X", mac[3], mac[4], mac[5]);
-    WiFi.setHostname(cstrMac);
     WiFi.mode(WIFI_STA);
 
     // Check if there is a known network to connect to
     Preferences prefs;
     prefs.begin(WIFI_KEIRA_NAMESPACE, true);
     if (!prefs.isKey("last_ssid")) {
-        lilka::serial_log("NetworkService: no last SSID found, skipping auto connection");
+        lilka::serial.log("NetworkService: no last SSID found, skipping auto connection");
     } else {
         String currentSSID = prefs.getString("last_ssid");
-        lilka::serial_log("NetworkService: last SSID found: %s", currentSSID.c_str());
+        lilka::serial.log("NetworkService: last SSID found: %s", currentSSID.c_str());
         lastPassword = getPassword(currentSSID);
         if (lastPassword == "") {
-            lilka::serial_log("NetworkService: no password found for last SSID, skipping auto connection");
+            lilka::serial.log("NetworkService: no password found for last SSID, skipping auto connection");
         } else {
             connect(currentSSID, lastPassword);
         }
@@ -187,17 +193,17 @@ int NetworkService::getSignalStrength() {
 bool NetworkService::connect(String ssid) {
     String password = getPassword(ssid);
     if (password == "") {
-        lilka::serial_log("NetworkService: no password found for SSID %s", ssid.c_str());
+        lilka::serial.log("NetworkService: no password found for SSID %s", ssid.c_str());
         return false;
     }
-    lilka::serial_log("NetworkService: found password for SSID ", ssid.c_str());
+    lilka::serial.log("NetworkService: found password for SSID ", ssid.c_str());
     connect(ssid, password);
     return true;
 }
 
 // Attempt to connect to a given network with a given password.
 void NetworkService::connect(String ssid, String password) {
-    lilka::serial_log("NetworkService: connecting to %s", ssid.c_str());
+    lilka::serial.log("NetworkService: connecting to %s", ssid.c_str());
     lastPassword = password;
     WiFi.disconnect();
     WiFi.begin(ssid.c_str(), password.c_str());
@@ -213,7 +219,7 @@ void NetworkService::setEnabled(bool enabled) {
     prefs.putBool("enabled", enabled);
     prefs.end();
 
-    lilka::serial_log("NetworkService: WiFi set to %s", enabled ? "enabled" : "disabled");
+    lilka::serial.log("NetworkService: WiFi set to %s", enabled ? "enabled" : "disabled");
 
     if (enabled) {
         setNetworkState(NETWORK_STATE_OFFLINE);
@@ -260,9 +266,9 @@ void NetworkService::setNetworkState(NetworkState state) {
     if (this->state != state) {
         this->state = state;
         if (state == NETWORK_STATE_OFFLINE) {
-            AppManager::getInstance()->startToast("WiFi втрачено", 2000);
+            AppManager::getInstance()->startToast(K_S_NET_OFFLINE, 2000);
         } else if (state == NETWORK_STATE_ONLINE) {
-            AppManager::getInstance()->startToast("Приєднано до WiFi", 2000);
+            AppManager::getInstance()->startToast(K_S_NET_ONLINE, 2000);
         }
     }
 }

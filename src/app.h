@@ -1,5 +1,4 @@
-#ifndef MAIN_APP_H
-#define MAIN_APP_H
+#pragma once
 
 #include <Arduino.h>
 #include <lilka.h>
@@ -109,5 +108,3 @@ private:
     TaskHandle_t taskHandle;
     uint32_t stackSize;
 };
-
-#endif // MAIN_APP_H

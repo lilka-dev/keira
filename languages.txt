@@ -1,0 +1,2 @@
+LANG_UK
+LANG_EN

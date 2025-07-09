@@ -103,45 +103,46 @@ static std::map<uint8_t, const icon_t*> icons = {
 };
 
 static std::map<uint8_t, const char*> titles = {
-    {0, "Чисте небо"},
+    // Seems to be a WMO code
+    {0, K_S_WEATHER_CLEAR_SKY},
     //
-    {1, "Переважно ясно"},
-    {2, "Частково хмарно"},
-    {3, "Хмарно"},
+    {1, K_S_WEATHER_MOSTLY_CLEAR},
+    {2, K_S_WEATHER_PARTLY_CLOUDY},
+    {3, K_S_WEATHER_OVERCAST},
     //
-    {45, "Туман"},
-    {48, "Паморозь"},
+    {45, K_S_WEATHER_FOG},
+    {48, K_S_WEATHER_FREEZING_FOG},
     //
-    {51, "Легка мжичка"},
-    {53, "Мжичка"},
-    {55, "Сильна мжичка"},
+    {51, K_S_WEATHER_LIGHT_DRIZZLE},
+    {53, K_S_WEATHER_DRIZZLE},
+    {55, K_S_WEATHER_HEAVY_DRIZZLE},
     //
-    {56, "Легка мжичка"},
-    {57, "Сильна мжичка"},
+    {56, K_S_WEATHER_LIGHT_FREEZING_DRIZZLE},
+    {57, K_S_WEATHER_HEAVY_FREEZING_DRIZZLE},
     //
-    {61, "Легкий дощ"},
-    {63, "Дощ"},
-    {65, "Сильний дощ"},
+    {61, K_S_WEATHER_LIGHT_RAIN},
+    {63, K_S_WEATHER_RAIN},
+    {65, K_S_WEATHER_HEAVY_RAIN},
     //
-    {66, "Дощ"},
-    {67, "Сильний дощ"},
+    {66, K_S_WEATHER_LIGHT_FREEZING_RAIN},
+    {67, K_S_WEATHER_HEAVY_FREEZING_RAIN},
     //
-    {71, "Легкий сніг"},
-    {73, "Сніг"},
-    {75, "Сильний сніг"},
+    {71, K_S_WEATHER_LIGHT_SNOW},
+    {73, K_S_WEATHER_SNOW},
+    {75, K_S_WEATHER_HEAVY_SNOW},
     //
-    {77, "Сніжинки"},
+    {77, K_S_WEATHER_SNOW_GRAINS},
     //
-    {80, "Легка злива"},
-    {81, "Злива"},
-    {82, "Сильна злива"},
+    {80, K_S_WEATHER_LIGHT_SHOWERS},
+    {81, K_S_WEATHER_SHOWERS},
+    {82, K_S_WEATHER_HEAVY_SHOWERS},
     //
-    {85, "Дощ зі снігом"},
-    {86, "Сильний дощ зі снігом"},
+    {85, K_S_WEATHER_RAIN_AND_SNOW},
+    {86, K_S_WEATHER_HEAVY_RAIN_AND_SNOW},
     //
-    {95, "Легка гроза"},
-    {96, "Гроза"},
-    {99, "Сильна гроза"},
+    {95, K_S_WEATHER_THUNDERSTORM},
+    {96, K_S_WEATHER_THUNDERSTORM_WITH_HAIL},
+    {99, K_S_WEATHER_SEVERE_THUNDERSTORM_WITH_HAIL},
 };
 
 const char* urlTemplate = "https://api.open-meteo.com/v1/forecast"
@@ -171,7 +172,7 @@ void WeatherApp::run() {
         canvas->setCursor(32, 32 + 15);
         uint32_t wait = 60000;
         if (settings.isConfigured) {
-            canvas->println("Отримання даних...");
+            canvas->println(K_S_WEATHER_LOADING_DATA);
             queueDraw();
             // Get weather data
             char url[strlen(urlTemplate) + 32];
@@ -190,10 +191,10 @@ void WeatherApp::run() {
                 // Parse JSON
                 DeserializationError error = deserializeJson(data, http.getString());
                 if (error) {
-                    lilka::serial_err("deserializeJson() failed: %s", error.c_str());
+                    lilka::serial.err("deserializeJson() failed: %s", error.c_str());
                     canvas->fillScreen(lilka::colors::Black);
                     canvas->setCursor(32, 32 + 15);
-                    canvas->println("Помилка десеріалізації");
+                    canvas->println(K_S_WEATHER_DATA_PATTERN_ERROR);
                     wait = 5000;
                     queueDraw();
                 } else {
@@ -210,14 +211,16 @@ void WeatherApp::run() {
                         iconData = &icon->night;
                     }
                     title = titles[code];
-                    lilka::serial_log("Temperature: %.1f, Wind: %.1f, Code: %d", temp, wind, code);
+                    lilka::serial.log("Temperature: %.1f, Wind: %.1f, Code: %d", temp, wind, code);
                 }
             } else {
-                lilka::serial_log("HTTP GET failed, error: %s", http.errorToString(httpCode).c_str());
+                lilka::serial.log("HTTP GET failed, error: %s", http.errorToString(httpCode).c_str());
                 canvas->fillScreen(lilka::colors::Black);
                 canvas->setCursor(32, 32 + 15);
-                canvas->println("Помилка отримання даних:");
-                canvas->println("Код відповіді: " + String(httpCode));
+
+                String errStr = StringFormat(K_S_WEATHER_DATA_LOAD_ERROR_FMT, httpCode);
+                canvas->println(errStr.c_str());
+
                 wait = 1000;
                 queueDraw();
             }
@@ -239,16 +242,16 @@ void WeatherApp::run() {
                 canvas->print(title);
                 canvas->setFont(u8g2_font_10x20_te); // FONT_10x20 does not have degree symbol
                 canvas->setCursor(canvas->width() / 2, canvas->height() / 2 + 20 / 2 - 20);
-                canvas->print(String(temp, 1) + " °C");
+                canvas->print(StringFormat(K_S_WEATHER_TEMP_FMT, temp).c_str());
                 canvas->setFont(FONT_10x20);
                 canvas->setCursor(canvas->width() / 2, canvas->height() / 2 + 20 / 2 + 10);
-                canvas->print(String(wind, 1) + " км/год");
+                canvas->print(StringFormat(K_S_WEATHER_WIND_SPEED_FMT, wind).c_str());
                 queueDraw();
             }
         } else {
-            canvas->println("Локацію не налаштовано");
-            canvas->println("[SELECT] - налаштування");
-            canvas->println("[A] - вихід");
+            canvas->println(K_S_WEATHER_LOCATION_NOT_SET);
+            canvas->println(K_S_WEATHER_SELECT_TO_SETUP);
+            canvas->println(K_S_WEATHER_A_TO_EXIT);
             queueDraw();
         }
         uint64_t waitUntil = millis() + wait;
@@ -272,12 +275,12 @@ bool WeatherApp::runSettings() {
     bool saveSettings = false;
     bool exitSettings = false;
     while (!saveSettings && !exitSettings) {
-        lilka::Menu settingsMenu("Налаштування");
+        lilka::Menu settingsMenu(K_S_SETTINGS);
         settingsMenu.addActivationButton(lilka::Button::B);
-        settingsMenu.addItem("Широта", 0, 0, String(settings.lat));
-        settingsMenu.addItem("Довгота", 0, 0, String(settings.lon));
-        settingsMenu.addItem("Зберегти", 0, 0, "");
-        settingsMenu.addItem("Скасувати", 0, 0, "");
+        settingsMenu.addItem(K_S_WEATHER_LATITUDE, 0, 0, String(settings.lat));
+        settingsMenu.addItem(K_S_WEATHER_LONGITUDE, 0, 0, String(settings.lon));
+        settingsMenu.addItem(K_S_WEATHER_SAVE, 0, 0, "");
+        settingsMenu.addItem(K_S_WEATHER_CANCEL, 0, 0, "");
         while (!settingsMenu.isFinished()) {
             settingsMenu.update();
             settingsMenu.draw(canvas);
@@ -288,7 +291,8 @@ bool WeatherApp::runSettings() {
         } else {
             if (settingsMenu.getCursor() == 0 || settingsMenu.getCursor() == 1) {
                 lilka::InputDialog inputDialog(
-                    String("Введіть ") + (settingsMenu.getCursor() == 0 ? "широту" : "довготу")
+                    String(K_S_WEATHER_INPUT) + " " +
+                    (settingsMenu.getCursor() == 0 ? K_S_WEATHER_LATITUDE_S : K_S_WEATHER_LONGITUDE_S)
                 );
                 inputDialog.setValue(String(settingsMenu.getCursor() == 0 ? settings.lat : settings.lon));
                 while (!inputDialog.isFinished()) {

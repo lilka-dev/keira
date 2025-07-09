@@ -142,33 +142,31 @@ void ComboApp::mainUI(lilka::Canvas& buffer, lilka::State& st) {
     buffer.drawTextAligned("Demo Combo", hor_center, 20, Alignment::ALIGN_CENTER, Alignment::ALIGN_START);
     lilka::display.setFont(FONT_8x13_MONO);
     buffer.drawTextAligned(
-        "Для виходу затисніть",
+        K_S_COMBO_FOR_EXIT_HOLD,
         hor_center,
         canvas->height() - 40,
         lilka::Alignment::ALIGN_CENTER,
         lilka::Alignment::ALIGN_START
     );
 
-    const char* pressByExitMessage = "[SELECT] на %d сек";
-    char pressByExit[strlen(pressByExitMessage)];
-    sprintf(pressByExit, pressByExitMessage, leftSecondsForExit);
+    auto message = StringFormat(K_S_COMBO_HOLD_SELECT_FOR_TIME_FMT, leftSecondsForExit);
     buffer.drawTextAligned(
-        pressByExit, hor_center, canvas->height() - 20, Alignment::ALIGN_CENTER, Alignment::ALIGN_START
+        message.c_str(), hor_center, canvas->height() - 20, Alignment::ALIGN_CENTER, Alignment::ALIGN_START
     );
 }
 
 void ComboApp::scene_0(lilka::Canvas& buffer, lilka::State& st) {
     uint16_t hor_center = canvas->width() / 2;
     lilka::display.setFont(FONT_8x13_MONO);
-    buffer.drawTextAligned("Натисніть [START]", hor_center, 90, Alignment::ALIGN_CENTER, Alignment::ALIGN_START);
+    buffer.drawTextAligned(K_S_COMBO_PRESS_START, hor_center, 90, Alignment::ALIGN_CENTER, Alignment::ALIGN_START);
 
-    buffer.drawTextAligned("для продовження", hor_center, 110, Alignment::ALIGN_CENTER, Alignment::ALIGN_START);
+    buffer.drawTextAligned(K_S_COMBO_TO_CONTINUE, hor_center, 110, Alignment::ALIGN_CENTER, Alignment::ALIGN_START);
 }
 
 void ComboApp::scene_1(lilka::Canvas& buffer, lilka::State& st) {
     uint16_t hor_center = canvas->width() / 2;
     lilka::display.setFont(FONT_8x13_MONO);
-    buffer.drawTextAligned("Натисніть", hor_center, 90, Alignment::ALIGN_CENTER, Alignment::ALIGN_START);
+    buffer.drawTextAligned(K_S_COMBO_PRESS, hor_center, 90, Alignment::ALIGN_CENTER, Alignment::ALIGN_START);
 
     buffer.drawTextAligned("[A]", hor_center, 110, Alignment::ALIGN_CENTER, Alignment::ALIGN_START);
 }
@@ -176,15 +174,17 @@ void ComboApp::scene_1(lilka::Canvas& buffer, lilka::State& st) {
 void ComboApp::scene_2(lilka::Canvas& buffer, lilka::State& st) {
     uint16_t hor_center = canvas->width() / 2;
     lilka::display.setFont(FONT_8x13_MONO);
-    buffer.drawTextAligned("Затисніть будь-яку", hor_center, 90, Alignment::ALIGN_CENTER, Alignment::ALIGN_START);
+    buffer.drawTextAligned(K_S_COMBO_HOLD_ANY, hor_center, 90, Alignment::ALIGN_CENTER, Alignment::ALIGN_START);
 
-    buffer.drawTextAligned("кнопку на 1 сек", hor_center, 110, Alignment::ALIGN_CENTER, Alignment::ALIGN_START);
+    buffer.drawTextAligned(
+        K_S_COMBO_BUTTON_FOR_ONE_SEC, hor_center, 110, Alignment::ALIGN_CENTER, Alignment::ALIGN_START
+    );
 }
 
 void ComboApp::scene_3(lilka::Canvas& buffer, lilka::State& st) {
     uint16_t hor_center = canvas->width() / 2;
     lilka::display.setFont(FONT_8x13_MONO);
-    buffer.drawTextAligned("Натисніть разом", hor_center, 90, Alignment::ALIGN_CENTER, Alignment::ALIGN_START);
+    buffer.drawTextAligned(K_S_COMBO_PRESS_TOGETHER, hor_center, 90, Alignment::ALIGN_CENTER, Alignment::ALIGN_START);
 
     buffer.drawTextAligned("[UP] + [B]", hor_center, 110, Alignment::ALIGN_CENTER, Alignment::ALIGN_START);
 }
@@ -194,14 +194,12 @@ void ComboApp::scene_4(lilka::Canvas& buffer, lilka::State& st, int timeout) {
     lilka::display.setFont(FONT_8x13_MONO);
     buffer.drawTextAligned("DOWN,UP,UP,DOWN,A,B,B,A", hor_center, 90, Alignment::ALIGN_CENTER, Alignment::ALIGN_START);
 
-    const char* txt = "Таймаут %d мс";
-    char bf[100];
-    sprintf(bf, txt, timeout);
-    buffer.drawTextAligned(bf, hor_center, 110, Alignment::ALIGN_CENTER, Alignment::ALIGN_START);
+    auto timeoutStr = StringFormat(K_S_COMBO_TIMEOUT_FMT, timeout);
+    buffer.drawTextAligned(timeoutStr.c_str(), hor_center, 110, Alignment::ALIGN_CENTER, Alignment::ALIGN_START);
 }
 
 void ComboApp::scene_final(lilka::Canvas& buffer, lilka::State& st) {
     uint16_t hor_center = canvas->width() / 2;
     lilka::display.setFont(FONT_8x13_MONO);
-    buffer.drawTextAligned("Кінець!", hor_center, 90, Alignment::ALIGN_CENTER, Alignment::ALIGN_START);
+    buffer.drawTextAligned(K_S_COMBO_END, hor_center, 90, Alignment::ALIGN_CENTER, Alignment::ALIGN_START);
 }
