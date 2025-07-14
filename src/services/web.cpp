@@ -16,6 +16,9 @@ static const char html[] = R"(
 </body>
 </html>)";
 
+static const char htmlListBegin[] = R"(<!DOCTYPE html><html><meta charset=\"UTF-8\"><body><ul style=\"list-style: none;\">)";
+static const char htmlListEnd[] = "</ul></body></html>";
+
 httpd_handle_t stream_httpd = NULL;
 static const char* contentLengthHeader = "Content-Length";
 static const char* fileHeaderDivider = "\r\n\r\n";
@@ -36,8 +39,7 @@ static void startRestartTask() {
     );
 };
 
-static esp_err_t index_handler(httpd_req_t *req)
-{
+static esp_err_t index_handler(httpd_req_t *req) {
     auto res = httpd_resp_sendstr(req, html);
     return res;
 }
@@ -89,7 +91,7 @@ static esp_err_t download_handler(httpd_req_t *req) {
         err = httpd_resp_set_type(req, "text/html");
         if (err == ESP_OK) {
             const struct dirent *direntry = NULL;
-            httpd_resp_sendstr_chunk(req, "<!DOCTYPE html><html><meta charset=\"UTF-8\"><body><ul style=\"list-style: none;\">");
+            httpd_resp_sendstr_chunk(req, htmlListBegin);
             while((direntry = readdir(dir)) != NULL) {
                 String itemHtml("<li><a href='/download?p=");
                 auto absolutePath = lilka::fileutils.joinPath(query, direntry->d_name);
@@ -103,7 +105,7 @@ static esp_err_t download_handler(httpd_req_t *req) {
                 itemHtml += "</a></li>";
                 httpd_resp_sendstr_chunk(req, itemHtml.c_str());
             }
-            httpd_resp_sendstr_chunk(req, "</ul></body></html>");
+            httpd_resp_sendstr_chunk(req, htmlListEnd);
             httpd_resp_send_chunk(req, 0, 0);
         }
 
@@ -118,10 +120,8 @@ static esp_err_t download_handler(httpd_req_t *req) {
             return ESP_OK;
         }
 
-        for(char* scanForName = path.end(); scanForName > path.begin(); scanForName--)
-        {
-            if (*scanForName == '/' || *scanForName == '\\')
-            {
+        for(char* scanForName = path.end(); scanForName > path.begin(); scanForName--) {
+            if (*scanForName == '/' || *scanForName == '\\') {
                 scanForName++; // skip separator
                 auto fileNameHeader = String("attachment; filename=\"");
                 fileNameHeader += scanForName;
@@ -230,8 +230,7 @@ static esp_err_t upload_handler(httpd_req_t *req) {
     return res;
 }
 
-static void startWebServer()
-{
+static void startWebServer() {
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
     config.server_port = 80;
 
