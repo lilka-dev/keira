@@ -5,18 +5,21 @@ static const char html[] = R"(
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Test Firmware Upload</title>
+  <title>Web services</title>
 </head>
 <body>
-  <form action="/upload" method="post" enctype="multipart/form-data">
-    <input type="file" name="file">
-    <button type="submit">Upload & Run</button>
-  </form>
-  <a href="/download"/>Browse SD card</a>
+  <div style="display:flex;flex-direction:column;gap:1em;">
+    <form action="/upload" method="post" enctype="multipart/form-data">
+      <input type="file" name="file">
+      <button type="submit">Flash OTA & Run</button>
+    </form>
+    <a href="/download?sd=true"/>Browse SD card</a>
+    <a href="/download"/>Browse SPIFS</a>
+  </div>
 </body>
 </html>)";
 
-static const char htmlListBegin[] = R"(<!DOCTYPE html><html><meta charset=\"UTF-8\"><body><ul style=\"list-style: none;\">)";
+static const char htmlListBegin[] = R"(<!DOCTYPE html><html><meta charset="UTF-8"><body><ul style="list-style: none;">)";
 static const char htmlListEnd[] = "</ul></body></html>";
 
 httpd_handle_t stream_httpd = NULL;
@@ -59,7 +62,7 @@ static int getContentLength(httpd_req_t *req) {
     return contentLengthValue;
 }
 
-String getQueryPath(httpd_req_t *req) {
+String getQueryPath(httpd_req_t *req, bool* sdCardSelected) {
     const int queryStringSize = 512;
     char queryString[queryStringSize];
 
@@ -67,91 +70,128 @@ String getQueryPath(httpd_req_t *req) {
 
     auto err = httpd_req_get_url_query_str(req, queryString, queryStringSize);
     if (err == ESP_OK) {
-        auto query = strnstr(queryString, "p=", sizeof(queryStringSize));
+        auto query = strnstr(queryString, "p=", queryStringSize);
         if (query != NULL) {
             query += 2;
-            result = query;
+            auto queryEnd = strchrnul(query, '&');
+            result = String(query, queryEnd - query);
         }
+
+        sdCardSelected[0] = strnstr(queryString, "sd=true", queryStringSize) != NULL;
+    }
+    else
+    {
+        sdCardSelected[0] = false;
     }
 
     return result;
 }
 
-static esp_err_t download_handler(httpd_req_t *req) {
+static esp_err_t replyWithDirectory(httpd_req_t *req, DIR* dir, const String& query, bool sdCardSelected) {
+    // directory listing
+    lilka::serial.log("List dir %s", query);
+
+    esp_err_t err = httpd_resp_set_type(req, "text/html; charset=UTF-8");
+    if (err == ESP_OK) {
+        const struct dirent *direntry = NULL;
+        httpd_resp_sendstr_chunk(req, htmlListBegin);
+        while((direntry = readdir(dir)) != NULL) {
+            String itemHtml("<li><a href='/download");
+            auto absolutePath = lilka::fileutils.joinPath(query, direntry->d_name);
+
+            if (sdCardSelected) {
+                itemHtml += "?sd=true&p=";
+            } else {
+                itemHtml += "?p=";
+            }
+
+            itemHtml += absolutePath;
+
+            if (direntry->d_type == DT_DIR) {
+                itemHtml += "'>📁";
+            } else {
+                itemHtml += "'>📄";
+            }
+            itemHtml += direntry->d_name;
+            itemHtml += "</a></li>";
+            httpd_resp_sendstr_chunk(req, itemHtml.c_str());
+        }
+        httpd_resp_sendstr_chunk(req, htmlListEnd);
+        httpd_resp_send_chunk(req, 0, 0);
+    }
+
+    return err;
+}
+
+static esp_err_t replyWithFile(httpd_req_t *req, const String& path) {
     esp_err_t err = ESP_OK;
-    auto query = getQueryPath(req);
-    auto root = lilka::fileutils.getSDRoot();
+    //lilka::serial.log("Download %s", query);
+
+    auto file = fopen(path.c_str(), "r");
+    if (file == NULL) {
+        httpd_resp_send_404(req);
+        return ESP_OK;
+    }
+
+    for(auto scanForName = path.end(); scanForName > path.begin(); scanForName--) {
+        if (*scanForName == '/' || *scanForName == '\\') {
+            scanForName++; // skip separator
+            String fileNameHeader = "attachment; filename=\"";
+            fileNameHeader += scanForName;
+            fileNameHeader += "\"";
+            err = httpd_resp_set_hdr(req, "Content-Disposition", fileNameHeader.c_str());
+            break;
+        }
+    }
+
+    if (err == ESP_OK) {
+        const int fileBufSize = 4096;
+        char* fileBuf = (char*)malloc(fileBufSize);
+
+        err = httpd_resp_set_type(req, "application/octet-stream");
+        if (err == ESP_OK) {
+            do {
+                auto read = fread(fileBuf, 1, fileBufSize, file);
+                if (read >= 0) {
+                    err = httpd_resp_send_chunk(req, fileBuf, read);
+                    if (err != ESP_OK) {
+                        break;
+                    }
+                }
+            } while(read > 0);
+        }
+
+        free(fileBuf);
+    }
+    
+    fclose(file);
+    return err;
+}
+
+static esp_err_t download_handler(httpd_req_t *req) {
+
+    bool sdCardSelected;
+    esp_err_t err = ESP_OK;
+    struct stat statbuf{ .st_mode = _IFDIR };
+
+    String query = getQueryPath(req, &sdCardSelected);
+    auto root = sdCardSelected
+                ? lilka::fileutils.getSDRoot()
+                : lilka::fileutils.getSPIFFSRoot();
     auto path = lilka::fileutils.joinPath(root, query);
 
-    auto dir = opendir(path.c_str());
-    if (dir != NULL) {
-        // directory listing
-        lilka::serial.log("List dir %s", query);
+    if (stat(path.c_str(), &statbuf) != 0) {
+        statbuf.st_mode = _IFDIR;
+    }
 
-        err = httpd_resp_set_type(req, "text/html");
-        if (err == ESP_OK) {
-            const struct dirent *direntry = NULL;
-            httpd_resp_sendstr_chunk(req, htmlListBegin);
-            while((direntry = readdir(dir)) != NULL) {
-                String itemHtml("<li><a href='/download?p=");
-                auto absolutePath = lilka::fileutils.joinPath(query, direntry->d_name);
-                itemHtml += absolutePath;
-                if (direntry->d_type == DT_DIR) {
-                    itemHtml += "'>📁";
-                } else {
-                    itemHtml += "'>📄";
-                }
-                itemHtml += direntry->d_name;
-                itemHtml += "</a></li>";
-                httpd_resp_sendstr_chunk(req, itemHtml.c_str());
-            }
-            httpd_resp_sendstr_chunk(req, htmlListEnd);
-            httpd_resp_send_chunk(req, 0, 0);
+    if (S_ISDIR(statbuf.st_mode)) {
+        DIR* dir = opendir(path.c_str());
+        if (dir != NULL) {
+            err = replyWithDirectory(req, dir, query, sdCardSelected);
+            closedir(dir);
         }
-
-        closedir(dir);
     } else {
-        // reply with file
-        lilka::serial.log("Download %s", query);
-
-        auto file = fopen(path.c_str(), "r");
-        if (file == NULL) {
-            httpd_resp_send_404(req);
-            return ESP_OK;
-        }
-
-        for(char* scanForName = path.end(); scanForName > path.begin(); scanForName--) {
-            if (*scanForName == '/' || *scanForName == '\\') {
-                scanForName++; // skip separator
-                auto fileNameHeader = String("attachment; filename=\"");
-                fileNameHeader += scanForName;
-                fileNameHeader += "\"";
-                err = httpd_resp_set_hdr(req, "Content-Disposition", fileNameHeader.c_str());
-                break;
-            }
-        }
-
-        if (err == ESP_OK) {
-            const int fileBufSize = 4096;
-            char* fileBuf = (char*)malloc(fileBufSize);
-
-            err = httpd_resp_set_type(req, "application/octet-stream");
-            if (err == ESP_OK) {
-                do {
-                    auto read = fread(fileBuf, 1, fileBufSize, file);
-                    if (read >= 0) {
-                        err = httpd_resp_send_chunk(req, fileBuf, read);
-                        if (err != ESP_OK) {
-                            break;
-                        }
-                    }
-                } while(read > 0);
-            }
-
-            free(fileBuf);
-        }
-        
-        fclose(file);
+        err = replyWithFile(req, path);
     }
 
     return err;
