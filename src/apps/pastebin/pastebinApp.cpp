@@ -20,7 +20,7 @@ void pastebinApp::uiLoop() {
 
     while (1) {
         lilka::Menu settingsMenu("Pastebin");
-        settingsMenu.addActivationButton(lilka::Button::B);
+        settingsMenu.addActivationButton(K_BTN_BACK);
         settingsMenu.addItem("Код", 0, 0, link_code);
         settingsMenu.addItem("Назва", 0, 0, filename);
         settingsMenu.addItem("Завантажити", 0, 0, "");
@@ -29,7 +29,8 @@ void pastebinApp::uiLoop() {
             settingsMenu.draw(canvas);
             queueDraw();
         }
-        if (settingsMenu.getButton() == lilka::Button::B) {
+        if (settingsMenu.getButton() == K_BTN_BACK) {
+            return; // exit
         } else {
             if (settingsMenu.getCursor() == 0) {
                 lilka::InputDialog inputDialog(String("Введіть код"));
