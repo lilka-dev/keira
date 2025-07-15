@@ -15,7 +15,7 @@ GPIOManagerApp::GPIOManagerApp() : App("GPIOManager") {
     // Change PWM frequency
     menu.addActivationButton(lilka::Button::C);
     // Back
-    menu.addActivationButton(lilka::Button::B);
+    menu.addActivationButton(K_BTN_BACK);
 
     // For testing purposes
     //readSpeedCompare();

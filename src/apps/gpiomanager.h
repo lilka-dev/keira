@@ -1,5 +1,6 @@
 #pragma once
 #include "app.h"
+#include "keira/keira.h"
 #include "esp32-hal-ledc.h"
 #include "driver/ledc.h"
 

@@ -839,13 +839,13 @@ void LilTrackerApp::alert(String title, String message) {
 
 bool LilTrackerApp::confirm(String title, String message) {
     lilka::Alert confirmDialog(title, message + "\n\n[START] - Так\n[A] - Ні");
-    confirmDialog.addActivationButton(lilka::Button::START);
+    confirmDialog.addActivationButton(K_BTN_CONFIRM);
     confirmDialog.draw(canvas);
     queueDraw();
     while (!confirmDialog.isFinished()) {
         confirmDialog.update();
     }
-    return confirmDialog.getButton() == lilka::Button::START;
+    return confirmDialog.getButton() == K_BTN_CONFIRM;
 }
 
 String LilTrackerApp::filePicker(String ext, bool isSave) {

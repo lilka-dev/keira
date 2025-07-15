@@ -223,7 +223,7 @@ void LauncherApp::showMenu(const char* title, ITEM_LIST& list, bool back) {
         menu.addItem(list[i].name, list[i].icon, list[i].color);
     }
     if (back) {
-        menu.addActivationButton(lilka::Button::B);
+        menu.addActivationButton(K_BTN_BACK);
         menu.addItem(K_S_MENU_BACK);
     }
     while (1) {
@@ -240,7 +240,7 @@ void LauncherApp::showMenu(const char* title, ITEM_LIST& list, bool back) {
             menu.draw(canvas);
             queueDraw();
         }
-        if (menu.getButton() == lilka::Button::B) {
+        if (menu.getButton() == K_BTN_BACK) {
             break;
         }
         int16_t index = menu.getCursor();
@@ -293,7 +293,7 @@ void LauncherApp::setWiFiTxPower() {
     };
     lilka::Menu wifiSetTxMenu;
     wifiSetTxMenu.setTitle(K_S_LAUNCHER_SELECT_TX_POWER);
-    wifiSetTxMenu.addActivationButton(lilka::Button::B); // Exit
+    wifiSetTxMenu.addActivationButton(K_BTN_BACK); // Exit
     // Add names
     for (auto i = 0; i < sizeof(names) / sizeof(names[0]); i++)
         wifiSetTxMenu.addItem(names[i]);
@@ -305,7 +305,7 @@ void LauncherApp::setWiFiTxPower() {
     }
     auto button = wifiSetTxMenu.getButton();
 
-    if (button == lilka::Button::B) return;
+    if (button == K_BTN_BACK) return;
 
     auto index = wifiSetTxMenu.getCursor();
 
@@ -368,14 +368,14 @@ void LauncherApp::partitions() {
 }
 void LauncherApp::formatSD() {
     lilka::Alert confirm(K_S_LAUNCHER_FORMAT, K_S_LAUNCHER_FORMAT_DISCLAIMER_ALERT);
-    confirm.addActivationButton(lilka::Button::START);
+    confirm.addActivationButton(K_BTN_CONFIRM);
     confirm.draw(canvas);
     queueDraw();
     while (!confirm.isFinished()) {
         confirm.update();
         taskYIELD();
     }
-    if (confirm.getButton() != lilka::Button::START) {
+    if (confirm.getButton() != K_BTN_CONFIRM) {
         return;
     }
 

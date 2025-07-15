@@ -8,14 +8,14 @@ void CallBackTestApp::CallbackExample() {
 
     auto button = menu.getButton();
 
-    if (button == lilka::Button::B) {
+    if (button == K_BTN_BACK) {
         exiting = true;
         return;
     }
     // skip
     if (button == lilka::Button::ANY) return;
     // allow to exit alert by B
-    alert.addActivationButton(lilka::Button::B);
+    alert.addActivationButton(K_BTN_BACK);
     alert.setMessage(String("Натиснуто кнопку ") + buttonNames[menu.getButton()]);
     while (!alert.isFinished()) {
         alert.update();

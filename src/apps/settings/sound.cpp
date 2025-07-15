@@ -25,7 +25,7 @@ void SoundConfigApp::run() {
     for (auto i = 0; i < sizeof(mItems) / sizeof(mItems[0]); i++)
         soundMenu.addItem(mItems[i].title, mItems[i].icon, mItems[i].color, mItems[i].postfix);
 
-    soundMenu.addActivationButton(lilka::Button::B); // Back
+    soundMenu.addActivationButton(K_BTN_BACK); // Back
     soundMenu.removeActivationButton(lilka::Button::A); // Remove default activation button
     auto lastVolumeChange = millis();
     auto volumeDelay = VOLUME_BUTTON_DELAY; // inital value
