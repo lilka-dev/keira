@@ -276,7 +276,7 @@ bool WeatherApp::runSettings() {
     bool exitSettings = false;
     while (!saveSettings && !exitSettings) {
         lilka::Menu settingsMenu(K_S_SETTINGS);
-        settingsMenu.addActivationButton(lilka::Button::B);
+        settingsMenu.addActivationButton(K_BTN_BACK);
         settingsMenu.addItem(K_S_WEATHER_LATITUDE, 0, 0, String(settings.lat));
         settingsMenu.addItem(K_S_WEATHER_LONGITUDE, 0, 0, String(settings.lon));
         settingsMenu.addItem(K_S_WEATHER_SAVE, 0, 0, "");
@@ -286,7 +286,7 @@ bool WeatherApp::runSettings() {
             settingsMenu.draw(canvas);
             queueDraw();
         }
-        if (settingsMenu.getButton() == lilka::Button::B) {
+        if (settingsMenu.getButton() == K_BTN_BACK) {
             exitSettings = true;
         } else {
             if (settingsMenu.getCursor() == 0 || settingsMenu.getCursor() == 1) {

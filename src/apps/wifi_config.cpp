@@ -83,7 +83,7 @@ void WiFiConfigApp::run() {
     }
 
     lilka::Menu menu(K_S_WIFI_CONFIG_NETWORKS);
-    menu.addActivationButton(lilka::Button::B); // Back
+    menu.addActivationButton(K_BTN_BACK); // Back
     for (int16_t i = 0; i < count; i++) {
         const int8_t rssi = WiFi.RSSI(i);
         uint8_t signalStrength;
@@ -121,7 +121,7 @@ void WiFiConfigApp::run() {
             queueDraw();
         }
         int cursor = menu.getCursor();
-        if (cursor == count - 1 || menu.getButton() == lilka::Button::B) {
+        if (cursor == count - 1 || menu.getButton() == K_BTN_BACK) {
             return;
         }
         if (menu.getButton() == lilka::Button::C) {
@@ -150,13 +150,13 @@ void WiFiConfigApp::run() {
             lilka::Alert alert(
                 K_S_ATTENTION, StringFormat(K_S_WIFI_CONFIG_CONNECTING_TO_OPEN_INSECURE_NETWORK_FMT, ssid.c_str())
             );
-            alert.addActivationButton(lilka::Button::B);
+            alert.addActivationButton(K_BTN_BACK);
             alert.draw(canvas);
             queueDraw();
             while (!alert.isFinished()) {
                 alert.update();
             }
-            if (alert.getButton() == lilka::Button::B) {
+            if (alert.getButton() == K_BTN_BACK) {
                 continue;
             }
         } else {

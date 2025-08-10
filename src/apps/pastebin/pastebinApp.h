@@ -1,5 +1,5 @@
 #pragma once
-
+#include "keira/keira.h"
 #include <app.h>
 
 class pastebinApp : public App {
