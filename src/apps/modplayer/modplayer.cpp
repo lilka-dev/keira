@@ -6,6 +6,8 @@
 //
 
 #include <AudioGeneratorMOD.h>
+#include <AudioGeneratorWAV.h>
+#include <AudioGeneratorMP3.h>
 #include <AudioOutputI2S.h>
 #include <AudioFileSourceSD.h>
 #include <AudioFileSourceBuffer.h>
@@ -116,7 +118,7 @@ void ModPlayerApp::mainWindow() {
     canvas->setTextBound(32, 32, canvas->width() - 64, canvas->height() - 32);
     canvas->setTextColor(lilka::colors::White);
     canvas->setCursor(32, 32 + 15);
-    canvas->println("Програвач MOD");
+    canvas->println("Програвач аудіо");
     canvas->println("------------------------");
     canvas->println("A - Відтворення / пауза");
     canvas->setFont(FONT_9x15_SYMBOLS);
@@ -184,8 +186,15 @@ void ModPlayerApp::playTask() {
     float initialGain = (1.0f * lilka::audio.getVolume() / 100);
 
     // Create MOD player
-    AudioGeneratorMOD* mod = new AudioGeneratorMOD();
-    std::unique_ptr<AudioGeneratorMOD> modPtr(mod);
+    AudioGenerator* mod;
+    if (fileName.endsWith(".wav")) {
+        mod = new AudioGeneratorWAV();
+    } else if (fileName.endsWith(".mp3")) {
+        mod = new AudioGeneratorMP3();
+    } else {
+        mod = new AudioGeneratorMOD();
+    }
+    std::unique_ptr<AudioGenerator> modPtr(mod);
     mod->begin(modBufferSource, playerTaskData.analyzer);
 
     xSemaphoreTake(playerMutex, portMAX_DELAY);
