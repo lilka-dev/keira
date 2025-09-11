@@ -3,6 +3,7 @@
 #include "services/network.h"
 #include "icons/app.h"
 #include "app.h"
+#include "keira/keira.h"
 
 typedef struct item_t {
     const char* name;
