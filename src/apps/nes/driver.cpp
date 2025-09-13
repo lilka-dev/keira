@@ -79,8 +79,10 @@ void Driver::freeFrite(int numDirties, rect_t* dirtyRects) {
 bool odd = true;
 
 void Driver::customBlit(bitmap_t* bmp, int numDirties, rect_t* dirtyRects) {
+#ifdef NES_FPS_COUNTER
     last_frame_duration = micros() - last_render;
     last_render = micros();
+#endif
 
     lilka::Canvas* canvas = app->canvas;
 
@@ -108,7 +110,7 @@ void Driver::customBlit(bitmap_t* bmp, int numDirties, rect_t* dirtyRects) {
 #endif
 
     // Serial.println("Draw 1 took " + String(micros() - last_render) + "us");
-
+#ifdef NES_FPS_COUNTER
     if (last_frame_duration > 0) {
         canvas->fillRect(80, canvas->height() - 20, 80, 20, lilka::colors::Black);
         canvas->setCursor(80, canvas->height() - 4);
@@ -117,6 +119,7 @@ void Driver::customBlit(bitmap_t* bmp, int numDirties, rect_t* dirtyRects) {
         canvas->print("FPS: ");
         canvas->print(1000000 / last_frame_duration);
     }
+#endif
 
     // Serial.println("Draw 2 took " + String(micros() - last_render) + "us");
 
