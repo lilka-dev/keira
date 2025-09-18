@@ -33,6 +33,7 @@
 
 #define K_S_SERVICES                    "Сервіси"
 #define K_S_FTP                         "FTP"
+#define K_S_TELNET                      "Telnet"
 
 #define K_S_OS_NAME                     "Keira OS"
 #define K_S_OS_DESCRIPTION              "by Андерсон & friends"
@@ -78,7 +79,7 @@
 #define K_S_LAUNCHER_SOUND             "Звук"
 #define K_S_LAUNCHER_SERVICES          K_S_SERVICES
 #define K_S_LAUNCHER_FTP               K_S_FTP
-#define K_S_LAUNCHER_FTP_STATUS        K_S_STATUS
+#define K_S_LAUNCHER_TELNET            K_S_TELNET
 #define K_S_LAUNCHER_FTP_USER          K_S_USER
 #define K_S_LAUNCHER_FTP_PASSWORD      K_S_PASSWORD
 

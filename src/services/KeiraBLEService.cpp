@@ -4,7 +4,7 @@
 #include "lilka/ble_server.h"
 #include "lilka.h"
 
-KeiraBLEService::KeiraBLEService() : Service("clock") {
+KeiraBLEService::KeiraBLEService() : Service("ble") { // from now on, unique service names only
     lilka::serial.log("Start service and char");
     lilka::BLE_server.create_service("1234");
     lilka::BLE_server.create_new_characteristics("1234", "2345", NIMBLE_PROPERTY::READ);
