@@ -1,20 +1,20 @@
 #include <EscapeCodes.h>
 
 #include "telnet.h"
-#include "Preferences.h"
-#include "servicemanager.h"
-#include "network.h"
 
 #define STR_HELPER(x) #x
 #define STR(x)        STR_HELPER(x)
-
-ESPTelnet telnet;
+ESPTelnet* telnet = NULL;
 EscapeCodes ansi;
 
 TelnetService::TelnetService() : Service("telnet") {
 }
 
 TelnetService::~TelnetService() {
+    if (telnet) {
+        delete telnet;
+        telnet = NULL;
+    }
 }
 
 typedef struct {
@@ -26,36 +26,38 @@ Command commands[] = {
     {
         "help",
         [](std::vector<String> args) {
-            telnet.println("Доступні команди:");
-            telnet.println("  help               - показати цей список команд");
-            telnet.println("  reboot             - перезавантажити пристрій");
-            telnet.println("  uptime             - показати час роботи пристрою");
-            telnet.println("  free               - показати стан пам'яті");
-            telnet.println("  ls [DIR]           - показати список файлів на SD-картці");
-            telnet.println("  find [TEXT]        - знайти файли на SD-картці, які містять TEXT в назві");
-            telnet.println("  nvs get [NS] [KEY] - отримати значення ключа з NVS");
-            telnet.println("  nvs rm [NS] [KEY]  - видалити ключ з NVS");
-            telnet.println("  nvs rm [NS]        - видалити всі ключі з namespace в NVS");
-            telnet.println("  exit               - розірвати з'єднання");
+            telnet->println("Доступні команди:");
+            telnet->println("  help               - показати цей список команд");
+            telnet->println("  reboot             - перезавантажити пристрій");
+            telnet->println("  uptime             - показати час роботи пристрою");
+            telnet->println("  free               - показати стан пам'яті");
+            telnet->println("  ls [DIR]           - показати список файлів на SD-картці");
+            telnet->println("  find [TEXT]        - знайти файли на SD-картці, які містять TEXT в назві");
+            telnet->println("  nvs get [NS] [KEY] - отримати значення ключа з NVS");
+            telnet->println("  nvs rm [NS] [KEY]  - видалити ключ з NVS");
+            telnet->println("  nvs rm [NS]        - видалити всі ключі з namespace в NVS");
+            telnet->println("  exit               - розірвати з'єднання");
         },
     },
     {
         "reboot",
         [](std::vector<String> args) {
-            telnet.println("Система перезавантажується...");
-            telnet.disconnectClient();
+            telnet->println("Система перезавантажується...");
+            telnet->disconnectClient();
             esp_restart();
         },
     },
     {
         "uptime",
-        [](std::vector<String> args) { telnet.println("Uptime: " + String(millis() / 1000) + " seconds"); },
+        [](std::vector<String> args) { telnet->println("Uptime: " + String(millis() / 1000) + " seconds"); },
     },
     {
         "free",
         [](std::vector<String> args) {
-            telnet.println("Heap: " + String(ESP.getFreeHeap()) + " / " + String(ESP.getHeapSize()) + " bytes free");
-            telnet.println("PSRAM: " + String(ESP.getFreePsram()) + " / " + String(ESP.getPsramSize()) + " bytes free");
+            telnet->println("Heap: " + String(ESP.getFreeHeap()) + " / " + String(ESP.getHeapSize()) + " bytes free");
+            telnet->println(
+                "PSRAM: " + String(ESP.getFreePsram()) + " / " + String(ESP.getPsramSize()) + " bytes free"
+            );
         },
     },
     {
@@ -65,21 +67,21 @@ Command commands[] = {
             File dir = SD.open(dirName);
             int count = 0;
             if (!dir) {
-                telnet.println("Не вдалося відкрити директорію: " + dirName);
+                telnet->println("Не вдалося відкрити директорію: " + dirName);
                 return;
             }
             while (File file = dir.openNextFile()) {
                 count++;
-                file.isDirectory() ? telnet.print("DIR ") : telnet.print("FILE");
-                telnet.print("  ");
-                telnet.printf(
+                file.isDirectory() ? telnet->print("DIR ") : telnet->print("FILE");
+                telnet->print("  ");
+                telnet->printf(
                     "%8s  ", !file.isDirectory() ? lilka::fileutils.getHumanFriendlySize(file.size()).c_str() : "-"
                 );
-                telnet.println(file.name());
+                telnet->println(file.name());
                 file.close();
             }
             dir.close();
-            telnet.println("Знайдено " + String(count) + " файлів");
+            telnet->println("Знайдено " + String(count) + " файлів");
         },
     },
     {
@@ -93,7 +95,7 @@ Command commands[] = {
                 dirs.pop_back();
                 File d = SD.open(dir);
                 if (!d) {
-                    telnet.println("Не вдалося відкрити директорію: " + dir);
+                    telnet->println("Не вдалося відкрити директорію: " + dir);
                     continue;
                 }
                 while (File file = d.openNextFile()) {
@@ -102,22 +104,22 @@ Command commands[] = {
                         dirs.push_back(fullPath);
                     } else if (args.empty() || String(file.name()).indexOf(args[0]) != -1) {
                         count++;
-                        telnet.print("FILE  ");
-                        telnet.printf("%8s  ", lilka::fileutils.getHumanFriendlySize(file.size()).c_str());
-                        telnet.println(fullPath);
+                        telnet->print("FILE  ");
+                        telnet->printf("%8s  ", lilka::fileutils.getHumanFriendlySize(file.size()).c_str());
+                        telnet->println(fullPath);
                     }
                     file.close();
                 }
                 d.close();
             }
-            telnet.println("Знайдено " + String(count) + " файлів");
+            telnet->println("Знайдено " + String(count) + " файлів");
         },
     },
     {
         "nvs",
         [](std::vector<String> args) {
             if (args.size() == 0) {
-                telnet.println("Помилка: не вказано підкоманду");
+                telnet->println("Помилка: не вказано підкоманду");
                 return;
             }
 
@@ -126,7 +128,7 @@ Command commands[] = {
 
             if (subcommand == "get") {
                 if (args.size() != 3) {
-                    telnet.println("Помилка: невірна кількість параметрів");
+                    telnet->println("Помилка: невірна кількість параметрів");
                     return;
                 }
                 String ns = args[1];
@@ -134,7 +136,7 @@ Command commands[] = {
                 Preferences prefs;
                 prefs.begin(ns.c_str(), true);
                 if (!prefs.isKey(key.c_str())) {
-                    telnet.println("Помилка: ключ не знайдено");
+                    telnet->println("Помилка: ключ не знайдено");
                 } else {
                     PreferenceType type = prefs.getType(key.c_str());
                     String typeStr;
@@ -207,13 +209,13 @@ Command commands[] = {
                             break;
                         }
                     }
-                    telnet.printf("Тип: %s, значення: %s", typeStr.c_str(), valueStr.c_str());
-                    telnet.println();
+                    telnet->printf("Тип: %s, значення: %s", typeStr.c_str(), valueStr.c_str());
+                    telnet->println();
                 }
                 prefs.end();
             } else if (subcommand == "rm") {
                 if (args.size() != 2 && args.size() != 3) {
-                    telnet.println("Помилка: невірна кількість параметрів");
+                    telnet->println("Помилка: невірна кількість параметрів");
                     return;
                 }
                 String ns = args[1];
@@ -221,49 +223,46 @@ Command commands[] = {
                 prefs.begin(ns.c_str(), false);
                 if (args.size() == 2) {
                     if (prefs.clear()) {
-                        telnet.println("Всі ключі в namespace " + ns + " видалено");
+                        telnet->println("Всі ключі в namespace " + ns + " видалено");
                     } else {
-                        telnet.println("Помилка: не вдалося видалити namespace");
+                        telnet->println("Помилка: не вдалося видалити namespace");
                     }
                 } else {
                     String key = args[2];
                     if (prefs.remove(key.c_str())) {
-                        telnet.println("Ключ " + key + " видалено");
+                        telnet->println("Ключ " + key + " видалено");
                     } else {
-                        telnet.println("Помилка: не вдалося видалити ключ");
+                        telnet->println("Помилка: не вдалося видалити ключ");
                     }
                 }
                 prefs.end();
             } else {
-                telnet.println("Помилка: невідома підкоманда");
+                telnet->println("Помилка: невідома підкоманда");
             }
         },
     },
     {
         "exit",
-        [](std::vector<String> args) { telnet.disconnectClient(); },
+        [](std::vector<String> args) { telnet->disconnectClient(); },
     },
 };
-
-void TelnetService::run() {
-    NetworkService* network = ServiceManager::getInstance()->getService<NetworkService>("network");
-
-    telnet.onConnectionAttempt([](String ip) {
+void TelnetService::setupEventHandlers() {
+    telnet->onConnectionAttempt([](String ip) {
         lilka::serial.log("TelnetService: %s attempting to connect", ip.c_str());
     });
-    telnet.onConnect([](String ip) {
+    telnet->onConnect([](String ip) {
         lilka::serial.log("TelnetService: %s connected", ip.c_str());
-        telnet.print(ansi.cls());
-        telnet.print(ansi.home());
-        telnet.println(ansi.setBG(ANSI_BLUE) + "      " + ansi.reset() + " Keira OS @ Lilka v" STR(LILKA_VERSION));
-        telnet.println(ansi.setBG(ANSI_YELLOW) + "      " + ansi.reset() + " Слава Україні! ");
-        telnet.println();
-        telnet.println("Введіть 'help' для отримання списку команд");
-        telnet.print("> ");
+        telnet->print(ansi.cls());
+        telnet->print(ansi.home());
+        telnet->println(ansi.setBG(ANSI_BLUE) + "      " + ansi.reset() + " Keira OS @ Lilka v" STR(LILKA_VERSION));
+        telnet->println(ansi.setBG(ANSI_YELLOW) + "      " + ansi.reset() + " Слава Україні! ");
+        telnet->println();
+        telnet->println("Введіть 'help' для отримання списку команд");
+        telnet->print("> ");
     });
-    telnet.onReconnect([](String ip) { lilka::serial.log("TelnetService: %s reconnected", ip.c_str()); });
-    telnet.onDisconnect([](String ip) { lilka::serial.log("TelnetService: %s disconnected", ip.c_str()); });
-    telnet.onInputReceived([](String input) {
+    telnet->onReconnect([](String ip) { lilka::serial.log("TelnetService: %s reconnected", ip.c_str()); });
+    telnet->onDisconnect([](String ip) { lilka::serial.log("TelnetService: %s disconnected", ip.c_str()); });
+    telnet->onInputReceived([](String input) {
         lilka::serial.log("TelnetService: received text: %s", input.c_str());
         input.trim();
         if (!input.isEmpty()) {
@@ -306,8 +305,12 @@ void TelnetService::run() {
             }
             cmd->function(args);
         }
-        telnet.print("> ");
+        telnet->print("> ");
     });
+}
+
+void TelnetService::run() {
+    NetworkService* network = ServiceManager::getInstance()->getService<NetworkService>("network");
 
     bool wasOnline = false;
     while (1) {
@@ -316,17 +319,21 @@ void TelnetService::run() {
             continue;
         }
         bool isOnline = network->getNetworkState() == NetworkState::NETWORK_STATE_ONLINE;
-        if (!wasOnline && isOnline) {
+        if ((getEnabled() && isOnline) && !wasOnline) {
             wasOnline = true;
             // Start telnet server
-            telnet.begin(23);
-        } else if (wasOnline && !isOnline) {
+            telnet = new ESPTelnet();
+            setupEventHandlers();
+            telnet->begin(23);
+        } else if ((!getEnabled() || !isOnline) && wasOnline) {
             wasOnline = false;
             // Stop telnet server
-            telnet.stop();
+            telnet->stop();
+            delete telnet;
+            telnet = NULL;
         }
-        if (isOnline) {
-            telnet.loop();
+        if (getEnabled() && isOnline) {
+            telnet->loop();
             taskYIELD();
         } else {
             vTaskDelay(500 / portTICK_PERIOD_MS);

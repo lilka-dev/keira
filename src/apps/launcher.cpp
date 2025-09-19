@@ -7,6 +7,7 @@
 #include "servicemanager.h"
 #include "services/network.h"
 #include "services/ftp.h"
+#include "services/telnet.h"
 
 #include "wifi_config.h"
 #include "demos/lines.h"
@@ -142,9 +143,29 @@ void LauncherApp::run() {
                     ITEM::MENU(K_S_LAUNCHER_WIFI_TX_POWER, [this]() { this->setWiFiTxPower(); }),
                     ITEM::MENU(K_S_LAUNCHER_SOUND, [this]() { this->runApp<SoundConfigApp>(); }),
                     ITEM::SUBMENU(K_S_LAUNCHER_SERVICES, {
+                        ITEM::SUBMENU(K_S_LAUNCHER_TELNET, {
+                            ITEM::MENU(
+                                K_S_STATUS,
+                                [this]() {
+                                            TelnetService* telnetService = static_cast<TelnetService*>(
+                                                ServiceManager::getInstance()->getService<TelnetService>("telnet")
+                                            );
+                                            telnetService->setEnabled(!telnetService->getEnabled());
+                                },
+                                nullptr,
+                                0,
+                                [this](void* item) {
+                                            lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
+                                            TelnetService* telnetService = static_cast<TelnetService*>(
+                                                ServiceManager::getInstance()->getService<TelnetService>("telnet")
+                                            );
+                                            menuItem->postfix = telnetService->getEnabled() ? K_S_ON : K_S_OFF;
+                                }
+                            ),
+                    }),
                         ITEM::SUBMENU(K_S_LAUNCHER_FTP, {
                             ITEM::MENU(
-                                K_S_LAUNCHER_FTP_STATUS,
+                                K_S_STATUS,
                                 [this]() {
                                             FTPService* ftpService = static_cast<FTPService*>(
                                                 ServiceManager::getInstance()->getService<FTPService>("ftp")
@@ -212,7 +233,7 @@ void LauncherApp::run() {
                 &settings_img,
                 lilka::colors::Orchid
             ),
-        }
+}
     );
     showMenu(root_item.name, root_item.submenu, false);
 }
