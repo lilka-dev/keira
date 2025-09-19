@@ -28,7 +28,7 @@ void CallBackTestApp::run() {
     menu.addItem(
         "Натисніть будь яку кнопку",
         0,
-        0U,
+        lilka::colors::White,
         "",
         reinterpret_cast<lilka::PMenuItemCallback>(&CallBackTestApp::CallbackExample),
         reinterpret_cast<void*>(this)

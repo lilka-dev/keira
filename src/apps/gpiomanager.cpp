@@ -122,7 +122,12 @@ void GPIOManagerApp::run() {
                         break;
                 }
 
-                menu.addItem(String(pinNo[i]) + modeStr, pinM[i] == INPUT ? &input_img : &output_img, 0, valueStr);
+                menu.addItem(
+                    String(pinNo[i]) + modeStr,
+                    pinM[i] == INPUT ? &input_img : &output_img,
+                    lilka::colors::White,
+                    valueStr
+                );
             }
 
             menu.setCursor(lastPos);

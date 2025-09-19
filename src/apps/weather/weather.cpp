@@ -277,10 +277,10 @@ bool WeatherApp::runSettings() {
     while (!saveSettings && !exitSettings) {
         lilka::Menu settingsMenu(K_S_SETTINGS);
         settingsMenu.addActivationButton(K_BTN_BACK);
-        settingsMenu.addItem(K_S_WEATHER_LATITUDE, 0, 0, String(settings.lat));
-        settingsMenu.addItem(K_S_WEATHER_LONGITUDE, 0, 0, String(settings.lon));
-        settingsMenu.addItem(K_S_WEATHER_SAVE, 0, 0, "");
-        settingsMenu.addItem(K_S_WEATHER_CANCEL, 0, 0, "");
+        settingsMenu.addItem(K_S_WEATHER_LATITUDE, 0, lilka::colors::White, String(settings.lat));
+        settingsMenu.addItem(K_S_WEATHER_LONGITUDE, 0, lilka::colors::White, String(settings.lon));
+        settingsMenu.addItem(K_S_WEATHER_SAVE, 0, lilka::colors::White, "");
+        settingsMenu.addItem(K_S_WEATHER_CANCEL, 0, lilka::colors::White, "");
         while (!settingsMenu.isFinished()) {
             settingsMenu.update();
             settingsMenu.draw(canvas);

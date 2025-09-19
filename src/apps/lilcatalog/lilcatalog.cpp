@@ -81,7 +81,7 @@ void LilCatalogApp::doShowCatalog() {
         catalogMenu.addItem(
             categoty_tmp.name,
             nullptr,
-            0,
+            lilka::colors::White,
             String(categoty_tmp.entries.size()) + K_S_LILCATALOG_CATEGORY_POSTFIX,
             reinterpret_cast<lilka::PMenuItemCallback>(&LilCatalogApp::doShowCategory),
             reinterpret_cast<void*>(this)
@@ -90,7 +90,7 @@ void LilCatalogApp::doShowCatalog() {
     catalogMenu.addItem(
         K_S_LILCATALOG_FETCH_CATALOG,
         0,
-        0,
+        lilka::colors::White,
         K_S_LILCATALOG_EMPTY,
         reinterpret_cast<lilka::PMenuItemCallback>(&LilCatalogApp::fetchCatalog),
         reinterpret_cast<void*>(this)
@@ -98,7 +98,7 @@ void LilCatalogApp::doShowCatalog() {
     catalogMenu.addItem(
         K_S_LILCATALOG_STOP,
         0,
-        0,
+        lilka::colors::White,
         K_S_LILCATALOG_EMPTY,
         reinterpret_cast<lilka::PMenuItemCallback>(&LilCatalogApp::stop),
         reinterpret_cast<void*>(this)
@@ -121,7 +121,7 @@ void LilCatalogApp::doShowCategory() {
         categoryMenu.addItem(
             entry_tmp.name,
             nullptr,
-            0,
+            lilka::colors::White,
             entry_tmp.author,
             reinterpret_cast<lilka::PMenuItemCallback>(&LilCatalogApp::doShowEntry),
             reinterpret_cast<void*>(this)
@@ -130,7 +130,7 @@ void LilCatalogApp::doShowCategory() {
     categoryMenu.addItem(
         K_S_LILCATALOG_BACK,
         0,
-        0,
+        lilka::colors::White,
         K_S_LILCATALOG_EMPTY,
         reinterpret_cast<lilka::PMenuItemCallback>(&LilCatalogApp::doShowCatalog),
         reinterpret_cast<void*>(this)
@@ -153,7 +153,7 @@ void LilCatalogApp::doShowEntry() {
         entryMenu.addItem(
             K_S_LILCATALOG_START,
             0,
-            0,
+            lilka::colors::White,
             K_S_LILCATALOG_EMPTY,
             reinterpret_cast<lilka::PMenuItemCallback>(&LilCatalogApp::executeEntry),
             reinterpret_cast<void*>(this)
@@ -161,7 +161,7 @@ void LilCatalogApp::doShowEntry() {
         entryMenu.addItem(
             K_S_LILCATALOG_REMOVE,
             0,
-            0,
+            lilka::colors::White,
             K_S_LILCATALOG_EMPTY,
             reinterpret_cast<lilka::PMenuItemCallback>(&LilCatalogApp::removeEntry),
             reinterpret_cast<void*>(this)
@@ -169,7 +169,7 @@ void LilCatalogApp::doShowEntry() {
         entryMenu.addItem(
             K_S_LILCATALOG_UPDATE,
             0,
-            0,
+            lilka::colors::White,
             K_S_LILCATALOG_EMPTY,
             reinterpret_cast<lilka::PMenuItemCallback>(&LilCatalogApp::fetchEntry),
             reinterpret_cast<void*>(this)
@@ -178,7 +178,7 @@ void LilCatalogApp::doShowEntry() {
         entryMenu.addItem(
             K_S_LILCATALOG_INSTALL,
             0,
-            0,
+            lilka::colors::White,
             K_S_LILCATALOG_EMPTY,
             reinterpret_cast<lilka::PMenuItemCallback>(&LilCatalogApp::fetchEntry),
             reinterpret_cast<void*>(this)
@@ -187,7 +187,7 @@ void LilCatalogApp::doShowEntry() {
     entryMenu.addItem(
         K_S_LILCATALOG_ENTRY_DESCRIPTION,
         0,
-        0,
+        lilka::colors::White,
         K_S_LILCATALOG_EMPTY,
         reinterpret_cast<lilka::PMenuItemCallback>(&LilCatalogApp::doShowEntryDescription),
         reinterpret_cast<void*>(this)
@@ -195,7 +195,7 @@ void LilCatalogApp::doShowEntry() {
     entryMenu.addItem(
         K_S_LILCATALOG_BACK,
         0,
-        0,
+        lilka::colors::White,
         K_S_LILCATALOG_EMPTY,
         reinterpret_cast<lilka::PMenuItemCallback>(&LilCatalogApp::doShowCategory),
         reinterpret_cast<void*>(this)
