@@ -20,9 +20,6 @@ public:
     int getSignalStrength();
     bool connect(String ssid);
     void connect(String ssid, String password);
-    bool getEnabled();
-    void setEnabled(bool enabled);
-
     String getPassword(String ssid);
     String getIpAddr();
 
