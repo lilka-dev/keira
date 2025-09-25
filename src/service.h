@@ -3,6 +3,7 @@
 #include <lilka.h>
 #include "keira/keira.h"
 #include "appmanager.h"
+#include "Preferences.h"
 
 class Service {
     friend class AppManager;
@@ -11,6 +12,8 @@ class Service {
 public:
     Service(const char* name);
     virtual ~Service();
+    bool getEnabled();
+    void setEnabled(bool enabled);
     void start();
 
 protected:
@@ -18,6 +21,7 @@ protected:
     const char* name;
 
 private:
+    bool enabled;
     static void _run(void* arg);
     virtual void run() = 0;
 
