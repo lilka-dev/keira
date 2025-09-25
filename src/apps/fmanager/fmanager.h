@@ -52,14 +52,10 @@
 #define FM_SELECTED_FOLDER_ICON &selectedfolder_img
 #define FM_SELECTED_FILE_ICON   &selectedfile_img
 // FILE HANDLERS:  ////////////////////////////////////////////////////////////////////////////////////
-#define FM_DEFAULT_FT_NES_HANDLER(X)     K_FT_NES_HANDLER(X)
-#define FM_DEFAULT_FT_BIN_HANDLER(X)     fileLoadAsRom(X);
-#define FM_DEFAULT_LUA_SCRIPT_HANDLER(X) K_FT_LUA_SCRIPT_HANDLER(X)
-#define FT_DEFAULT_JS_SCRIPT_HANDLER(X)  K_FT_JS_SCRIPT_HANDLER(X)
-#define FT_DEFAULT_MOD_HANDLER(X)        K_FT_MOD_HANDLER(X)
-#define FT_DEFAULT_LT_HANDLER(X)         K_FT_LT_HANDLER(X)
-#define FT_DEFAULT_DIR_HANDLER           currentPath = path;
-#define FT_DEFAULT_OTHER_HANDLER         fileInfoShowAlert();
+// Note:: look keira/keira.h for default K_FT_X_HANDLER s
+#define FM_DEFAULT_FT_BIN_HANDLER(X) fileLoadAsRom(X);
+#define FT_DEFAULT_DIR_HANDLER       currentPath = path;
+#define FT_DEFAULT_OTHER_HANDLER     fileInfoShowAlert();
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // MISC SETTINGS:  ////////////////////////////////////////////////////////////////////////////////////
@@ -286,7 +282,6 @@ private:
     void onFileOptionsMenuInfo();
 
     // Callbacks [fileOpenWithMenu]:
-    void onFileOpenWithFileManager();
     void onFileOpenWithNESEmulator();
     void onFileOpenWithMultiBootLoader();
     void onFileOpenWithLua();

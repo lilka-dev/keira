@@ -48,9 +48,7 @@ FileManagerApp::FileManagerApp(const String& path) :
 
     // FILE OPEN WITH MENU SETUP:
     fileOpenWithMenu.setTitle(K_S_FMANAGER_SELECT_APP);
-    fileOpenWithMenu.addItem(
-        K_S_FMANAGER_FILE_MANAGER, 0, 0U, "", FM_CALLBACK_CAST(onFileOpenWithFileManager), FM_CALLBACK_PTHIS
-    );
+
     fileOpenWithMenu.addItem(
         K_S_FMANAGER_NES_EMULATOR, 0, 0U, "", FM_CALLBACK_CAST(onFileOpenWithNESEmulator), FM_CALLBACK_PTHIS
     );
@@ -146,7 +144,7 @@ String FileManagerApp::getFileMD5(const String& file_path) {
     }
 
     if (ferror(file)) {
-        ESP_LOGE("MD5", "Error reading file: %s", file_path.c_str());
+        FM_DBG lilka::serial.err("MD5 Error reading file: %s", file_path.c_str());
         fclose(file);
         mbedtls_md5_free(&ctx);
         return K_S_FMANAGER_CALC_INTERRUPTED;
@@ -253,22 +251,22 @@ void FileManagerApp::openCurrentEntry() {
     }
     switch (currentEntry.type) {
         case FT_NES_ROM:
-            FM_DEFAULT_FT_NES_HANDLER(path);
+            K_FT_NES_HANDLER(path);
             break;
         case FT_BIN:
             FM_DEFAULT_FT_BIN_HANDLER(path);
             break;
         case FT_LUA_SCRIPT:
-            FM_DEFAULT_LUA_SCRIPT_HANDLER(path);
+            K_FT_LUA_SCRIPT_HANDLER(path);
             break;
         case FT_JS_SCRIPT:
-            FT_DEFAULT_JS_SCRIPT_HANDLER(path);
+            K_FT_JS_SCRIPT_HANDLER(path);
             break;
         case FT_MOD:
-            FT_DEFAULT_MOD_HANDLER(path);
+            K_FT_MOD_HANDLER(path);
             break;
         case FT_LT:
-            FT_DEFAULT_LT_HANDLER(path);
+            K_FT_LT_HANDLER(path);
             break;
         case FT_DIR:
             FT_DEFAULT_DIR_HANDLER;
@@ -354,77 +352,54 @@ void FileManagerApp::fileOpenWithMenuShow() {
     }
 }
 
-void FileManagerApp::onFileOpenWithFileManager() {
-    FM_DBG lilka::serial.log("Enter onFileOpenWithFileManager");
-    auto button = fileOpenWithMenu.getButton();
-    if (button == FM_OKAY_BUTTON) {
-        if (currentEntry.type == FT_DIR) {
-            if (isCurrentDirSelected()) {
-                if (currentPath != initalPath) {
-                    currentPath = lilka::fileutils.getParentDirectory(currentPath);
-                    changeMode(FM_MODE_RELOAD);
-                    return;
-                }
-            }
-            currentPath = lilka::fileutils.joinPath(currentEntry.path, currentEntry.name);
-            changeMode(FM_MODE_RELOAD);
-        } else alert(K_S_ERROR, "Не підтримується");
-    } else if (button != FM_EXIT_BUTTON) fileOpenWithMenu.isFinished(); // do redraw
-}
-
 void FileManagerApp::onFileOpenWithNESEmulator() {
     FM_DBG lilka::serial.log("Enter onFileOpenWithNESEmulator");
     auto button = fileOpenWithMenu.getButton();
-    if (button == FM_OKAY_BUTTON) {
-        AppManager::getInstance()->runApp(new NesApp(lilka::fileutils.joinPath(currentEntry.path, currentEntry.name)));
-    } else if (button != FM_EXIT_BUTTON) fileOpenWithMenu.isFinished(); // do redraw
+    if (button == FM_EXIT_BUTTON) return; // Exit
+
+    K_FT_NES_HANDLER(lilka::fileutils.joinPath(currentEntry.path, currentEntry.name));
 }
 
 void FileManagerApp::onFileOpenWithMultiBootLoader() {
     FM_DBG lilka::serial.log("Enter onFileOpenWithMultiBootLoader");
     auto button = fileOpenWithMenu.getButton();
-    if (button == FM_OKAY_BUTTON) {
-        fileLoadAsRom(lilka::fileutils.joinPath(currentEntry.path, currentEntry.name));
-    } else if (button != FM_EXIT_BUTTON) fileOpenWithMenu.isFinished(); // do redraw
+    if (button == FM_EXIT_BUTTON) return; // Exit
+
+    FM_DEFAULT_FT_BIN_HANDLER(lilka::fileutils.joinPath(currentEntry.path, currentEntry.name));
 }
 
 void FileManagerApp::onFileOpenWithLua() {
     FM_DBG lilka::serial.log("Enter onFileOpenWithLua");
     auto button = fileOpenWithMenu.getButton();
-    if (button == FM_OKAY_BUTTON) {
-        AppManager::getInstance()->runApp(
-            new LuaFileRunnerApp(lilka::fileutils.joinPath(currentEntry.path, currentEntry.name))
-        );
-    } else if (button != FM_EXIT_BUTTON) fileOpenWithMenu.isFinished(); // do redraw
+    if (button == FM_EXIT_BUTTON) return; // Exit
+
+    K_FT_LUA_SCRIPT_HANDLER(lilka::fileutils.joinPath(currentEntry.path, currentEntry.name));
 }
 
 void FileManagerApp::onFileOpenWithMJS() {
     FM_DBG lilka::serial.log("Enter onFileOpenWithMJS");
     auto button = fileOpenWithMenu.getButton();
-    if (button == FM_OKAY_BUTTON) {
-        AppManager::getInstance()->runApp(new MJSApp(lilka::fileutils.joinPath(currentEntry.path, currentEntry.name)));
-    } else if (button != FM_EXIT_BUTTON) fileOpenWithMenu.isFinished(); // do redraw
+    if (button == FM_EXIT_BUTTON) return; // Exit
+
+    K_FT_JS_SCRIPT_HANDLER(lilka::fileutils.joinPath(currentEntry.path, currentEntry.name));
 }
 
 void FileManagerApp::onFileOpenWithLilTracker() {
     FM_DBG lilka::serial.log("Enter onFileOpenWithLilTracker");
     auto button = fileOpenWithMenu.getButton();
-    if (button == FM_OKAY_BUTTON) {
-        AppManager::getInstance()->runApp(
-            new LilTrackerApp(lilka::fileutils.joinPath(currentEntry.path, currentEntry.name))
-        );
-    } else if (button != FM_EXIT_BUTTON) fileOpenWithMenu.isFinished(); // do redraw
+    if (button == FM_EXIT_BUTTON) return; // Exit
+
+    K_FT_LT_HANDLER(lilka::fileutils.joinPath(currentEntry.path, currentEntry.name));
 }
 
 void FileManagerApp::onFileOpenWithMODPlayer() {
     FM_DBG lilka::serial.log("Enter onFileOpenWithMODPlayer");
     auto button = fileOpenWithMenu.getButton();
-    if (button == FM_OKAY_BUTTON) {
-        AppManager::getInstance()->runApp(
-            new ModPlayerApp(lilka::fileutils.joinPath(currentEntry.path, currentEntry.name))
-        );
-    } else if (button != FM_EXIT_BUTTON) fileOpenWithMenu.isFinished(); // do redraw
+    if (button == FM_EXIT_BUTTON) return; // Exit
+
+    K_FT_MOD_HANDLER(lilka::fileutils.joinPath(currentEntry.path, currentEntry.name));
 }
+
 // FILE SELECTION MENU BELOW:
 void FileManagerApp::onFileSelectionOptionsMenuCopy() {
     auto button = fileSelectionOptionsMenu.getButton();
