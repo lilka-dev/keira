@@ -327,7 +327,7 @@ void FileManagerApp::deselectCurrentEntry() {
 }
 
 void FileManagerApp::clearSelectedEntries() {
-    for (auto entry : selectedDirEntries) {
+    for (auto& entry : selectedDirEntries) {
         auto index = getDirEntryIndex(currentDirEntries, entry);
         if (index != ENTRY_NOT_FOUND_INDEX) {
             lilka::MenuItem mbuff;
@@ -404,7 +404,7 @@ void FileManagerApp::onFileOpenWithMODPlayer() {
 void FileManagerApp::onFileSelectionOptionsMenuCopy() {
     auto button = fileSelectionOptionsMenu.getButton();
     if (button == FM_OKAY_BUTTON) {
-        for (auto entry : selectedDirEntries) {
+        for (auto& entry : selectedDirEntries) {
             auto src = lilka::fileutils.joinPath(entry.path, entry.name);
             auto dst = lilka::fileutils.joinPath(currentPath, entry.name);
             if (!copyPath(src, dst)) {
@@ -420,7 +420,7 @@ void FileManagerApp::onFileSelectionOptionsMenuCopy() {
 void FileManagerApp::onFileSelectionOptionsMenuMove() {
     auto button = fileSelectionOptionsMenu.getButton();
     if (button == FM_OKAY_BUTTON) {
-        for (auto entry : selectedDirEntries) {
+        for (auto& entry : selectedDirEntries) {
             auto src = lilka::fileutils.joinPath(entry.path, entry.name);
             auto dst = lilka::fileutils.joinPath(currentPath, entry.name);
             if (!movePath(src, dst)) {
@@ -449,7 +449,7 @@ void FileManagerApp::onFileSelectionOptionsMenuDelete() {
             queueDraw();
         }
         if (checkAlert.getButton() == FM_CONFIRM_BUTTON) {
-            for (auto entry : selectedDirEntries)
+            for (auto& entry : selectedDirEntries)
                 deleteEntry(entry, true);
             clearSelectedEntries();
             changeMode(FM_MODE_RELOAD);
@@ -552,7 +552,7 @@ void FileManagerApp::onFileOptionsMenuDelete() {
                 queueDraw();
             }
             if (checkAlert.getButton() == FM_CONFIRM_BUTTON) {
-                for (auto entry : selectedDirEntries) {
+                for (auto& entry : selectedDirEntries) {
                     deleteEntry(entry, true);
                 }
                 clearSelectedEntries();
@@ -805,7 +805,7 @@ bool FileManagerApp::fileListMenuLoadDir() {
     }
     // TODO: move sorting in separate place. Implement different sorting options. Add them to fileOptionsMenu
     // Sorting directory entries
-    std::sort(currentDirEntries.begin(), currentDirEntries.end(), [](FMEntry a, FMEntry b) {
+    std::sort(currentDirEntries.begin(), currentDirEntries.end(), [](FMEntry& a, FMEntry& b) {
         if (a.type == FT_DIR && b.type != FT_DIR) return true;
         else if (a.type != FT_DIR && b.type == FT_DIR) return false;
         return strcmp(a.name, b.name) < 0;
@@ -819,7 +819,7 @@ bool FileManagerApp::fileListMenuLoadDir() {
     }
 
     // Adding entries to menu
-    for (auto dirEntry : currentDirEntries) {
+    for (auto& dirEntry : currentDirEntries) {
         fileListMenu.addItem(
             dirEntry.name,
             dirEntry.selected && dirEntry.type == FT_DIR   ? FM_SELECTED_FOLDER_ICON
