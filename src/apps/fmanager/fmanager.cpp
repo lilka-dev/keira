@@ -172,13 +172,13 @@ String FileManagerApp::getFileMD5(const String& file_path) {
 FMEntry FileManagerApp::pathToEntry(const String& path) {
     FMEntry newEntry;
     bool statPerformed = false;
-    newEntry.path = lilka::fileutils.getParentDirectory(path);
-    newEntry.name = basename(path.c_str());
+    strcpy(newEntry.path, lilka::fileutils.getParentDirectory(path).c_str());
+    strcpy(newEntry.name, basename(path.c_str()));
 
     // Perform stat
     // . dir needs specific way to do that
     struct stat tmpStat;
-    if (newEntry.name == "." && stat(newEntry.path.c_str(), &(tmpStat)) == 0) {
+    if ((strcmp(newEntry.name, ".") == 0) && stat(newEntry.path, &(tmpStat)) == 0) {
         statPerformed = true;
     } else {
         if (stat(path.c_str(), &tmpStat) == 0) {
@@ -524,7 +524,7 @@ void FileManagerApp::onFileOptionsMenuMKDir() {
                 FM_UI_CANT_DO_OP;
                 FM_DBG lilka::serial.err(
                     "Can't make dir in %s with name %s. %d: %s",
-                    currentEntry.path.c_str(),
+                    currentEntry.path,
                     dirName.c_str(),
                     errno,
                     strerror(errno)
@@ -590,7 +590,7 @@ void FileManagerApp::onFileOptionsMenuRename() {
         auto newName = renameInput.getValue();
 
         // Skip empty and same names
-        if (newName == "" || newName == currentEntry.name) {
+        if (newName == "" || (strcmp(newName.c_str(), currentEntry.name) == 0)) {
             exitChildDialogs = true;
             return;
         }
@@ -642,7 +642,7 @@ void FileManagerApp::fileInfoShowAlert() {
 }
 
 bool FileManagerApp::areDirEntriesEqual(const FMEntry& ent1, const FMEntry& ent2) {
-    return (ent1.name == ent2.name) && (ent1.path == ent2.path);
+    return ((strcmp(ent1.name, ent2.name) == 0) && (strcmp(ent1.path, ent2.path) == 0));
 }
 
 bool FileManagerApp::isCopyOrMoveCouldBeDone(const String& src, const String& dst) {
@@ -681,10 +681,12 @@ bool FileManagerApp::isCopyOrMoveCouldBeDone(const String& src, const String& ds
 
 bool FileManagerApp::isCurrentDirSelected() {
     auto index = fileListMenu.getCursor();
-    return (currentDirEntries.size() == index) || currentEntry.name == ".";
+    return (currentDirEntries.size() == index) || (strcmp(currentEntry.name, ".") == 0);
 }
 
-uint16_t FileManagerApp::getDirEntryIndex(const std::vector<FMEntry>& vec, const FMEntry& entry) {
+uint16_t FileManagerApp::getDirEntryIndex(
+    const std::vector<FMEntry, SPIRamAllocator<FMEntry>>& vec, const FMEntry& entry
+) {
     for (size_t it = 0; it < vec.size(); it++) {
         if (areDirEntriesEqual(vec[it], entry)) return it;
     }
@@ -806,7 +808,7 @@ bool FileManagerApp::fileListMenuLoadDir() {
     std::sort(currentDirEntries.begin(), currentDirEntries.end(), [](FMEntry a, FMEntry b) {
         if (a.type == FT_DIR && b.type != FT_DIR) return true;
         else if (a.type != FT_DIR && b.type == FT_DIR) return false;
-        return a.name.compareTo(b.name) < 0;
+        return strcmp(a.name, b.name) < 0;
     });
 
     if (drawProgress) {
@@ -872,7 +874,7 @@ void FileManagerApp::onFileListMenuItem() {
         currentEntry = pathToEntry(lilka::fileutils.joinPath(currentPath, "."));
     } else currentEntry = currentDirEntries[fileListMenu.getCursor()];
 
-    FM_DBG lilka::serial.log("currentEntry path = %s, name = %s", currentEntry.path.c_str(), currentEntry.name.c_str());
+    FM_DBG lilka::serial.log("currentEntry path = %s, name = %s", currentEntry.path, currentEntry.name);
     currentPath = currentEntry.path;
     FM_DBG lilka::serial.log("Current path = %s", currentPath.c_str());
     FM_DBG lilka::serial.log("Button = %d", button);

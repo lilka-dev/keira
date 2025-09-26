@@ -1,5 +1,6 @@
 #pragma once
 #include "keira/keira.h"
+#include "keira/keira_allocators.h"
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // [^_^]==\~ File manager for Keira OS header file                                                   //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -97,6 +98,7 @@
 #include <stdint.h>
 #include <SD.h>
 #include <SPIFFS.h>
+#include <ff.h>
 
 // ICONS:
 #include "../icons/normalfile.h"
@@ -169,12 +171,19 @@ typedef enum {
 // 5. Check file type by mime-type instead of extension
 //////////////////////////////////////////////////////////////
 
+// determine size we need to reserve for path/name
+#if FF_USE_LFN
+#    define MAX_PATH FF_MAX_LFN + 1
+#else
+#    define MAX_PATH 12
+#endif
+
 typedef struct {
     FileType type;
     const menu_icon_t* icon;
     uint16_t color;
-    String name;
-    String path; // dir
+    char name[MAX_PATH];
+    char path[MAX_PATH]; // dir
     __off_t st_size;
     __mode_t st_mode;
     bool selected = false;
@@ -301,11 +310,11 @@ private:
 
     // Search:
     // Returns ENTRY_NOT_FOUND_INDEX if not found
-    static uint16_t getDirEntryIndex(const std::vector<FMEntry>& vec, const FMEntry& entry);
+    static uint16_t getDirEntryIndex(const std::vector<FMEntry, SPIRamAllocator<FMEntry>>& vec, const FMEntry& entry);
 
     // Storage:
-    std::vector<FMEntry> currentDirEntries;
-    std::vector<FMEntry> selectedDirEntries;
+    std::vector<FMEntry, SPIRamAllocator<FMEntry>> currentDirEntries;
+    std::vector<FMEntry, SPIRamAllocator<FMEntry>> selectedDirEntries;
 
     // Status bar stuff
     int errnoTime = 0;
