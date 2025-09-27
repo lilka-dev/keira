@@ -9,7 +9,6 @@
 #include "services/network.h"
 #include "services/screenshot.h"
 #include "services/telnet.h"
-#include "services/KeiraBLEService.h"
 #include "services/ftp.h"
 #include "apps/statusbar.h"
 #include "apps/launcher.h"
@@ -25,9 +24,6 @@ void setup() {
     serviceManager->addService(new ScreenshotService());
     serviceManager->addService(new TelnetService());
     serviceManager->addService(new FTPService());
-#ifdef LILKA_BLE
-    serviceManager->addService(new KeiraBLEService());
-#endif
     appManager->setPanel(new StatusBarApp());
     appManager->runApp(new LauncherApp());
 }
