@@ -327,7 +327,7 @@ void FileManagerApp::deselectCurrentEntry() {
 }
 
 void FileManagerApp::clearSelectedEntries() {
-    for (auto& entry : selectedDirEntries) {
+    for (const auto& entry : selectedDirEntries) {
         auto index = getDirEntryIndex(currentDirEntries, entry);
         if (index != ENTRY_NOT_FOUND_INDEX) {
             lilka::MenuItem mbuff;
@@ -404,7 +404,7 @@ void FileManagerApp::onFileOpenWithMODPlayer() {
 void FileManagerApp::onFileSelectionOptionsMenuCopy() {
     auto button = fileSelectionOptionsMenu.getButton();
     if (button == FM_OKAY_BUTTON) {
-        for (auto& entry : selectedDirEntries) {
+        for (const auto& entry : selectedDirEntries) {
             auto src = lilka::fileutils.joinPath(entry.path, entry.name);
             auto dst = lilka::fileutils.joinPath(currentPath, entry.name);
             if (!copyPath(src, dst)) {
@@ -420,7 +420,7 @@ void FileManagerApp::onFileSelectionOptionsMenuCopy() {
 void FileManagerApp::onFileSelectionOptionsMenuMove() {
     auto button = fileSelectionOptionsMenu.getButton();
     if (button == FM_OKAY_BUTTON) {
-        for (auto& entry : selectedDirEntries) {
+        for (const auto& entry : selectedDirEntries) {
             auto src = lilka::fileutils.joinPath(entry.path, entry.name);
             auto dst = lilka::fileutils.joinPath(currentPath, entry.name);
             if (!movePath(src, dst)) {
@@ -449,7 +449,7 @@ void FileManagerApp::onFileSelectionOptionsMenuDelete() {
             queueDraw();
         }
         if (checkAlert.getButton() == FM_CONFIRM_BUTTON) {
-            for (auto& entry : selectedDirEntries)
+            for (const auto& entry : selectedDirEntries)
                 deleteEntry(entry, true);
             clearSelectedEntries();
             changeMode(FM_MODE_RELOAD);
@@ -552,7 +552,7 @@ void FileManagerApp::onFileOptionsMenuDelete() {
                 queueDraw();
             }
             if (checkAlert.getButton() == FM_CONFIRM_BUTTON) {
-                for (auto& entry : selectedDirEntries) {
+                for (const auto& entry : selectedDirEntries) {
                     deleteEntry(entry, true);
                 }
                 clearSelectedEntries();
