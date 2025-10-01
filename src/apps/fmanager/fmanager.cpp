@@ -805,7 +805,7 @@ bool FileManagerApp::fileListMenuLoadDir() {
     }
     // TODO: move sorting in separate place. Implement different sorting options. Add them to fileOptionsMenu
     // Sorting directory entries
-    std::sort(currentDirEntries.begin(), currentDirEntries.end(), [](FMEntry& a, FMEntry& b) {
+    std::sort(currentDirEntries.begin(), currentDirEntries.end(), [](const FMEntry& a, const FMEntry& b) {
         if (a.type == FT_DIR && b.type != FT_DIR) return true;
         else if (a.type != FT_DIR && b.type == FT_DIR) return false;
         return strcmp(a.name, b.name) < 0;
