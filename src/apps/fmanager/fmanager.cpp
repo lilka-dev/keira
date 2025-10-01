@@ -48,9 +48,7 @@ FileManagerApp::FileManagerApp(const String& path) :
 
     // FILE OPEN WITH MENU SETUP:
     fileOpenWithMenu.setTitle(K_S_FMANAGER_SELECT_APP);
-    fileOpenWithMenu.addItem(
-        K_S_FMANAGER_FILE_MANAGER, 0, 0U, "", FM_CALLBACK_CAST(onFileOpenWithFileManager), FM_CALLBACK_PTHIS
-    );
+
     fileOpenWithMenu.addItem(
         K_S_FMANAGER_NES_EMULATOR, 0, 0U, "", FM_CALLBACK_CAST(onFileOpenWithNESEmulator), FM_CALLBACK_PTHIS
     );
@@ -146,7 +144,7 @@ String FileManagerApp::getFileMD5(const String& file_path) {
     }
 
     if (ferror(file)) {
-        ESP_LOGE("MD5", "Error reading file: %s", file_path.c_str());
+        FM_DBG lilka::serial.err("MD5 Error reading file: %s", file_path.c_str());
         fclose(file);
         mbedtls_md5_free(&ctx);
         return K_S_FMANAGER_CALC_INTERRUPTED;
@@ -174,13 +172,13 @@ String FileManagerApp::getFileMD5(const String& file_path) {
 FMEntry FileManagerApp::pathToEntry(const String& path) {
     FMEntry newEntry;
     bool statPerformed = false;
-    newEntry.path = lilka::fileutils.getParentDirectory(path);
-    newEntry.name = basename(path.c_str());
+    strcpy(newEntry.path, lilka::fileutils.getParentDirectory(path).c_str());
+    strcpy(newEntry.name, basename(path.c_str()));
 
     // Perform stat
     // . dir needs specific way to do that
     struct stat tmpStat;
-    if (newEntry.name == "." && stat(newEntry.path.c_str(), &(tmpStat)) == 0) {
+    if ((strcmp(newEntry.name, ".") == 0) && stat(newEntry.path, &(tmpStat)) == 0) {
         statPerformed = true;
     } else {
         if (stat(path.c_str(), &tmpStat) == 0) {
@@ -253,22 +251,22 @@ void FileManagerApp::openCurrentEntry() {
     }
     switch (currentEntry.type) {
         case FT_NES_ROM:
-            FM_DEFAULT_FT_NES_HANDLER(path);
+            K_FT_NES_HANDLER(path);
             break;
         case FT_BIN:
             FM_DEFAULT_FT_BIN_HANDLER(path);
             break;
         case FT_LUA_SCRIPT:
-            FM_DEFAULT_LUA_SCRIPT_HANDLER(path);
+            K_FT_LUA_SCRIPT_HANDLER(path);
             break;
         case FT_JS_SCRIPT:
-            FT_DEFAULT_JS_SCRIPT_HANDLER(path);
+            K_FT_JS_SCRIPT_HANDLER(path);
             break;
         case FT_MOD:
-            FT_DEFAULT_MOD_HANDLER(path);
+            K_FT_MOD_HANDLER(path);
             break;
         case FT_LT:
-            FT_DEFAULT_LT_HANDLER(path);
+            K_FT_LT_HANDLER(path);
             break;
         case FT_DIR:
             FT_DEFAULT_DIR_HANDLER;
@@ -329,7 +327,7 @@ void FileManagerApp::deselectCurrentEntry() {
 }
 
 void FileManagerApp::clearSelectedEntries() {
-    for (auto entry : selectedDirEntries) {
+    for (const auto& entry : selectedDirEntries) {
         auto index = getDirEntryIndex(currentDirEntries, entry);
         if (index != ENTRY_NOT_FOUND_INDEX) {
             lilka::MenuItem mbuff;
@@ -354,82 +352,59 @@ void FileManagerApp::fileOpenWithMenuShow() {
     }
 }
 
-void FileManagerApp::onFileOpenWithFileManager() {
-    FM_DBG lilka::serial.log("Enter onFileOpenWithFileManager");
-    auto button = fileOpenWithMenu.getButton();
-    if (button == FM_OKAY_BUTTON) {
-        if (currentEntry.type == FT_DIR) {
-            if (isCurrentDirSelected()) {
-                if (currentPath != initalPath) {
-                    currentPath = lilka::fileutils.getParentDirectory(currentPath);
-                    changeMode(FM_MODE_RELOAD);
-                    return;
-                }
-            }
-            currentPath = lilka::fileutils.joinPath(currentEntry.path, currentEntry.name);
-            changeMode(FM_MODE_RELOAD);
-        } else alert(K_S_ERROR, "Не підтримується");
-    } else if (button != FM_EXIT_BUTTON) fileOpenWithMenu.isFinished(); // do redraw
-}
-
 void FileManagerApp::onFileOpenWithNESEmulator() {
     FM_DBG lilka::serial.log("Enter onFileOpenWithNESEmulator");
     auto button = fileOpenWithMenu.getButton();
-    if (button == FM_OKAY_BUTTON) {
-        AppManager::getInstance()->runApp(new NesApp(lilka::fileutils.joinPath(currentEntry.path, currentEntry.name)));
-    } else if (button != FM_EXIT_BUTTON) fileOpenWithMenu.isFinished(); // do redraw
+    if (button == FM_EXIT_BUTTON) return; // Exit
+
+    K_FT_NES_HANDLER(lilka::fileutils.joinPath(currentEntry.path, currentEntry.name));
 }
 
 void FileManagerApp::onFileOpenWithMultiBootLoader() {
     FM_DBG lilka::serial.log("Enter onFileOpenWithMultiBootLoader");
     auto button = fileOpenWithMenu.getButton();
-    if (button == FM_OKAY_BUTTON) {
-        fileLoadAsRom(lilka::fileutils.joinPath(currentEntry.path, currentEntry.name));
-    } else if (button != FM_EXIT_BUTTON) fileOpenWithMenu.isFinished(); // do redraw
+    if (button == FM_EXIT_BUTTON) return; // Exit
+
+    FM_DEFAULT_FT_BIN_HANDLER(lilka::fileutils.joinPath(currentEntry.path, currentEntry.name));
 }
 
 void FileManagerApp::onFileOpenWithLua() {
     FM_DBG lilka::serial.log("Enter onFileOpenWithLua");
     auto button = fileOpenWithMenu.getButton();
-    if (button == FM_OKAY_BUTTON) {
-        AppManager::getInstance()->runApp(
-            new LuaFileRunnerApp(lilka::fileutils.joinPath(currentEntry.path, currentEntry.name))
-        );
-    } else if (button != FM_EXIT_BUTTON) fileOpenWithMenu.isFinished(); // do redraw
+    if (button == FM_EXIT_BUTTON) return; // Exit
+
+    K_FT_LUA_SCRIPT_HANDLER(lilka::fileutils.joinPath(currentEntry.path, currentEntry.name));
 }
 
 void FileManagerApp::onFileOpenWithMJS() {
     FM_DBG lilka::serial.log("Enter onFileOpenWithMJS");
     auto button = fileOpenWithMenu.getButton();
-    if (button == FM_OKAY_BUTTON) {
-        AppManager::getInstance()->runApp(new MJSApp(lilka::fileutils.joinPath(currentEntry.path, currentEntry.name)));
-    } else if (button != FM_EXIT_BUTTON) fileOpenWithMenu.isFinished(); // do redraw
+    if (button == FM_EXIT_BUTTON) return; // Exit
+
+    K_FT_JS_SCRIPT_HANDLER(lilka::fileutils.joinPath(currentEntry.path, currentEntry.name));
 }
 
 void FileManagerApp::onFileOpenWithLilTracker() {
     FM_DBG lilka::serial.log("Enter onFileOpenWithLilTracker");
     auto button = fileOpenWithMenu.getButton();
-    if (button == FM_OKAY_BUTTON) {
-        AppManager::getInstance()->runApp(
-            new LilTrackerApp(lilka::fileutils.joinPath(currentEntry.path, currentEntry.name))
-        );
-    } else if (button != FM_EXIT_BUTTON) fileOpenWithMenu.isFinished(); // do redraw
+    if (button == FM_EXIT_BUTTON) return; // Exit
+
+    K_FT_LT_HANDLER(lilka::fileutils.joinPath(currentEntry.path, currentEntry.name));
 }
 
 void FileManagerApp::onFileOpenWithMODPlayer() {
     FM_DBG lilka::serial.log("Enter onFileOpenWithMODPlayer");
     auto button = fileOpenWithMenu.getButton();
-    if (button == FM_OKAY_BUTTON) {
-        AppManager::getInstance()->runApp(
-            new ModPlayerApp(lilka::fileutils.joinPath(currentEntry.path, currentEntry.name))
-        );
-    } else if (button != FM_EXIT_BUTTON) fileOpenWithMenu.isFinished(); // do redraw
+    if (button == FM_EXIT_BUTTON) return; // Exit
+
+    K_FT_MOD_HANDLER(lilka::fileutils.joinPath(currentEntry.path, currentEntry.name));
 }
+
 // FILE SELECTION MENU BELOW:
 void FileManagerApp::onFileSelectionOptionsMenuCopy() {
     auto button = fileSelectionOptionsMenu.getButton();
     if (button == FM_OKAY_BUTTON) {
-        for (auto entry : selectedDirEntries) {
+        for (const auto& entry : selectedDirEntries) {
             auto src = lilka::fileutils.joinPath(entry.path, entry.name);
             auto dst = lilka::fileutils.joinPath(currentPath, entry.name);
             if (!copyPath(src, dst)) {
@@ -445,7 +420,7 @@ void FileManagerApp::onFileSelectionOptionsMenuCopy() {
 void FileManagerApp::onFileSelectionOptionsMenuMove() {
     auto button = fileSelectionOptionsMenu.getButton();
     if (button == FM_OKAY_BUTTON) {
-        for (auto entry : selectedDirEntries) {
+        for (const auto& entry : selectedDirEntries) {
             auto src = lilka::fileutils.joinPath(entry.path, entry.name);
             auto dst = lilka::fileutils.joinPath(currentPath, entry.name);
             if (!movePath(src, dst)) {
@@ -474,7 +449,7 @@ void FileManagerApp::onFileSelectionOptionsMenuDelete() {
             queueDraw();
         }
         if (checkAlert.getButton() == FM_CONFIRM_BUTTON) {
-            for (auto entry : selectedDirEntries)
+            for (const auto& entry : selectedDirEntries)
                 deleteEntry(entry, true);
             clearSelectedEntries();
             changeMode(FM_MODE_RELOAD);
@@ -549,7 +524,7 @@ void FileManagerApp::onFileOptionsMenuMKDir() {
                 FM_UI_CANT_DO_OP;
                 FM_DBG lilka::serial.err(
                     "Can't make dir in %s with name %s. %d: %s",
-                    currentEntry.path.c_str(),
+                    currentEntry.path,
                     dirName.c_str(),
                     errno,
                     strerror(errno)
@@ -577,7 +552,7 @@ void FileManagerApp::onFileOptionsMenuDelete() {
                 queueDraw();
             }
             if (checkAlert.getButton() == FM_CONFIRM_BUTTON) {
-                for (auto entry : selectedDirEntries) {
+                for (const auto& entry : selectedDirEntries) {
                     deleteEntry(entry, true);
                 }
                 clearSelectedEntries();
@@ -615,7 +590,7 @@ void FileManagerApp::onFileOptionsMenuRename() {
         auto newName = renameInput.getValue();
 
         // Skip empty and same names
-        if (newName == "" || newName == currentEntry.name) {
+        if (newName == "" || (strcmp(newName.c_str(), currentEntry.name) == 0)) {
             exitChildDialogs = true;
             return;
         }
@@ -667,7 +642,7 @@ void FileManagerApp::fileInfoShowAlert() {
 }
 
 bool FileManagerApp::areDirEntriesEqual(const FMEntry& ent1, const FMEntry& ent2) {
-    return (ent1.name == ent2.name) && (ent1.path == ent2.path);
+    return ((strcmp(ent1.name, ent2.name) == 0) && (strcmp(ent1.path, ent2.path) == 0));
 }
 
 bool FileManagerApp::isCopyOrMoveCouldBeDone(const String& src, const String& dst) {
@@ -706,10 +681,12 @@ bool FileManagerApp::isCopyOrMoveCouldBeDone(const String& src, const String& ds
 
 bool FileManagerApp::isCurrentDirSelected() {
     auto index = fileListMenu.getCursor();
-    return (currentDirEntries.size() == index) || currentEntry.name == ".";
+    return (currentDirEntries.size() == index) || (strcmp(currentEntry.name, ".") == 0);
 }
 
-uint16_t FileManagerApp::getDirEntryIndex(const std::vector<FMEntry>& vec, const FMEntry& entry) {
+uint16_t FileManagerApp::getDirEntryIndex(
+    const std::vector<FMEntry, SPIRamAllocator<FMEntry>>& vec, const FMEntry& entry
+) {
     for (size_t it = 0; it < vec.size(); it++) {
         if (areDirEntriesEqual(vec[it], entry)) return it;
     }
@@ -828,10 +805,10 @@ bool FileManagerApp::fileListMenuLoadDir() {
     }
     // TODO: move sorting in separate place. Implement different sorting options. Add them to fileOptionsMenu
     // Sorting directory entries
-    std::sort(currentDirEntries.begin(), currentDirEntries.end(), [](FMEntry a, FMEntry b) {
+    std::sort(currentDirEntries.begin(), currentDirEntries.end(), [](const FMEntry& a, const FMEntry& b) {
         if (a.type == FT_DIR && b.type != FT_DIR) return true;
         else if (a.type != FT_DIR && b.type == FT_DIR) return false;
-        return a.name.compareTo(b.name) < 0;
+        return strcmp(a.name, b.name) < 0;
     });
 
     if (drawProgress) {
@@ -842,7 +819,7 @@ bool FileManagerApp::fileListMenuLoadDir() {
     }
 
     // Adding entries to menu
-    for (auto dirEntry : currentDirEntries) {
+    for (auto& dirEntry : currentDirEntries) {
         fileListMenu.addItem(
             dirEntry.name,
             dirEntry.selected && dirEntry.type == FT_DIR   ? FM_SELECTED_FOLDER_ICON
@@ -897,7 +874,7 @@ void FileManagerApp::onFileListMenuItem() {
         currentEntry = pathToEntry(lilka::fileutils.joinPath(currentPath, "."));
     } else currentEntry = currentDirEntries[fileListMenu.getCursor()];
 
-    FM_DBG lilka::serial.log("currentEntry path = %s, name = %s", currentEntry.path.c_str(), currentEntry.name.c_str());
+    FM_DBG lilka::serial.log("currentEntry path = %s, name = %s", currentEntry.path, currentEntry.name);
     currentPath = currentEntry.path;
     FM_DBG lilka::serial.log("Current path = %s", currentPath.c_str());
     FM_DBG lilka::serial.log("Button = %d", button);
