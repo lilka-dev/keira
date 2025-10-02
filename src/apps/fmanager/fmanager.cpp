@@ -21,9 +21,6 @@ FileManagerApp::FileManagerApp(const String& path) :
     dirLoadProgress(K_S_FMANAGER_LOADING, ""),
     mkdirInput(K_S_FMANAGER_ENTER_NEW_FOLDER_NAME),
     renameInput(K_S_FMANAGER_ENTER_NEW_NAME) {
-    // Set stack size
-    setStackSize(FM_STACK_SIZE);
-
     // FILE OPTIONS MENU SETUP:
     fileOptionsMenu.setTitle(K_S_FMANAGER_OPTIONS);
     fileOptionsMenu.addItem(K_S_FMANAGER_OPEN, 0, 0U, "", FM_CALLBACK_CAST(onFileOptionsMenuOpen), FM_CALLBACK_PTHIS);
@@ -843,8 +840,6 @@ bool FileManagerApp::fileListMenuLoadDir() {
 void FileManagerApp::fileListMenuShow() {
     FM_DBG lilka::serial.log("Trying to load dir %s", currentPath.c_str());
 
-    if (!stackSizeCheck()) return;
-
     // Do Draw !
     while (!fileListMenu.isFinished()) {
         if (mode == FM_MODE_RELOAD) {
@@ -940,7 +935,6 @@ void FileManagerApp::deleteEntry(const FMEntry& entry, bool force) {
     // TODO: Add exit code, or rework without recursion
     // Can't FM_MODE_RESET here cause of recursive nature
     // could also fall here. exit gracefully
-    if (!stackSizeCheck()) return;
 
     auto path = lilka::fileutils.joinPath(entry.path, entry.name);
     // Perform check on user sureness
@@ -1014,9 +1008,6 @@ bool FileManagerApp::movePath(const String& source, const String destination) {
 
 bool FileManagerApp::copyPath(const String& source, const String& destination) {
     FM_CHILD_DIALOG_CHECKB;
-    // Cause copying of large directories with long list of files made via recursion,
-    // we could easily fail here
-    if (!stackSizeCheck()) return false;
 
     if (!isCopyOrMoveCouldBeDone(source, destination)) {
         FM_UI_CANT_DO_OP;
@@ -1128,16 +1119,6 @@ bool FileManagerApp::copyPath(const String& source, const String& destination) {
     return false;
 }
 
-bool FileManagerApp::stackSizeCheck() {
-    auto stackLeft = uxTaskGetStackHighWaterMark(NULL);
-    if (stackLeft < FM_STACK_MIN_FREE_SIZE) {
-        alert(K_S_ERROR, K_S_FMANAGER_NOT_ENOUGH_MEMORY_TO_FINISH_OP);
-        FM_DBG lilka::serial.err("Stack left %d less than %d", stackLeft, FM_STACK_MIN_FREE_SIZE);
-        FM_MODE_RESET;
-        return false;
-    }
-    return true;
-}
 void FileManagerApp::run() {
     FM_DBG lilka::serial.log("Opening path %s", currentPath.c_str());
     fileListMenuShow();

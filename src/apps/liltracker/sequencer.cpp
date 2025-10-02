@@ -1,9 +1,12 @@
+
 #include <math.h>
 #include <string.h>
 
 #include "sequencer.h"
 #include "lilka/serial.h"
 #include "utils/acquire.h"
+#include "servicemanager.h"
+#include "services/watchdog.h"
 
 Sequencer::Sequencer(Sink* sink) :
     xMutex(xSemaphoreCreateMutex()), xPlaying(xSemaphoreCreateBinary()), sink(sink), masterVolume(0.25f) {
@@ -52,6 +55,10 @@ void Sequencer::play(Track* track, uint16_t pageIndex, int8_t channelIndex, uint
 
     if (xTaskCreatePinnedToCore(
             [](void* pvParameters) {
+#ifdef KEIRA_WATCHDOG
+                auto wd = ServiceManager::getInstance()->getService<WatchdogService>("watchdog");
+                if (wd != NULL) wd->addCurrentTask(WATCHDOG_TASK_MISC);
+#endif
                 Sequencer* sequencer = static_cast<Sequencer*>(pvParameters);
                 sequencer->singleEventTask();
                 xSemaphoreGive(sequencer->xPlaying);
@@ -88,6 +95,10 @@ void Sequencer::play(Track* track, uint16_t pageIndex, bool loopTrack) {
 
     if (xTaskCreatePinnedToCore(
             [](void* pvParameters) {
+#ifdef KEIRA_WATCHDOG
+                auto wd = ServiceManager::getInstance()->getService<WatchdogService>("watchdog");
+                if (wd != NULL) wd->addCurrentTask(WATCHDOG_TASK_MISC);
+#endif
                 Sequencer* sequencer = static_cast<Sequencer*>(pvParameters);
                 sequencer->multiEventTask();
                 xSemaphoreGive(sequencer->xPlaying);
