@@ -48,8 +48,9 @@
 #include <WiFi.h> // for setWiFiTxPower
 #include <Preferences.h>
 
-LauncherApp::LauncherApp() : App("Menu") {
+LauncherApp::LauncherApp() : App("Launcher") {
     networkService = static_cast<NetworkService*>(ServiceManager::getInstance()->getService<NetworkService>("network"));
+    setStackSize(8192); // Yeah, this one is heavy as fuck
 }
 
 void LauncherApp::run() {
