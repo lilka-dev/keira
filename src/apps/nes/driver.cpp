@@ -5,6 +5,7 @@ int16_t Driver::w, Driver::h, Driver::frame_x, Driver::frame_y, Driver::frame_x_
     Driver::frame_height, Driver::frame_line_pixels;
 int64_t Driver::last_render = 0;
 int64_t Driver::last_frame_duration = 0;
+uint8_t Driver::rotation = LILKA_DISPLAY_ROTATION; // not actually same value
 
 void Driver::setNesApp(NesApp* app) {
     Driver::app = app;
@@ -13,7 +14,7 @@ void Driver::setNesApp(NesApp* app) {
 int Driver::init(int width, int height) {
     w = app->canvas->width();
     h = app->canvas->height();
-
+    rotation = app->canvas->getRotation();
     nofrendo_log_printf("display w: %d, h: %d\n", w, h);
     if (w < 480) // assume only 240x240 or 320x240
     {
@@ -98,10 +99,11 @@ void Driver::customBlit(bitmap_t* bmp, int numDirties, rect_t* dirtyRects) {
     }
     odd = !odd;
 #else
-    auto rotation = canvas->getRotation();
+    // can't move framebuffer ptr outside, cause we dealing with different canvas
+    // unfortunatelly we can't reuse dirtyRects due to doublebuffering
+    // maybe it doesn't worth it
+
     auto fb = canvas->getFramebuffer();
-    int w = canvas->width();
-    int h = canvas->height();
 
     switch (rotation) {
         case 0: // no rotation
@@ -117,10 +119,10 @@ void Driver::customBlit(bitmap_t* bmp, int numDirties, rect_t* dirtyRects) {
         case 1: // 90° clockwise
             for (int y = 0; y < frame_height; y++) {
                 const uint8_t* src = bmp->line[y];
-                int py = frame_y + y;
+                uint16_t* dst = fb + (h - 1 - (frame_y + y));
                 for (int x = 0; x < frame_width; x++) {
-                    int px = frame_x + x;
-                    fb[px * w + (h - 1 - py)] = nesPalette[src[x]];
+                    *dst = nesPalette[src[x]];
+                    dst += w;
                 }
             }
             break;
@@ -128,10 +130,9 @@ void Driver::customBlit(bitmap_t* bmp, int numDirties, rect_t* dirtyRects) {
         case 2: // 180°
             for (int y = 0; y < frame_height; y++) {
                 const uint8_t* src = bmp->line[y];
-                int py = frame_y + y;
+                uint16_t* dst = fb + (h - 1 - (frame_y + y)) * w + (w - frame_width - frame_x);
                 for (int x = 0; x < frame_width; x++) {
-                    int px = frame_x + x;
-                    fb[(h - 1 - py) * w + (w - 1 - px)] = nesPalette[src[x]];
+                    dst[x] = nesPalette[src[frame_width - 1 - x]];
                 }
             }
             break;
@@ -139,10 +140,10 @@ void Driver::customBlit(bitmap_t* bmp, int numDirties, rect_t* dirtyRects) {
         case 3: // 270° clockwise
             for (int y = 0; y < frame_height; y++) {
                 const uint8_t* src = bmp->line[y];
-                int py = frame_y + y;
+                uint16_t* dst = fb + (frame_x + y);
                 for (int x = 0; x < frame_width; x++) {
-                    int px = frame_x + x;
-                    fb[(w - 1 - px) * w + py] = nesPalette[src[x]];
+                    *dst = nesPalette[src[frame_width - 1 - x]];
+                    dst += w;
                 }
             }
             break;
