@@ -5,6 +5,7 @@
 #include "servicemanager.h"
 #include "appmanager.h"
 
+#include "services/watchdog.h"
 #include "services/clock.h"
 #include "services/network.h"
 #include "services/screenshot.h"
@@ -19,6 +20,9 @@ ServiceManager* serviceManager = ServiceManager::getInstance();
 void setup() {
     lilka::display.setSplash(keira_splash, keira_splash_length);
     lilka::begin();
+#ifdef KEIRA_WATCHDOG
+    serviceManager->addService(new WatchdogService());
+#endif
     serviceManager->addService(new NetworkService());
     serviceManager->addService(new ClockService());
     serviceManager->addService(new ScreenshotService());
