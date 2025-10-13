@@ -1,4 +1,8 @@
+
 #include "app.h"
+
+#include "servicemanager.h"
+#include "services/watchdog.h"
 
 App::App(const char* name) : App(name, 0, 24, lilka::display.width(), lilka::display.height() - 24) {
 }
@@ -11,7 +15,7 @@ App::App(const char* name, uint16_t x, uint16_t y, uint16_t w, uint16_t h) :
     backCanvas(new lilka::Canvas(x, y, w, h)),
     isDrawQueued(false),
     backCanvasMutex(xSemaphoreCreateMutex()),
-    stackSize(8192),
+    stackSize(4096),
     appCore(0),
     frame(0) {
     // Clear buffers
@@ -37,6 +41,10 @@ void App::start() {
 }
 
 void App::_run(void* data) {
+#ifdef KEIRA_WATCHDOG
+    auto wd = ServiceManager::getInstance()->getService<WatchdogService>("watchdog");
+    if (wd != NULL) wd->addCurrentTask(WATCHDOG_TASK_APP);
+#endif
     App* app = static_cast<App*>(data);
     app->run();
     if (app->getState() != eTaskState::eDeleted) {

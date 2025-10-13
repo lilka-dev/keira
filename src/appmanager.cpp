@@ -60,6 +60,7 @@ void AppManager::runApp(App* app) {
     //
     // TODO: We should probably use queues to talk to AppManager and avoid all this mess with RTOS functions being called by gosh knows who. /AD
     // Anyway - behold: an additional task that will suspend the top app and release the lock when it's done.
+    // create a single thread and wait for task spawning job maybe?
     SuspensionData* suspensionData = new SuspensionData{lock, topApp};
     xTaskCreate(
         [](void* param) {

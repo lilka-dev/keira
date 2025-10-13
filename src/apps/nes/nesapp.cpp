@@ -2,6 +2,7 @@
 #include "driver.h"
 
 NesApp::NesApp(String path) : App("NES", 0, 0, lilka::display.width(), lilka::display.height()) {
+    setStackSize(8192); // This task requires 4KB, but let's be careful here
     argv[0] = new char[path.length() + 1];
     strcpy(argv[0], path.c_str());
 #ifdef NESAPP_INTERLACED

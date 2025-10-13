@@ -67,8 +67,6 @@
 #define SUSPEND_AWAIT_TIME         100
 #define FM_CHUNK_SIZE              256
 #define FM_MKDIR_MODE              0777
-#define FM_STACK_SIZE              8192
-#define FM_STACK_MIN_FREE_SIZE     100
 #define FM_DEFAULT_NEW_FOLDER_NAME "New Folder"
 
 // STATUS BAR SETTINGS:  //////////////////////////////////////////////////////////////////////////////
@@ -220,8 +218,6 @@ private:
 
     // allert to not fall off on non-implemented features
     void alertNotImplemented();
-    // ensure we've at least STACK_MIN_FREE_SIZE bytes free
-    bool stackSizeCheck();
 
     // Main loop:
     void run() override;
