@@ -21,9 +21,9 @@ void pastebinApp::uiLoop() {
     while (1) {
         lilka::Menu settingsMenu("Pastebin");
         settingsMenu.addActivationButton(K_BTN_BACK);
-        settingsMenu.addItem("Код", 0, 0, link_code);
-        settingsMenu.addItem("Назва", 0, 0, filename);
-        settingsMenu.addItem("Завантажити", 0, 0, "");
+        settingsMenu.addItem("Код", 0, lilka::colors::White, link_code);
+        settingsMenu.addItem("Назва", 0, lilka::colors::White, filename);
+        settingsMenu.addItem("Завантажити", 0, lilka::colors::White, "");
         while (!settingsMenu.isFinished()) {
             settingsMenu.update();
             settingsMenu.draw(canvas);

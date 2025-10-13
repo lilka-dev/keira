@@ -23,62 +23,122 @@ FileManagerApp::FileManagerApp(const String& path) :
     renameInput(K_S_FMANAGER_ENTER_NEW_NAME) {
     // FILE OPTIONS MENU SETUP:
     fileOptionsMenu.setTitle(K_S_FMANAGER_OPTIONS);
-    fileOptionsMenu.addItem(K_S_FMANAGER_OPEN, 0, 0U, "", FM_CALLBACK_CAST(onFileOptionsMenuOpen), FM_CALLBACK_PTHIS);
     fileOptionsMenu.addItem(
-        K_S_FMANAGER_OPEN_WITH, 0, 0U, "", FM_CALLBACK_CAST(onFileOptionsMenuOpenWith), FM_CALLBACK_PTHIS
+        K_S_FMANAGER_OPEN, 0, lilka::colors::White, "", FM_CALLBACK_CAST(onFileOptionsMenuOpen), FM_CALLBACK_PTHIS
     );
     fileOptionsMenu.addItem(
-        K_S_FMANAGER_CREATE_FOLDER, 0, 0U, "", FM_CALLBACK_CAST(onFileOptionsMenuMKDir), FM_CALLBACK_PTHIS
+        K_S_FMANAGER_OPEN_WITH,
+        0,
+        lilka::colors::White,
+        "",
+        FM_CALLBACK_CAST(onFileOptionsMenuOpenWith),
+        FM_CALLBACK_PTHIS
     );
     fileOptionsMenu.addItem(
-        K_S_FMANAGER_RENAME, 0, 0U, "", FM_CALLBACK_CAST(onFileOptionsMenuRename), FM_CALLBACK_PTHIS
+        K_S_FMANAGER_CREATE_FOLDER,
+        0,
+        lilka::colors::White,
+        "",
+        FM_CALLBACK_CAST(onFileOptionsMenuMKDir),
+        FM_CALLBACK_PTHIS
     );
     fileOptionsMenu.addItem(
-        K_S_FMANAGER_DELETE, 0, 0U, "", FM_CALLBACK_CAST(onFileOptionsMenuDelete), FM_CALLBACK_PTHIS
+        K_S_FMANAGER_RENAME, 0, lilka::colors::White, "", FM_CALLBACK_CAST(onFileOptionsMenuRename), FM_CALLBACK_PTHIS
     );
     fileOptionsMenu.addItem(
-        K_S_FMANAGER_INFO_ABOUT_FILE, 0, 0U, "", FM_CALLBACK_CAST(onFileOptionsMenuInfo), FM_CALLBACK_PTHIS
+        K_S_FMANAGER_DELETE, 0, lilka::colors::White, "", FM_CALLBACK_CAST(onFileOptionsMenuDelete), FM_CALLBACK_PTHIS
     );
-    fileOptionsMenu.addItem(K_S_MENU_BACK, 0, 0U, "", FM_CALLBACK_CAST(onAnyMenuBack), FM_CALLBACK_PTHIS);
+    fileOptionsMenu.addItem(
+        K_S_FMANAGER_INFO_ABOUT_FILE,
+        0,
+        lilka::colors::White,
+        "",
+        FM_CALLBACK_CAST(onFileOptionsMenuInfo),
+        FM_CALLBACK_PTHIS
+    );
+    fileOptionsMenu.addItem(
+        K_S_MENU_BACK, 0, lilka::colors::White, "", FM_CALLBACK_CAST(onAnyMenuBack), FM_CALLBACK_PTHIS
+    );
 
     fileOptionsMenu.addActivationButton(FM_EXIT_BUTTON);
 
     // FILE OPEN WITH MENU SETUP:
     fileOpenWithMenu.setTitle(K_S_FMANAGER_SELECT_APP);
+    fileOpenWithMenu.addItem(
+        K_S_FMANAGER_NES_EMULATOR,
+        0,
+        lilka::colors::White,
+        "",
+        FM_CALLBACK_CAST(onFileOpenWithNESEmulator),
+        FM_CALLBACK_PTHIS
+    );
+    fileOpenWithMenu.addItem(
+        K_S_FMANAGER_FIRMWARE_LOADER,
+        0,
+        lilka::colors::White,
+        "",
+        FM_CALLBACK_CAST(onFileOpenWithMultiBootLoader),
+        FM_CALLBACK_PTHIS
+    );
 
     fileOpenWithMenu.addItem(
-        K_S_FMANAGER_NES_EMULATOR, 0, 0U, "", FM_CALLBACK_CAST(onFileOpenWithNESEmulator), FM_CALLBACK_PTHIS
+        K_S_FMANAGER_LUA, 0, lilka::colors::White, "", FM_CALLBACK_CAST(onFileOpenWithLua), FM_CALLBACK_PTHIS
     );
     fileOpenWithMenu.addItem(
-        K_S_FMANAGER_FIRMWARE_LOADER, 0, 0U, "", FM_CALLBACK_CAST(onFileOpenWithMultiBootLoader), FM_CALLBACK_PTHIS
-    );
-    fileOpenWithMenu.addItem(K_S_FMANAGER_LUA, 0, 0U, "", FM_CALLBACK_CAST(onFileOpenWithLua), FM_CALLBACK_PTHIS);
-    fileOpenWithMenu.addItem(K_S_FMANAGER_MJS, 0, 0U, "", FM_CALLBACK_CAST(onFileOpenWithMJS), FM_CALLBACK_PTHIS);
-    fileOpenWithMenu.addItem(
-        K_S_FMANAGER_LILTRACKER, 0, 0U, "", FM_CALLBACK_CAST(onFileOpenWithLilTracker), FM_CALLBACK_PTHIS
+        K_S_FMANAGER_MJS, 0, lilka::colors::White, "", FM_CALLBACK_CAST(onFileOpenWithMJS), FM_CALLBACK_PTHIS
     );
     fileOpenWithMenu.addItem(
-        K_S_FMANAGER_MOD_PLAYER, 0, 0U, "", FM_CALLBACK_CAST(onFileOpenWithMODPlayer), FM_CALLBACK_PTHIS
+        K_S_FMANAGER_LILTRACKER,
+        0,
+        lilka::colors::White,
+        "",
+        FM_CALLBACK_CAST(onFileOpenWithLilTracker),
+        FM_CALLBACK_PTHIS
     );
-    fileOpenWithMenu.addItem(K_S_MENU_BACK, 0, 0U, "", FM_CALLBACK_CAST(onAnyMenuBack), FM_CALLBACK_PTHIS);
+    fileOpenWithMenu.addItem(
+        K_S_FMANAGER_MOD_PLAYER,
+        0,
+        lilka::colors::White,
+        "",
+        FM_CALLBACK_CAST(onFileOpenWithMODPlayer),
+        FM_CALLBACK_PTHIS
+    );
+    fileOpenWithMenu.addItem(
+        K_S_MENU_BACK, 0, lilka::colors::White, "", FM_CALLBACK_CAST(onAnyMenuBack), FM_CALLBACK_PTHIS
+    );
 
     fileOpenWithMenu.addActivationButton(FM_EXIT_BUTTON);
 
     // FILE SELECTION PASTE MENU SETUP:
     fileSelectionOptionsMenu.setTitle(K_S_FMANAGER_ACTIONS_ON_SELECTED);
     fileSelectionOptionsMenu.addItem(
-        K_S_FMANAGER_COPY_SELECTED, 0, 0U, "", FM_CALLBACK_CAST(onFileSelectionOptionsMenuCopy), FM_CALLBACK_PTHIS
+        K_S_FMANAGER_COPY_SELECTED,
+        0,
+        lilka::colors::White,
+        "",
+        FM_CALLBACK_CAST(onFileSelectionOptionsMenuCopy),
+        FM_CALLBACK_PTHIS
     );
     fileSelectionOptionsMenu.addItem(
-        K_S_FMANAGER_MOVE_SELECTED, 0, 0U, "", FM_CALLBACK_CAST(onFileSelectionOptionsMenuMove), FM_CALLBACK_PTHIS
+        K_S_FMANAGER_MOVE_SELECTED,
+        0,
+        lilka::colors::White,
+        "",
+        FM_CALLBACK_CAST(onFileSelectionOptionsMenuMove),
+        FM_CALLBACK_PTHIS
     );
     fileSelectionOptionsMenu.addItem(
-        K_S_FMANAGER_DELETE_SELECTED, 0, 0U, "", FM_CALLBACK_CAST(onFileSelectionOptionsMenuDelete), FM_CALLBACK_PTHIS
+        K_S_FMANAGER_DELETE_SELECTED,
+        0,
+        lilka::colors::White,
+        "",
+        FM_CALLBACK_CAST(onFileSelectionOptionsMenuDelete),
+        FM_CALLBACK_PTHIS
     );
     fileSelectionOptionsMenu.addItem(
         K_S_FMANAGER_CLEAR_SELECTION,
         0,
-        0U,
+        lilka::colors::White,
         "",
         FM_CALLBACK_CAST(onFileSelectionOptionsMenuClearSelection),
         FM_CALLBACK_PTHIS
@@ -831,7 +891,9 @@ bool FileManagerApp::fileListMenuLoadDir() {
 
     // Add Back button
     // We can't reuse onAnyMenuBack here
-    fileListMenu.addItem(K_S_MENU_BACK, 0, 0, "", FM_CALLBACK_CAST(onFileListMenuItem), FM_CALLBACK_PTHIS);
+    fileListMenu.addItem(
+        K_S_MENU_BACK, 0, lilka::colors::White, "", FM_CALLBACK_CAST(onFileListMenuItem), FM_CALLBACK_PTHIS
+    );
     fileListMenu.setCursor(0);
 
     return true;

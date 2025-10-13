@@ -82,7 +82,7 @@ void LauncherApp::run() {
                             ITEM::APP(K_S_LAUNCHER_EPILEPSY, [this]() { this->runApp<EpilepsyApp>(); }),
                             ITEM::APP(K_S_LAUNCHER_PET_PET, [this]() { this->runApp<PetPetApp>(); }),
                         },
-                        &app_group_img, 0
+                        &app_group_img, lilka::colors::White
                     ),
                     ITEM::SUBMENU(
                         K_S_LAUNCHER_TESTS,
@@ -94,7 +94,7 @@ void LauncherApp::run() {
                             ITEM::APP(K_S_LAUNCHER_COMBO, [this]() { this->runApp<ComboApp>(); }),
                             ITEM::APP(K_S_LAUNCHER_CALLBACK_TEST, [this]() { this->runApp<CallBackTestApp>(); }),
                         },
-                        &app_group_img, 0
+                        &app_group_img, lilka::colors::White
                     ),
                     ITEM::APP(K_S_LAUNCHER_LILCATALOG, [this]() { this->runApp<LilCatalogApp>(); }),
                     ITEM::APP(K_S_LAUNCHER_LILTRACKER, [this]() { this->runApp<LilTrackerApp>(); }),
@@ -134,7 +134,7 @@ void LauncherApp::run() {
                         K_S_LAUNCHER_WIFI_ADAPTER,
                         [this]() { this->wifiToggle(); },
                         nullptr,
-                        0,
+                        lilka::colors::White,
                         [this](void* item) {
                             lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
                             menuItem->postfix = networkService->getEnabled() ? K_S_ON : K_S_OFF;
@@ -293,9 +293,6 @@ void LauncherApp::runApp(Args&&... args) {
     AppManager::getInstance()->runApp(new T(std::forward<Args>(args)...));
 }
 void LauncherApp::setWiFiTxPower() {
-    // String names[16];
-    // int partitionCount = lilka::sys.get_partition_labels(names);
-
     String names[] = {
         "19.5 dBm", "19 dBm", "18.5 dBm", "17 dBm", "15 dBm", "13 dBm", "11 dBm", "8.5 dBm", "7 dBm", "2 dBm", "-1 dBm"
     };
