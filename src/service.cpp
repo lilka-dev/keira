@@ -1,9 +1,26 @@
 #include "service.h"
+#include "servicemanager.h"
+#include "services/watchdog.h"
 
-Service::Service(const char* name) : name(name), taskHandle(NULL), stackSize(8192) {
+Service::Service(const char* name) : name(name), taskHandle(NULL), stackSize(4096) {
+    Preferences prefs;
+    prefs.begin(name, true);
+    enabled = prefs.getBool("enabled", false);
+    prefs.end();
 }
 
 Service::~Service() {
+}
+bool Service::getEnabled() {
+    return enabled;
+}
+
+void Service::setEnabled(bool enabled) {
+    this->enabled = enabled;
+    Preferences prefs;
+    prefs.begin(name, false);
+    prefs.putBool("enabled", enabled);
+    prefs.end();
 }
 
 void Service::start() {
@@ -13,6 +30,10 @@ void Service::start() {
 
 void Service::_run(void* arg) {
     Service* service = static_cast<Service*>(arg);
+#ifdef KEIRA_WATCHDOG
+    auto wd = ServiceManager::getInstance()->getService<WatchdogService>("watchdog");
+    if (wd != NULL) wd->addCurrentTask(WATCHDOG_TASK_SERVICE);
+#endif
     service->run();
     lilka::serial.err(K_S_SERVICE_DIE_FMT, service->name);
 }

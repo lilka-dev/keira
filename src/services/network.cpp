@@ -29,10 +29,11 @@ NetworkService::NetworkService() :
 
 void NetworkService::run() {
     // Loading settings from NVS
+
+    bool enabled = getEnabled();
+
     Preferences prefs;
     prefs.begin(WIFI_KEIRA_NAMESPACE, true);
-    bool enabled = prefs.isKey("enabled") ? prefs.getBool("enabled") : false;
-
     // Set transmit power
     wifi_power_t txPower =
         prefs.isKey("txPower") ? static_cast<wifi_power_t>(prefs.getInt("txPower")) : WIFI_POWER_19_5dBm;
@@ -155,6 +156,19 @@ void NetworkService::run() {
             }
         }
 
+        bool stateChanged = getEnabled() != enabled;
+        if (stateChanged) {
+            enabled = !enabled; // toggle to new state
+            if (enabled) {
+                setNetworkState(NETWORK_STATE_OFFLINE);
+                WiFi.mode(WIFI_STA);
+                autoConnect();
+            } else {
+                WiFi.disconnect(true, true);
+                WiFi.mode(WIFI_OFF);
+            }
+        }
+
         vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
 }
@@ -207,28 +221,6 @@ void NetworkService::connect(String ssid, String password) {
     lastPassword = password;
     WiFi.disconnect();
     WiFi.begin(ssid.c_str(), password.c_str());
-}
-
-bool NetworkService::getEnabled() {
-    return state != NETWORK_STATE_DISABLED;
-}
-
-void NetworkService::setEnabled(bool enabled) {
-    Preferences prefs;
-    prefs.begin(WIFI_KEIRA_NAMESPACE, false);
-    prefs.putBool("enabled", enabled);
-    prefs.end();
-
-    lilka::serial.log("NetworkService: WiFi set to %s", enabled ? "enabled" : "disabled");
-
-    if (enabled) {
-        setNetworkState(NETWORK_STATE_OFFLINE);
-        WiFi.mode(WIFI_STA);
-        autoConnect();
-    } else {
-        WiFi.disconnect(true, true);
-        WiFi.mode(WIFI_OFF);
-    }
 }
 
 String NetworkService::getPassword(String ssid) {

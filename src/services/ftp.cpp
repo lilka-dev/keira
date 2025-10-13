@@ -1,14 +1,13 @@
 #include "ftp.h"
-#include "Preferences.h"
 #include "servicemanager.h"
 #include "network.h"
 
 FTPService::FTPService() : Service("ftp") {
     Preferences prefs;
-    prefs.begin(FTP_SETTINGS, true);
-    enabled = prefs.getBool("enabled", false);
+    prefs.begin(name, true);
     password = prefs.getString("password", "");
     prefs.end();
+
     if (password.isEmpty()) {
         createPassword();
     }
@@ -32,36 +31,24 @@ void FTPService::run() {
         }
 
         bool isOnline = networkService->getNetworkState() == NetworkState::NETWORK_STATE_ONLINE;
-        if ((enabled && isOnline) && !wasOnline) {
+        if ((getEnabled() && isOnline) && !wasOnline) {
             ftpServer = new FtpServer();
             ftpServer->begin(user.c_str(), password.c_str());
             wasOnline = true;
-        } else if ((!enabled || !isOnline) && wasOnline) {
+        } else if ((!getEnabled() || !isOnline) && wasOnline) {
             ftpServer->end();
             delete ftpServer;
             ftpServer = nullptr;
             wasOnline = false;
         }
 
-        if (enabled && isOnline) {
+        if (getEnabled() && isOnline) {
             ftpServer->handleFTP();
             taskYIELD();
         } else {
             vTaskDelay(500 / portTICK_PERIOD_MS);
         }
     }
-}
-
-bool FTPService::getEnabled() {
-    return enabled;
-}
-
-void FTPService::setEnabled(bool enabled) {
-    this->enabled = enabled;
-    Preferences prefs;
-    prefs.begin(FTP_SETTINGS, false);
-    prefs.putBool("enabled", enabled);
-    prefs.end();
 }
 
 String FTPService::getUser() {
@@ -80,7 +67,7 @@ void FTPService::createPassword() {
     pwd[FTP_PASSWORD_LENGTH] = 0;
 
     Preferences prefs;
-    prefs.begin(FTP_SETTINGS, false);
+    prefs.begin(name, false);
     prefs.putString("password", pwd);
     prefs.end();
 

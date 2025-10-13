@@ -79,36 +79,88 @@ void Driver::freeFrite(int numDirties, rect_t* dirtyRects) {
 bool odd = true;
 
 void Driver::customBlit(bitmap_t* bmp, int numDirties, rect_t* dirtyRects) {
+#ifdef NES_FPS_COUNTER
     last_frame_duration = micros() - last_render;
     last_render = micros();
+#endif
 
     lilka::Canvas* canvas = app->canvas;
 
 #ifdef INTERLACED
     for (int y = odd ? 1 : 0; y < frame_height; y += 2) {
         const uint8_t* line = bmp->line[y];
+        int dst_y = y + frame_y;
+        int dst_x = frame_x;
         for (int x = 0; x < frame_width; x++) {
-            uint8_t index = line[x];
-            uint16_t color = nesPalette[index];
-            canvas->writePixelPreclipped(x + frame_x, y + frame_y, color);
-            // app->canvas->drawPixel(x + frame_x, y + frame_y, color);
+            canvas->writePixelPreclipped(dst_x + x, dst_y, nesPalette[line[x]]);
+            // app->canvas->drawPixel(dst_x + x, dst_y, nesPalette[line[x]]);
         }
     }
     odd = !odd;
 #else
-    for (int y = 0; y < frame_height; y++) {
-        const uint8_t* line = bmp->line[y];
-        for (int x = 0; x < frame_width; x++) {
-            uint8_t index = line[x];
-            uint16_t color = nesPalette[index];
-            canvas->writePixelPreclipped(x + frame_x, y + frame_y, color);
-            // app->canvas->drawPixel(x + frame_x, y + frame_y, color);
-        }
+    auto rotation = canvas->getRotation();
+    auto fb = canvas->getFramebuffer();
+    int w = canvas->width();
+    int h = canvas->height();
+
+    switch (rotation) {
+        case 0: // no rotation
+            for (int y = 0; y < frame_height; y++) {
+                const uint8_t* src = bmp->line[y];
+                uint16_t* dst = fb + (frame_y + y) * w + frame_x;
+                for (int x = 0; x < frame_width; x++) {
+                    dst[x] = nesPalette[src[x]];
+                }
+            }
+            break;
+
+        case 1: // 90° clockwise
+            for (int y = 0; y < frame_height; y++) {
+                const uint8_t* src = bmp->line[y];
+                int py = frame_y + y;
+                for (int x = 0; x < frame_width; x++) {
+                    int px = frame_x + x;
+                    fb[px * w + (h - 1 - py)] = nesPalette[src[x]];
+                }
+            }
+            break;
+
+        case 2: // 180°
+            for (int y = 0; y < frame_height; y++) {
+                const uint8_t* src = bmp->line[y];
+                int py = frame_y + y;
+                for (int x = 0; x < frame_width; x++) {
+                    int px = frame_x + x;
+                    fb[(h - 1 - py) * w + (w - 1 - px)] = nesPalette[src[x]];
+                }
+            }
+            break;
+
+        case 3: // 270° clockwise
+            for (int y = 0; y < frame_height; y++) {
+                const uint8_t* src = bmp->line[y];
+                int py = frame_y + y;
+                for (int x = 0; x < frame_width; x++) {
+                    int px = frame_x + x;
+                    fb[(w - 1 - px) * w + py] = nesPalette[src[x]];
+                }
+            }
+            break;
     }
+
+        // for (int y = 0; y < frame_height; y++) {
+        //     const uint8_t* line = bmp->line[y];
+        //     int dst_y = y + frame_y;
+        //     int dst_x = frame_x;
+        //     for (int x = 0; x < frame_width; x++) {
+        //         canvas->writePixelPreclipped(dst_x + x, dst_y, nesPalette[line[x]]);
+        //         // app->canvas->drawPixel(dst_x + x, dst_y, nesPalette[line[x]]);
+        //     }
+        // }
 #endif
 
     // Serial.println("Draw 1 took " + String(micros() - last_render) + "us");
-
+#ifdef NES_FPS_COUNTER
     if (last_frame_duration > 0) {
         canvas->fillRect(80, canvas->height() - 20, 80, 20, lilka::colors::Black);
         canvas->setCursor(80, canvas->height() - 4);
@@ -117,6 +169,7 @@ void Driver::customBlit(bitmap_t* bmp, int numDirties, rect_t* dirtyRects) {
         canvas->print("FPS: ");
         canvas->print(1000000 / last_frame_duration);
     }
+#endif
 
     // Serial.println("Draw 2 took " + String(micros() - last_render) + "us");
 
