@@ -65,14 +65,6 @@ FileManagerApp::FileManagerApp(const String& path) :
     // FILE OPEN WITH MENU SETUP:
     fileOpenWithMenu.setTitle(K_S_FMANAGER_SELECT_APP);
     fileOpenWithMenu.addItem(
-        K_S_FMANAGER_FILE_MANAGER,
-        0,
-        lilka::colors::White,
-        "",
-        FM_CALLBACK_CAST(onFileOpenWithFileManager),
-        FM_CALLBACK_PTHIS
-    );
-    fileOpenWithMenu.addItem(
         K_S_FMANAGER_NES_EMULATOR,
         0,
         lilka::colors::White,
