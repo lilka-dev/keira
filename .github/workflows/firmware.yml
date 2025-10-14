@@ -37,7 +37,8 @@ jobs:
       - name: Build and package firmware
         run: |
           mkdir -p out
-          if [[ "$(git branch --show-current)" == "main" ]]; then
+          if [[ "${{ startsWith(github.ref, 'refs/tags/') }}" == "true" ]]; then
+            echo "Tag detected - building for all languages"
             for lang in $(cat languages.txt); do
               echo "Building for $lang"
               PLATFORMIO_BUILD_FLAGS=-D$lang pio run -e v2
@@ -52,7 +53,7 @@ jobs:
                 0x10000 out/keira_${lang}.bin
             done
           else
-            echo "Building for default language"
+            echo "Main branch or PR - building for default language only"
             pio run -e v2
             cp .pio/build/v2/firmware.bin out/keira.bin
             cp .pio/build/v2/partitions.bin out/partitions.bin
