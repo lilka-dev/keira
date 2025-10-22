@@ -68,15 +68,6 @@ void Driver::clear(uint8 color) {
     app->canvas->fillScreen(0);
 }
 
-bitmap_t* Driver::lockWrite() {
-    bitmap = bmp_createhw(reinterpret_cast<uint8*>(fb), NES_SCREEN_WIDTH, NES_SCREEN_HEIGHT, NES_SCREEN_WIDTH * 2);
-    return bitmap;
-}
-
-void Driver::freeFrite(int numDirties, rect_t* dirtyRects) {
-    bmp_destroy(&bitmap);
-}
-
 bool odd = true;
 
 void Driver::customBlit(bitmap_t* bmp, int numDirties, rect_t* dirtyRects) {
@@ -177,8 +168,6 @@ void Driver::customBlit(bitmap_t* bmp, int numDirties, rect_t* dirtyRects) {
     app->queueDraw();
 }
 
-char Driver::fb[1];
-bitmap_t* Driver::bitmap;
 uint16 Driver::nesPalette[256];
 viddriver_t Driver::driver = {
     "Lilka", /* name */
@@ -187,8 +176,8 @@ viddriver_t Driver::driver = {
     Driver::setMode, /* set_mode */
     Driver::setPalette, /* set_palette */
     Driver::clear, /* clear */
-    Driver::lockWrite, /* lock_write */
-    Driver::freeFrite, /* free_write */
+    NULL, /* lock_write */
+    NULL, /* free_write */
     Driver::customBlit, /* custom_blit */
     false /* invalidate flag */
 };

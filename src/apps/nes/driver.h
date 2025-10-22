@@ -23,12 +23,8 @@ public:
     static int setMode(int width, int height);
     static void setPalette(rgb_t* pal);
     static void clear(uint8 color);
-    static bitmap_t* lockWrite();
-    static void freeFrite(int numDirties, rect_t* dirtyRects);
     static void customBlit(bitmap_t* bmp, int numDirties, rect_t* dirtyRects);
 
-    static char fb[1];
-    static bitmap_t* bitmap;
     static uint16 nesPalette[256];
     static viddriver_t driver;
 
