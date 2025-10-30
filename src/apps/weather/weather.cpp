@@ -151,6 +151,7 @@ const char* urlTemplate = "https://api.open-meteo.com/v1/forecast"
                           "&current=temperature_2m,wind_speed_10m,weather_code";
 
 WeatherApp::WeatherApp() : App("Weather") {
+    setStackSize(8192);
 }
 
 void WeatherApp::run() {
