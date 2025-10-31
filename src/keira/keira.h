@@ -28,6 +28,7 @@
 #include "apps/lua/luarunner.h"
 #include "apps/mjs/mjsrunner.h"
 #include "apps/nes/nesapp.h"
+#include "apps/txtviewer/txtviewer.h"
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // FILETYPE HANDLERS:  ////////////////////////////////////////////////////////////////////////////////
 #define K_FT_NES_HANDLER(X)        AppManager::getInstance()->runApp(new NesApp(X))
@@ -35,6 +36,7 @@
 #define K_FT_JS_SCRIPT_HANDLER(X)  AppManager::getInstance()->runApp(new MJSApp(X))
 #define K_FT_MOD_HANDLER(X)        AppManager::getInstance()->runApp(new ModPlayerApp(X))
 #define K_FT_LT_HANDLER(X)         AppManager::getInstance()->runApp(new LilTrackerApp(X))
+#define K_FT_TXT_HANDLER(X)        AppManager::getInstance()->runApp(new TxtViewerApp(X))
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // GUIDELINE: Use Keira global filetype handlers(K_FT_) if possible
 ///////////////////////////////////////////////////////////////////////////////////////////////////////

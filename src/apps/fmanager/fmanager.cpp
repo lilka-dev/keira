@@ -106,6 +106,14 @@ FileManagerApp::FileManagerApp(const String& path) :
         FM_CALLBACK_PTHIS
     );
     fileOpenWithMenu.addItem(
+        K_S_FMANAGER_TXT_VIEWER,
+        0,
+        lilka::colors::White,
+        "",
+        FM_CALLBACK_CAST(onFileOpenWithTextViewer),
+        FM_CALLBACK_PTHIS
+    );
+    fileOpenWithMenu.addItem(
         K_S_MENU_BACK, 0, lilka::colors::White, "", FM_CALLBACK_CAST(onAnyMenuBack), FM_CALLBACK_PTHIS
     );
 
@@ -288,7 +296,13 @@ FMEntry FileManagerApp::pathToEntry(const String& path) {
         newEntry.type = FT_LT;
         newEntry.icon = FT_LT_ICON;
         newEntry.color = FT_LT_COLOR;
-    } else {
+    }
+    else if (lowerCasedPath.endsWith(".txt")) {
+        newEntry.type = FT_TXT;
+        newEntry.icon = FT_TXT_ICON;
+        newEntry.color = FT_TXT_COLOR;
+    }
+    else {
         newEntry.type = FT_OTHER;
         newEntry.icon = FT_OTHER_ICON;
         newEntry.color = FT_OTHER_COLOR;
@@ -326,6 +340,9 @@ void FileManagerApp::openCurrentEntry() {
             break;
         case FT_LT:
             K_FT_LT_HANDLER(path);
+            break;
+        case FT_TXT:
+            K_FT_TXT_HANDLER(path);
             break;
         case FT_DIR:
             FT_DEFAULT_DIR_HANDLER;
@@ -457,6 +474,13 @@ void FileManagerApp::onFileOpenWithMODPlayer() {
     if (button == FM_EXIT_BUTTON) return; // Exit
 
     K_FT_MOD_HANDLER(lilka::fileutils.joinPath(currentEntry.path, currentEntry.name));
+}
+void FileManagerApp::onFileOpenWithTextViewer(){
+    FM_DBG lilka::serial.log("Enter onFileOpenWithMODPlayer");
+    auto button = fileOpenWithMenu.getButton();
+    if (button == FM_EXIT_BUTTON) return; // Exit
+
+    K_FT_TXT_HANDLER(lilka::fileutils.joinPath(currentEntry.path, currentEntry.name));
 }
 
 // FILE SELECTION MENU BELOW:
