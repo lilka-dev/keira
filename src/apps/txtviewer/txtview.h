@@ -12,9 +12,11 @@
 #    define TXT_DBG if (0)
 #endif
 // TODO: Move to keira/macro sdk?
-#define TENTER TXT_DBG lilka::serial.log("==> %s:%d %s\n", __FILE__, __LINE__, __PRETTY_FUNCTION__);
-#define TEND   TXT_DBG lilka::serial.log("<== %s:%d %s\n", __FILE__, __LINE__, __PRETTY_FUNCTION__);
+#define TENTER            TXT_DBG lilka::serial.log("==> %s:%d %s\n", __FILE__, __LINE__, __PRETTY_FUNCTION__);
+#define TEND              TXT_DBG lilka::serial.log("<== %s:%d %s\n", __FILE__, __LINE__, __PRETTY_FUNCTION__);
 
+#define TXT_MARGIN_LEFT   38
+#define STATUS_BAR_HEIGHT 30
 
 class TxtView {
 public:
@@ -46,7 +48,7 @@ private:
     void setFont(const uint8_t* font);
 
     // Canvas setup
-    void setCanvasOptions(Arduino_GFX *canvas);
+    void setCanvasOptions(Arduino_GFX* canvas);
 
     // File stuff
     FILE* fp = NULL;
@@ -56,7 +58,7 @@ private:
     char tBlock[TXT_MAX_BLOCK_SIZE];
     size_t tLen = 0; // text block length
     bool tBlockRefreshRequired = true; // inital value
-    
+
     std::vector<char*> noffs; // offsets to actual lines[separated by \n]
     std::vector<char*> doffs; // offsets to displayed lines
 
@@ -68,5 +70,5 @@ private:
 
     // we need somehow calculate how much lines/characters fit display
     // so we store last canvas pointer to be acessible in dOffsRefresh
-    Arduino_GFX *lastCanvas = NULL; 
+    Arduino_GFX* lastCanvas = NULL;
 };

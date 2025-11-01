@@ -296,13 +296,11 @@ FMEntry FileManagerApp::pathToEntry(const String& path) {
         newEntry.type = FT_LT;
         newEntry.icon = FT_LT_ICON;
         newEntry.color = FT_LT_COLOR;
-    }
-    else if (lowerCasedPath.endsWith(".txt")) {
+    } else if (lowerCasedPath.endsWith(".txt")) {
         newEntry.type = FT_TXT;
         newEntry.icon = FT_TXT_ICON;
         newEntry.color = FT_TXT_COLOR;
-    }
-    else {
+    } else {
         newEntry.type = FT_OTHER;
         newEntry.icon = FT_OTHER_ICON;
         newEntry.color = FT_OTHER_COLOR;
@@ -475,7 +473,7 @@ void FileManagerApp::onFileOpenWithMODPlayer() {
 
     K_FT_MOD_HANDLER(lilka::fileutils.joinPath(currentEntry.path, currentEntry.name));
 }
-void FileManagerApp::onFileOpenWithTextViewer(){
+void FileManagerApp::onFileOpenWithTextViewer() {
     FM_DBG lilka::serial.log("Enter onFileOpenWithMODPlayer");
     auto button = fileOpenWithMenu.getButton();
     if (button == FM_EXIT_BUTTON) return; // Exit

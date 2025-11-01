@@ -25,22 +25,47 @@ static inline size_t ulen(char* cstr) {
     auto nextchar = uforward(cstr);
     return nextchar - cstr;
 }
+// Get length in unicode characters
+// Get length in Unicode characters
+size_t ulength(char* from, char* to = 0) {
+    if (!from) return 0;
+
+    size_t len = 0;
+    char* ptr = from;
+
+    if (!to) {
+        while (*ptr) {
+            ptr = uforward(ptr);
+            len++;
+        }
+    } else {
+        if (to - from <= 0) return 0;
+        while (ptr < to && *ptr) {
+            char* next = uforward(ptr);
+            if (next > to) break; // don't go past 'to'
+            ptr = next;
+            len++;
+        }
+    }
+
+    return len;
+}
+
 // expects bounds and stuff to be set
-bool isLineWithinCanvas(char *pLine, Arduino_GFX *canvas) {
+// expects bounds and cursor already set
+bool isLineWithinCanvas(char* pLine, Arduino_GFX* canvas) {
     if (!pLine || !canvas) return false;
 
-    int16_t x1, y1;
+    int16_t x = canvas->getCursorX();
+    int16_t y = canvas->getCursorY();
+    int16_t bx, by;
     uint16_t w, h;
 
-    // Measure text bounds at (0,0)
-    canvas->getTextBounds(pLine, 0, 0, &x1, &y1, &w, &h);
+    canvas->getTextBounds(pLine, x, y, &bx, &by, &w, &h);
 
-    // Get current display size
-    int16_t cw = canvas->width();
-    int16_t ch = canvas->height();
-
-    // If it fits horizontally (and optionally vertically)
-    return (w <= cw && h <= ch);
+    // return (x + w <= canvas->width()-TXT_MARGIN_LEFT*2 && y + h <= canvas->height());
+    // assume wraping disabled
+    return w < canvas->width() - TXT_MARGIN_LEFT * 2;
 }
 
 // gets offset to begining of previous line
@@ -70,6 +95,13 @@ long flineback(FILE* fp, long maxBack) {
     fseek(fp, initalPos, SEEK_SET);
 
     return curPos;
+}
+
+static inline int16_t getLineHeight(Arduino_GFX* canvas) {
+    int16_t x, y;
+    uint16_t w, h;
+    canvas->getTextBounds("Ay", 0, 0, &x, &y, &w, &h);
+    return h;
 }
 
 TxtView::TxtView() {
@@ -106,7 +138,7 @@ void TxtView::update() {
     // We've to check if we actually can prepare data
     // Cause we've no real idea about canvas dimensions
     // it could be impossible to do
-    // We still can read file though, but for simplification we 
+    // We still can read file though, but for simplification we
     // just wait a few cycles
     if (lastCanvas && tBlockRefreshRequired) {
         tBlockRefresh();
@@ -129,13 +161,30 @@ void TxtView::draw(Arduino_GFX* canvas) {
     // TENTER
     setCanvasOptions(canvas);
     lastCanvas = canvas;
-    
+
     // Doesn't look like we've something to display
     // could be a first run, so we have no data prepared
-    if (doffs.empty())
-        return;
+    if (doffs.empty()) return;
 
     // display doffs
+    int16_t lineH = getLineHeight(canvas);
+    int16_t y = 0;
+
+    for (size_t i = 0; i + 1 < doffs.size(); i++) {
+        char* lineStart = doffs[i];
+        char* lineEnd = doffs[i + 1];
+
+        char backup = *lineEnd;
+        *lineEnd = '\0';
+
+        canvas->setCursor(TXT_MARGIN_LEFT, y);
+        canvas->print(lineStart);
+        // TXT_DBG lilka::serial.log("drawing %s, Length %d, ULength %d", lineStart, strlen(lineStart), ulength(lineStart));
+        *lineEnd = backup;
+
+        y += lineH;
+        if (y > canvas->height() - STATUS_BAR_HEIGHT) break;
+    }
 
     // sleep
 }
@@ -177,42 +226,46 @@ void TxtView::nOffsRefresh() {
 void TxtView::dOffsRefresh() {
     TENTER
     // assume canvas options are already set
-    if (!lastCanvas){
+    if (!lastCanvas) {
         TXT_DBG lilka::serial.err("No access to lastCanvas, can't calc doffs");
         tBlockRefreshRequired = true; // reread then
         return;
     }
     // iterate by actual lines
-    for (auto noff:noffs){
+    for (auto noff : noffs) {
         doffs.push_back(noff); // append line begining
         // now we've to move from noff till fits screen, or next noff
-        char *pLineStart = noff;
-        char *pLineEnd = uforward(pLineStart); // first letter
-        while (pLineEnd != tBlock + tLen){    // fit bounds
-            char backupChar = *pLineEnd; 
+        char* pLineStart = noff;
+        char* pLineEnd = uforward(pLineStart); // first letter
+        while (pLineEnd != tBlock + tLen) { // fit bounds
+            char backupChar = *pLineEnd;
             // Of course we can use temporary string for that, but why to mess
-            // with a memory. Instead we could insert our null terminator where it's 
-            // needed to send in functions to measure, print what we need to restore it 
+            // with a memory. Instead we could insert our null terminator where it's
+            // needed to send in functions to measure, print what we need to restore it
             // backwards. Moving one byte is much easier than a whole stuff
-            *pLineEnd = '\0'; 
+            *pLineEnd = '\0';
 
             // reached newline
-            if (*(pLineEnd-1) == '\n')
-            {
+            if (*(pLineEnd - 1) == '\n') {
                 doffs.push_back(pLineStart);
                 TXT_DBG lilka::serial.log("Adding doff at %p\n", doffs.back());
                 // Restore old char
-                *pLineEnd = backupChar;    
+                *pLineEnd = backupChar;
                 break; // swap to next noff
             }
 
             // Check if it fits
-            if (!isLineWithinCanvas(pLineStart, lastCanvas))
-            {
-                doffs.push_back(pLineStart);    // push current, go next
-                TXT_DBG lilka::serial.log("Adding doff at %p\n", doffs.back());
+            if (!isLineWithinCanvas(pLineStart, lastCanvas)) {
+                doffs.push_back(pLineStart); // push current, go next
+                // Restore old char
+                *pLineEnd = backupChar;
+                pLineEnd = ubackward(pLineEnd); // go back one character
+                TXT_DBG lilka::serial.log(
+                    "Adding doff at %pLine length = %d\n", doffs.back(), ulength(pLineStart, pLineEnd)
+                );
                 pLineStart = pLineEnd;
-            }             
+                continue;
+            }
 
             // Restore old char
             *pLineEnd = backupChar;
@@ -220,7 +273,6 @@ void TxtView::dOffsRefresh() {
             pLineEnd = uforward(pLineEnd);
         }
     }
-
 }
 
 void TxtView::scrollUp() {
@@ -253,13 +305,19 @@ void TxtView::setColor(uint16_t color) {
     this->color = color;
 }
 
-void TxtView::setBgColor(uint16_t bgColor) { this -> bgColor = bgColor; };
+void TxtView::setBgColor(uint16_t bgColor) {
+    this->bgColor = bgColor;
+};
 
 void TxtView::setFont(const uint8_t* font) {
     this->font = font;
 }
 
-void TxtView::setCanvasOptions(Arduino_GFX *canvas){
+void TxtView::setCanvasOptions(Arduino_GFX* canvas) {
+    canvas->setTextBound(
+        TXT_MARGIN_LEFT, 0, canvas->width() - 2 * TXT_MARGIN_LEFT, canvas->height() - STATUS_BAR_HEIGHT
+    );
+    canvas->setCursor(TXT_MARGIN_LEFT, 0);
     canvas->fillScreen(bgColor);
     canvas->setTextColor(color);
     canvas->setTextWrap(false);
