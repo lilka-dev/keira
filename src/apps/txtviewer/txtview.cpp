@@ -196,6 +196,8 @@ void TxtView::tBlockRefresh() {
         return; // nothing to refresh. Wait till next update
     }
 
+    // Zero mem
+    memset(tBlock, 0, TXT_MAX_BLOCK_SIZE);
     // Read text block
     long curPos = ftell(fp);
     tLen = fread(tBlock, 1, TXT_MAX_BLOCK_SIZE, fp);
@@ -203,74 +205,78 @@ void TxtView::tBlockRefresh() {
     tBlockRefreshRequired = false;
 
     TXT_DBG lilka::serial.log("Read %d bytes from %ld Position", tLen, curPos);
+    TXT_DBG lilka::serial.log("tBlock full content:\n%.*s", tLen, tBlock);
 }
 
 void TxtView::nOffsRefresh() {
     TENTER
     noffs.clear();
-    if (!tLen) // Nothing read
+    if (!tLen || tBlockRefreshRequired) // Nothing read
         return;
     char* pCurrentChar = tBlock;
     char* pEndBlock = tBlock + tLen;
     noffs.push_back(pCurrentChar);
     // do not check last character here
-    for (; pCurrentChar < pEndBlock; pCurrentChar++) {
+    for (; pCurrentChar < pEndBlock - 1; pCurrentChar++) {
         if (*pCurrentChar == '\n') {
             noffs.push_back(pCurrentChar + 1);
-            // TXT_DBG lilka::serial.log("Adding noff at %p\n", noffs.back());
+            TXT_DBG lilka::serial.log("Adding noff at %p\n", noffs.back());
         }
     }
     TXT_DBG lilka::serial.log("Added %d noffs \n", noffs.size());
 }
-
 void TxtView::dOffsRefresh() {
     TENTER
-    doffs.clear();
-    // assume canvas options are already set
-    if (!lastCanvas) {
+
+    if (!lastCanvas || tBlockRefreshRequired) {
         TXT_DBG lilka::serial.err("No access to lastCanvas, can't calc doffs");
-        tBlockRefreshRequired = true; // reread then
+        tBlockRefreshRequired = true;
         return;
     }
-    // iterate by actual lines
+
+    doffs.clear();
+
     for (auto noff : noffs) {
-        // now we've to move from noff till fits screen, or next noff
         char* pLineStart = noff;
+
+        // skip if noff points past the block
+        if (pLineStart >= tBlock + tLen) continue;
+
         char* pLineEnd = uforward(pLineStart); // first letter
-        while (pLineEnd != tBlock + tLen) { // fit bounds
+        if (pLineEnd > tBlock + tLen) pLineEnd = tBlock + tLen; // clamp
+
+        while (pLineEnd < tBlock + tLen) {
             char backupChar = *pLineEnd;
-            // Of course we can use temporary string for that, but why to mess
-            // with a memory. Instead we could insert our null terminator where it's
-            // needed to send in functions to measure, print what we need to restore it
-            // backwards. Moving one byte is much easier than a whole stuff
             *pLineEnd = '\0';
 
             // reached newline
             if (*(pLineEnd - 1) == '\n') {
                 doffs.push_back(pLineStart);
-                // TXT_DBG lilka::serial.log("Adding doff at %p\n", doffs.back());
-                // Restore old char
+                TXT_DBG lilka::serial.log("Adding doff at %p\n", doffs.back());
                 *pLineEnd = backupChar;
-                break; // swap to next noff
+                break;
             }
 
-            // Check if it fits
+            // check if line fits
             if (!isLineWithinCanvas(pLineStart, lastCanvas)) {
-                doffs.push_back(pLineStart); // push current, go next
-                // Restore old char
+                doffs.push_back(pLineStart);
                 *pLineEnd = backupChar;
-                pLineEnd = ubackward(pLineEnd); // go back one character
-                // TXT_DBG lilka::serial.log(
-                // "Adding doff at %pLine length = %d\n", doffs.back(), ulength(pLineStart, pLineEnd)
-                // );
+
+                // move backward safely
+                char* prev = ubackward(pLineEnd);
+                if (prev == pLineEnd || prev < tBlock) break; // avoid infinite loop
+                pLineEnd = prev;
+
                 pLineStart = pLineEnd;
                 continue;
             }
 
-            // Restore old char
             *pLineEnd = backupChar;
-            // Go to next unicode character
-            pLineEnd = uforward(pLineEnd);
+
+            // advance safely
+            char* next = uforward(pLineEnd);
+            if (next <= pLineEnd || next > tBlock + tLen) break;
+            pLineEnd = next;
         }
     }
 }
@@ -280,7 +286,8 @@ void TxtView::scrollUp() {
     if (!fp || doffs.empty() || !lastCanvas) return;
 
     long currentFileOffset = ftell(fp);
-    long prevNLineOffset = flineback(fp, TXT_MAX_BLOCK_SIZE);
+    long prevNLineOffset =
+        flineback(fp, TXT_MAX_BLOCK_SIZE); //TODO: should pass here a sum of last displayed bytes count - last line
     // Can't go back
     if (currentFileOffset == 0) return;
     fseek(fp, prevNLineOffset, SEEK_SET);
