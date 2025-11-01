@@ -168,7 +168,7 @@ void TxtView::draw(Arduino_GFX* canvas) {
 
     // display doffs
     int16_t lineH = getLineHeight(canvas);
-    int16_t y = 0;
+    int16_t y = lineH;
 
     for (size_t i = 0; i + 1 < doffs.size(); i++) {
         char* lineStart = doffs[i];
@@ -202,7 +202,7 @@ void TxtView::tBlockRefresh() {
     fseek(fp, curPos, SEEK_SET); // save original file offset, could be useful for refresh
     tBlockRefreshRequired = false;
 
-    TXT_DBG lilka::serial.log("Read %d bytes", tLen);
+    TXT_DBG lilka::serial.log("Read %d bytes from %ld Position", tLen, curPos);
 }
 
 void TxtView::nOffsRefresh() {
@@ -217,7 +217,7 @@ void TxtView::nOffsRefresh() {
     for (; pCurrentChar < pEndBlock; pCurrentChar++) {
         if (*pCurrentChar == '\n') {
             noffs.push_back(pCurrentChar + 1);
-            TXT_DBG lilka::serial.log("Adding noff at %p\n", noffs.back());
+            // TXT_DBG lilka::serial.log("Adding noff at %p\n", noffs.back());
         }
     }
     TXT_DBG lilka::serial.log("Added %d noffs \n", noffs.size());
@@ -225,6 +225,7 @@ void TxtView::nOffsRefresh() {
 
 void TxtView::dOffsRefresh() {
     TENTER
+    doffs.clear();
     // assume canvas options are already set
     if (!lastCanvas) {
         TXT_DBG lilka::serial.err("No access to lastCanvas, can't calc doffs");
@@ -233,7 +234,6 @@ void TxtView::dOffsRefresh() {
     }
     // iterate by actual lines
     for (auto noff : noffs) {
-        doffs.push_back(noff); // append line begining
         // now we've to move from noff till fits screen, or next noff
         char* pLineStart = noff;
         char* pLineEnd = uforward(pLineStart); // first letter
@@ -248,7 +248,7 @@ void TxtView::dOffsRefresh() {
             // reached newline
             if (*(pLineEnd - 1) == '\n') {
                 doffs.push_back(pLineStart);
-                TXT_DBG lilka::serial.log("Adding doff at %p\n", doffs.back());
+                // TXT_DBG lilka::serial.log("Adding doff at %p\n", doffs.back());
                 // Restore old char
                 *pLineEnd = backupChar;
                 break; // swap to next noff
@@ -260,9 +260,9 @@ void TxtView::dOffsRefresh() {
                 // Restore old char
                 *pLineEnd = backupChar;
                 pLineEnd = ubackward(pLineEnd); // go back one character
-                TXT_DBG lilka::serial.log(
-                    "Adding doff at %pLine length = %d\n", doffs.back(), ulength(pLineStart, pLineEnd)
-                );
+                // TXT_DBG lilka::serial.log(
+                // "Adding doff at %pLine length = %d\n", doffs.back(), ulength(pLineStart, pLineEnd)
+                // );
                 pLineStart = pLineEnd;
                 continue;
             }
@@ -277,26 +277,62 @@ void TxtView::dOffsRefresh() {
 
 void TxtView::scrollUp() {
     TENTER
+    if (!fp || doffs.empty() || !lastCanvas) return;
+
+    long currentFileOffset = ftell(fp);
+    long prevNLineOffset = flineback(fp, TXT_MAX_BLOCK_SIZE);
+    // Can't go back
+    if (currentFileOffset == 0) return;
+    fseek(fp, prevNLineOffset, SEEK_SET);
+    // Do refreshes inplace
+    tBlockRefresh();
+    nOffsRefresh();
+    dOffsRefresh();
+
+    // now we've to find doff before saved one
+    bool found = false;
+    char* nextOffset = doffs[0];
+    for (auto doff : doffs) {
+        if (OFF2ROFF(doff) == currentFileOffset) {
+            found = true;
+            break;
+        }
+        nextOffset = doff;
+    }
+    if (found) fseek(fp, OFF2ROFF(nextOffset), SEEK_SET);
+    else return; // looks like we already here
+    // TODO: lazy reading maybe?
+    // should be where need at next refresh
     tBlockRefreshRequired = true; // to be done in update()
 }
 
 void TxtView::scrollDown() {
     TENTER
+    if (!fp) return;
+
+    if (doffs.size() > 1) {
+        fseek(fp, OFF2ROFF(doffs[1]), SEEK_SET);
+    } else {
+        fseek(fp, 0, SEEK_SET); // go begining
+    }
     tBlockRefreshRequired = true; // to be done in update()
 }
 
 void TxtView::scrollPageUp() {
     TENTER
+    if (!fp) return;
     tBlockRefreshRequired = true; // to be done in update()
 }
 
 void TxtView::scrollPageDown() {
     TENTER
+    if (!fp) return;
     tBlockRefreshRequired = true; // to be done in update()
 }
 
 TxtView::~TxtView() {
     TENTER
+    if (!fp) return;
     // Never forget to close file
     if (fp) fclose(fp);
 }

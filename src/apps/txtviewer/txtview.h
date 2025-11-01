@@ -1,6 +1,6 @@
 #pragma once
 #include <lilka.h>
-#define TXT_MAX_BLOCK_SIZE 2048
+#define TXT_MAX_BLOCK_SIZE 512
 // To be moved in lilka sdk
 
 //
@@ -17,6 +17,8 @@
 
 #define TXT_MARGIN_LEFT   38
 #define STATUS_BAR_HEIGHT 30
+
+#define OFF2ROFF(X)       X - tBlock + ftell(fp)
 
 class TxtView {
 public:
