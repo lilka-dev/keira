@@ -188,11 +188,12 @@ void TxtView::draw(Arduino_GFX* canvas) {
         *lineEnd = '\0';
 
         canvas->setCursor(TXT_MARGIN_LEFT, y);
+        // TODO: add ANSI colors support here, would be fun
         canvas->print(lineStart);
         // TXT_DBG lilka::serial.log("drawing %s, Length %d, ULength %d", lineStart, strlen(lineStart), ulength(lineStart));
         *lineEnd = backup;
 
-        y += lineH;
+        y += lineH+spacing;
         countDisplayedLines++;
         if (y > canvas->height() - STATUS_BAR_HEIGHT) break;
     }
@@ -373,13 +374,8 @@ void TxtView::scrollPageDown() {
     TXT_DBG LEP;
     if (!fp || doffs.empty()||doffs.size() < lastDisplayedLines) return;
 
-    //  reached end of file
-    // if (MAX_BLO){
-    //     fseek(fp, 0, SEEK_SET); // go begining
-    //     tBlockRefreshRequired = true; // to be done in update()
-    //     return;
-    // }
-    // just skip to last displayed doff
+    // TODO: determine end of file reached
+    // NOTE: test on empty file
     fseek(fp, OFF2ROFF(doffs[lastDisplayedLines]), SEEK_SET);
     tBlockRefreshRequired = true; // to be done in update()
 }
@@ -403,12 +399,22 @@ void TxtView::setFont(const uint8_t* font) {
     this->font = font;
 }
 
+void TxtView::setSpacing(uint16_t spacing){
+    this->spacing = spacing;
+}
+
+void TxtView::setTextSize(uint8_t textSize){
+    this->textSize = textSize;
+    tBlockRefreshRequired = true; // to be done in update()
+}
+
 void TxtView::setCanvasOptions(Arduino_GFX* canvas) {
     canvas->setTextBound(
         TXT_MARGIN_LEFT, 0, canvas->width() - 2 * TXT_MARGIN_LEFT, canvas->height() - STATUS_BAR_HEIGHT
     );
     canvas->setCursor(TXT_MARGIN_LEFT, 0);
     canvas->fillScreen(bgColor);
+    canvas->setTextSize(textSize);
     canvas->setTextColor(color);
     canvas->setTextWrap(false);
     canvas->setFont(font);

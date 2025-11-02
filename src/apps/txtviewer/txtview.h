@@ -29,6 +29,8 @@ public:
     void setColor(uint16_t color);
     void setBgColor(uint16_t bgColor);
     void setFont(const uint8_t* font);
+    void setSpacing(uint16_t spacing); // distance between lines in pixels
+    void setTextSize(uint8_t textSize); // actually is scale, but in GFX is named this way
     ~TxtView();
 
 private:
@@ -65,7 +67,9 @@ private:
     bool done = false; // TODO: move to ABSTRACT WIDGET
     uint16_t color = lilka::colors::White;
     uint16_t bgColor = lilka::colors::Black;
-    const uint8_t* font = FONT_9x15;
+    const uint8_t* font = FONT_8x13;
+    uint16_t spacing = 1;
+    uint8_t textSize = 1;
 
     // we need somehow calculate how much lines/characters fit display
     // so we store last canvas pointer to be acessible in dOffsRefresh
