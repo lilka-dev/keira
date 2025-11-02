@@ -65,6 +65,7 @@ bool isLineWithinCanvas(char* pLine, Arduino_GFX* canvas) {
 
     // return (x + w <= canvas->width()-TXT_MARGIN_LEFT*2 && y + h <= canvas->height());
     // assume wraping disabled
+    // TXT_DBG lilka::serial.log("Line = %s\nx =%d, y =%d, bx=%d, by=%d, w=%d, h=%d",pLine, x, y, bx, by, w, h);
     return w < canvas->width() - TXT_MARGIN_LEFT * 2;
 }
 
@@ -233,6 +234,9 @@ void TxtView::dOffsRefresh() {
         tBlockRefreshRequired = true;
         return;
     }
+
+    // readjust canvas options if something changed
+    setCanvasOptions(lastCanvas);
 
     doffs.clear();
 
