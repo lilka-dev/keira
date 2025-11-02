@@ -397,10 +397,12 @@ void TxtView::setBgColor(uint16_t bgColor) {
 
 void TxtView::setFont(const uint8_t* font) {
     this->font = font;
+    tBlockRefreshRequired = true; // to be done in update()
 }
 
 void TxtView::setSpacing(uint16_t spacing){
     this->spacing = spacing;
+    tBlockRefreshRequired = true; // to be done in update()
 }
 
 void TxtView::setTextSize(uint8_t textSize){
