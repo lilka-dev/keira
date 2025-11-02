@@ -1,46 +1,6 @@
 #include "txtview.h"
 #include "keira/keira_macro.h"
 #include <errno.h>
-#ifdef TXT_VIEWER_DEBUG
-void checkOffs(const std::vector<char*>& noffs, const std::vector<char*>& doffs) {
-    bool ok = true;
-
-    // Monotonic increase
-    for (size_t i = 1; i < noffs.size(); i++)
-        if (noffs[i] <= noffs[i - 1]) {
-            printf("Noffs not monotonic: %p after %p\n", noffs[i], noffs[i - 1]);
-            ok = false;
-        }
-
-    for (size_t i = 1; i < doffs.size(); i++)
-        if (doffs[i] <= doffs[i - 1]) {
-            printf("Doffs not monotonic: %p after %p\n", doffs[i], doffs[i - 1]);
-            ok = false;
-        }
-
-    // Every noff must exist exactly in doffs
-    for (auto n : noffs) {
-        bool found = false;
-        for (auto d : doffs)
-            if (d == n) { found = true; break; }
-        if (!found) {
-            printf("Missing doff for noff %p\n", n);
-            ok = false;
-        }
-    }
-
-    // Count rule
-    if (doffs.size() <= noffs.size()) {
-        printf("Count mismatch: doffs=%zu <= noffs=%zu\n",
-               doffs.size(), noffs.size());
-        ok = false;
-    }
-
-    if (ok)
-        printf("Offsets OK\n");
-}
-
-#endif
 
 // move to next Unicode character
 static inline char* uforward(char* cstr) {
@@ -358,8 +318,6 @@ void TxtView::scrollUp() {
     nOffsRefresh(maxoffset);
     dOffsRefresh(maxoffset);
 
-    // Test offsets
-    TXT_DBG checkOffs(noffs, doffs);
     TXT_DBG lilka::serial.log("current offset %ld, prevline %ld", currentFileOffset, prevNLineOffset);
     // now we've to find doff before saved one
     bool found = false;
@@ -374,7 +332,6 @@ void TxtView::scrollUp() {
     if (found) fseek(fp, OFF2ROFF(nextOffset), SEEK_SET);
     else {
         TXT_DBG lilka::serial.err("Doff not found, check doffs/noffs consistency");
-        TXT_DBG checkOffs(noffs, doffs);
         return; // looks like we already here
     }
     // TODO: lazy reading maybe?

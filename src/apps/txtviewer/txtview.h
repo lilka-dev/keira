@@ -5,7 +5,6 @@
 // To be moved in lilka sdk
 
 //
-// #define TXT_VIEWER_DEBUG
 
 #ifdef TXT_VIEWER_DEBUG
 #    define TXT_DBG if (1)
