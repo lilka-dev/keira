@@ -1,6 +1,46 @@
 #include "txtview.h"
 #include "keira/keira_macro.h"
 #include <errno.h>
+#ifdef TXT_VIEWER_DEBUG
+void checkOffs(const std::vector<char*>& noffs, const std::vector<char*>& doffs) {
+    bool ok = true;
+
+    // Monotonic increase
+    for (size_t i = 1; i < noffs.size(); i++)
+        if (noffs[i] <= noffs[i - 1]) {
+            printf("Noffs not monotonic: %p after %p\n", noffs[i], noffs[i - 1]);
+            ok = false;
+        }
+
+    for (size_t i = 1; i < doffs.size(); i++)
+        if (doffs[i] <= doffs[i - 1]) {
+            printf("Doffs not monotonic: %p after %p\n", doffs[i], doffs[i - 1]);
+            ok = false;
+        }
+
+    // Every noff must exist exactly in doffs
+    for (auto n : noffs) {
+        bool found = false;
+        for (auto d : doffs)
+            if (d == n) { found = true; break; }
+        if (!found) {
+            printf("Missing doff for noff %p\n", n);
+            ok = false;
+        }
+    }
+
+    // Count rule
+    if (doffs.size() <= noffs.size()) {
+        printf("Count mismatch: doffs=%zu <= noffs=%zu\n",
+               doffs.size(), noffs.size());
+        ok = false;
+    }
+
+    if (ok)
+        printf("Offsets OK\n");
+}
+
+#endif
 
 // move to next Unicode character
 static inline char* uforward(char* cstr) {
@@ -69,33 +109,42 @@ bool isLineWithinCanvas(char* pLine, Arduino_GFX* canvas) {
     return w < canvas->width() - TXT_MARGIN_LEFT * 2;
 }
 
-// gets offset to begining of previous line
-long flineback(FILE* fp, long maxBack) {
-    TXT_DBG LEP;
-    long initalPos = ftell(fp);
-    long curPos = initalPos;
+long flineback(FILE* fp, char* buffer, size_t blength) {
+    if (!fp || !buffer || blength == 0) return 0;
+
+    long initialPos = ftell(fp);
+    if (initialPos <= 0) return 0;
+
+    long curPos = initialPos;
     int newLineCount = 0;
-    int c;
 
     while (curPos > 0) {
-        fseek(fp, --curPos, SEEK_SET);
-        if (initalPos - curPos > maxBack) { // can't go back
-            fseek(fp, initalPos, SEEK_SET);
-            return -1;
-        }
-        c = fgetc(fp);
-        if (c == '\n') {
-            newLineCount++;
-            if (newLineCount == 2) { // first \n to begining of line, previous to begining of previous one
-                curPos++;
-                break;
+        // Move back by up to blength bytes
+        long blockStart = curPos - (long)blength;
+        if (blockStart < 0) blockStart = 0;
+
+        size_t toRead = curPos - blockStart;
+        fseek(fp, blockStart, SEEK_SET);
+        size_t readBytes = fread(buffer, 1, toRead, fp);
+        if (readBytes == 0) break;
+
+        // Scan backward through buffer
+        for (char* pC = buffer + readBytes - 1; pC >= buffer; pC--) {
+            if (*pC == '\n') {
+                newLineCount++;
+                if (newLineCount == 2) {
+                    curPos = blockStart + (pC - buffer) + 1;
+                    fseek(fp, initialPos, SEEK_SET);
+                    return curPos;
+                }
             }
         }
-    }
-    if (newLineCount < 2) curPos = 0;
-    fseek(fp, initalPos, SEEK_SET);
 
-    return curPos;
+        curPos = blockStart;
+    }
+
+    fseek(fp, initialPos, SEEK_SET);
+    return 0; // reached file start
 }
 
 static inline int16_t getLineHeight(Arduino_GFX* canvas) {
@@ -264,6 +313,7 @@ void TxtView::dOffsRefresh() {
             // check if line fits
             if (!isLineWithinCanvas(pLineStart, lastCanvas)) {
                 doffs.push_back(pLineStart);
+                // TXT_DBG lilka::serial.log("Adding doff at %p\n", doffs.back());
                 *pLineEnd = backupChar;
 
                 // move backward safely
@@ -291,7 +341,7 @@ void TxtView::scrollUp() {
 
     long currentFileOffset = ftell(fp);
     long prevNLineOffset =
-        flineback(fp, TXT_MAX_BLOCK_SIZE); //TODO: should pass here a sum of last displayed bytes count - last line
+        flineback(fp, tBuffer, TXT_BUFFER_SIZE);
     // Can't go back
     if (currentFileOffset == 0) return;
     fseek(fp, prevNLineOffset, SEEK_SET);
@@ -300,6 +350,9 @@ void TxtView::scrollUp() {
     nOffsRefresh();
     dOffsRefresh();
 
+    // Test offsets
+    TXT_DBG checkOffs(noffs, doffs);
+    TXT_DBG lilka::serial.log("current offset %ld, prevline %ld", currentFileOffset, prevNLineOffset);
     // now we've to find doff before saved one
     bool found = false;
     char* nextOffset = doffs[0];
@@ -311,7 +364,11 @@ void TxtView::scrollUp() {
         nextOffset = doff;
     }
     if (found) fseek(fp, OFF2ROFF(nextOffset), SEEK_SET);
-    else return; // looks like we already here
+    else {
+        TXT_DBG lilka::serial.err("Doff not found, check doffs/noffs consistency");
+        TXT_DBG checkOffs(noffs, doffs);
+        return; // looks like we already here
+    }
     // TODO: lazy reading maybe?
     // should be where need at next refresh
     tBlockRefreshRequired = true; // to be done in update()

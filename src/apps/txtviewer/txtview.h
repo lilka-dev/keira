@@ -1,6 +1,7 @@
 #pragma once
 #include <lilka.h>
 #define TXT_MAX_BLOCK_SIZE 512
+#define TXT_BUFFER_SIZE    64
 // To be moved in lilka sdk
 
 //
@@ -54,6 +55,7 @@ private:
 
     // Text data
     char tBlock[TXT_MAX_BLOCK_SIZE];
+    char tBuffer[TXT_BUFFER_SIZE]; // to be used by flineback()
     size_t tLen = 0; // text block length
     bool tBlockRefreshRequired = true; // inital value
 
