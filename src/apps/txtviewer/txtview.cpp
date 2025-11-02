@@ -1,9 +1,10 @@
 #include "txtview.h"
+#include "keira/keira_macro.h"
 #include <errno.h>
 
 // move to next Unicode character
 static inline char* uforward(char* cstr) {
-    // TENTER
+    // TXT_DBG LEP;
     if (!cstr || !*cstr) return cstr;
     cstr++;
     while ((*cstr & 0xC0) == 0x80)
@@ -13,7 +14,7 @@ static inline char* uforward(char* cstr) {
 
 // move to beginning of previous Unicode character
 static inline char* ubackward(char* cstr) {
-    // TENTER
+    // TXT_DBG LEP;
     if (!cstr) return cstr;
     char* p = cstr - 1;
     while ((*(unsigned char*)p & 0xC0) == 0x80)
@@ -25,7 +26,7 @@ static inline size_t ulen(char* cstr) {
     auto nextchar = uforward(cstr);
     return nextchar - cstr;
 }
-// Get length in unicode characters
+
 // Get length in Unicode characters
 size_t ulength(char* from, char* to = 0) {
     if (!from) return 0;
@@ -51,7 +52,6 @@ size_t ulength(char* from, char* to = 0) {
     return len;
 }
 
-// expects bounds and stuff to be set
 // expects bounds and cursor already set
 bool isLineWithinCanvas(char* pLine, Arduino_GFX* canvas) {
     if (!pLine || !canvas) return false;
@@ -70,7 +70,7 @@ bool isLineWithinCanvas(char* pLine, Arduino_GFX* canvas) {
 
 // gets offset to begining of previous line
 long flineback(FILE* fp, long maxBack) {
-    TENTER
+    TXT_DBG LEP;
     long initalPos = ftell(fp);
     long curPos = initalPos;
     int newLineCount = 0;
@@ -105,11 +105,11 @@ static inline int16_t getLineHeight(Arduino_GFX* canvas) {
 }
 
 TxtView::TxtView() {
-    TENTER
+    TXT_DBG LEP;
 }
 
 bool TxtView::isFinished() {
-    // TENTER
+    // TXT_DBG LEP;
     // TODO: move to ABSTRACT WIDGET
     if (done) {
         done = false;
@@ -119,7 +119,7 @@ bool TxtView::isFinished() {
 }
 // TODO: PSRAM VFS for other cases?
 void TxtView::setTextFile(const String& fPath) {
-    TENTER
+    TXT_DBG LEP;
     if (fp) { // close old file
         fclose(fp);
         fp = NULL;
@@ -133,7 +133,7 @@ void TxtView::setTextFile(const String& fPath) {
 }
 
 void TxtView::update() {
-    // TENTER
+    // TXT_DBG LEP;
     updateKeys();
     // We've to check if we actually can prepare data
     // Cause we've no real idea about canvas dimensions
@@ -148,7 +148,7 @@ void TxtView::update() {
 }
 
 void TxtView::updateKeys() {
-    // TENTER
+    // TXT_DBG LEP;
     auto state = lilka::controller.getState();
     if (state.up.justPressed) scrollUp();
     else if (state.down.justPressed) scrollDown();
@@ -158,7 +158,7 @@ void TxtView::updateKeys() {
 }
 
 void TxtView::draw(Arduino_GFX* canvas) {
-    // TENTER
+    // TXT_DBG LEP;
     setCanvasOptions(canvas);
     lastCanvas = canvas;
 
@@ -190,7 +190,7 @@ void TxtView::draw(Arduino_GFX* canvas) {
 }
 
 void TxtView::tBlockRefresh() {
-    TENTER
+    TXT_DBG LEP;
     if (fp == NULL) {
         TXT_DBG lilka::serial.log("File not open. Skiping");
         return; // nothing to refresh. Wait till next update
@@ -209,7 +209,7 @@ void TxtView::tBlockRefresh() {
 }
 
 void TxtView::nOffsRefresh() {
-    TENTER
+    TXT_DBG LEP;
     noffs.clear();
     if (!tLen || tBlockRefreshRequired) // Nothing read
         return;
@@ -226,7 +226,7 @@ void TxtView::nOffsRefresh() {
     TXT_DBG lilka::serial.log("Added %d noffs \n", noffs.size());
 }
 void TxtView::dOffsRefresh() {
-    TENTER
+    TXT_DBG LEP;
 
     if (!lastCanvas || tBlockRefreshRequired) {
         TXT_DBG lilka::serial.err("No access to lastCanvas, can't calc doffs");
@@ -282,7 +282,7 @@ void TxtView::dOffsRefresh() {
 }
 
 void TxtView::scrollUp() {
-    TENTER
+    TXT_DBG LEP;
     if (!fp || doffs.empty() || !lastCanvas) return;
 
     long currentFileOffset = ftell(fp);
@@ -314,7 +314,7 @@ void TxtView::scrollUp() {
 }
 
 void TxtView::scrollDown() {
-    TENTER
+    TXT_DBG LEP;
     if (!fp) return;
 
     if (doffs.size() > 1) {
@@ -326,19 +326,19 @@ void TxtView::scrollDown() {
 }
 
 void TxtView::scrollPageUp() {
-    TENTER
+    TXT_DBG LEP;
     if (!fp) return;
     tBlockRefreshRequired = true; // to be done in update()
 }
 
 void TxtView::scrollPageDown() {
-    TENTER
+    TXT_DBG LEP;
     if (!fp) return;
     tBlockRefreshRequired = true; // to be done in update()
 }
 
 TxtView::~TxtView() {
-    TENTER
+    TXT_DBG LEP;
     if (!fp) return;
     // Never forget to close file
     if (fp) fclose(fp);

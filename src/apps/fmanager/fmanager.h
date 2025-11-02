@@ -110,6 +110,7 @@
 #include "../icons/music.h"
 #include "../icons/selectedfile.h"
 #include "../icons/selectedfolder.h"
+// #include "../icons/textfile.h"
 
 // very bad test
 // /sd/1 => /sd/1122/1
@@ -123,7 +124,18 @@
 #    define FM_DBG if (0)
 #endif
 
-typedef enum { FT_NONE, FT_NES_ROM, FT_BIN, FT_LUA_SCRIPT, FT_JS_SCRIPT, FT_MOD, FT_LT, FT_TXT, FT_DIR, FT_OTHER } FileType;
+typedef enum {
+    FT_NONE,
+    FT_NES_ROM,
+    FT_BIN,
+    FT_LUA_SCRIPT,
+    FT_JS_SCRIPT,
+    FT_MOD,
+    FT_LT,
+    FT_TXT,
+    FT_DIR,
+    FT_OTHER
+} FileType;
 typedef enum {
     FM_MODE_VIEW, // Standard mode
     FM_MODE_SELECT, // if selectedEntries contain something

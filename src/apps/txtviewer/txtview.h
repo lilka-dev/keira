@@ -11,9 +11,6 @@
 #else
 #    define TXT_DBG if (0)
 #endif
-// TODO: Move to keira/macro sdk?
-#define TENTER            TXT_DBG lilka::serial.log("==> %s:%d %s\n", __FILE__, __LINE__, __PRETTY_FUNCTION__);
-#define TEND              TXT_DBG lilka::serial.log("<== %s:%d %s\n", __FILE__, __LINE__, __PRETTY_FUNCTION__);
 
 #define TXT_MARGIN_LEFT   38
 #define STATUS_BAR_HEIGHT 30
@@ -27,6 +24,11 @@ public:
     void setTextFile(const String& fPath);
     void update();
     void draw(Arduino_GFX* canvas);
+
+    // Display options
+    void setColor(uint16_t color);
+    void setBgColor(uint16_t bgColor);
+    void setFont(const uint8_t* font);
     ~TxtView();
 
 private:
@@ -43,12 +45,6 @@ private:
 
     // Input
     void updateKeys();
-
-    // Display options
-    void setColor(uint16_t color);
-    void setBgColor(uint16_t bgColor);
-    void setFont(const uint8_t* font);
-
     // Canvas setup
     void setCanvasOptions(Arduino_GFX* canvas);
 

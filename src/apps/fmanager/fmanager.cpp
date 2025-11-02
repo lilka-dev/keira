@@ -1,5 +1,5 @@
 #include "fmanager.h"
-
+#include "keira/keira_macro.h"
 void FileManagerApp::alert(const String& title, const String& message) {
     lilka::Alert alert(title, message);
     alert.draw(canvas);
@@ -427,7 +427,7 @@ void FileManagerApp::fileOpenWithMenuShow() {
 }
 
 void FileManagerApp::onFileOpenWithNESEmulator() {
-    FM_DBG lilka::serial.log("Enter onFileOpenWithNESEmulator");
+    FM_DBG LEP;
     auto button = fileOpenWithMenu.getButton();
     if (button == FM_EXIT_BUTTON) return; // Exit
 
@@ -435,7 +435,7 @@ void FileManagerApp::onFileOpenWithNESEmulator() {
 }
 
 void FileManagerApp::onFileOpenWithMultiBootLoader() {
-    FM_DBG lilka::serial.log("Enter onFileOpenWithMultiBootLoader");
+    FM_DBG LEP;
     auto button = fileOpenWithMenu.getButton();
     if (button == FM_EXIT_BUTTON) return; // Exit
 
@@ -443,7 +443,7 @@ void FileManagerApp::onFileOpenWithMultiBootLoader() {
 }
 
 void FileManagerApp::onFileOpenWithLua() {
-    FM_DBG lilka::serial.log("Enter onFileOpenWithLua");
+    FM_DBG LEP;
     auto button = fileOpenWithMenu.getButton();
     if (button == FM_EXIT_BUTTON) return; // Exit
 
@@ -451,7 +451,7 @@ void FileManagerApp::onFileOpenWithLua() {
 }
 
 void FileManagerApp::onFileOpenWithMJS() {
-    FM_DBG lilka::serial.log("Enter onFileOpenWithMJS");
+    FM_DBG LEP;
     auto button = fileOpenWithMenu.getButton();
     if (button == FM_EXIT_BUTTON) return; // Exit
 
@@ -459,7 +459,7 @@ void FileManagerApp::onFileOpenWithMJS() {
 }
 
 void FileManagerApp::onFileOpenWithLilTracker() {
-    FM_DBG lilka::serial.log("Enter onFileOpenWithLilTracker");
+    FM_DBG LEP;
     auto button = fileOpenWithMenu.getButton();
     if (button == FM_EXIT_BUTTON) return; // Exit
 
@@ -467,14 +467,14 @@ void FileManagerApp::onFileOpenWithLilTracker() {
 }
 
 void FileManagerApp::onFileOpenWithMODPlayer() {
-    FM_DBG lilka::serial.log("Enter onFileOpenWithMODPlayer");
+    FM_DBG LEP;
     auto button = fileOpenWithMenu.getButton();
     if (button == FM_EXIT_BUTTON) return; // Exit
 
     K_FT_MOD_HANDLER(lilka::fileutils.joinPath(currentEntry.path, currentEntry.name));
 }
 void FileManagerApp::onFileOpenWithTextViewer() {
-    FM_DBG lilka::serial.log("Enter onFileOpenWithMODPlayer");
+    FM_DBG LEP;
     auto button = fileOpenWithMenu.getButton();
     if (button == FM_EXIT_BUTTON) return; // Exit
 
@@ -550,7 +550,7 @@ void FileManagerApp::onFileSelectionOptionsMenuClearSelection() {
 
 // FILE OPTIONS MENU BELOW:
 void FileManagerApp::fileOptionsMenuShow() {
-    FM_DBG lilka::serial.log("Enter fileOptionsMenuShow");
+    FM_DBG LEP;
     fileOptionsMenu.setCursor(0);
     while (!fileOptionsMenu.isFinished()) {
         fileOptionsMenu.update();
@@ -561,7 +561,7 @@ void FileManagerApp::fileOptionsMenuShow() {
 
 void FileManagerApp::onFileOptionsMenuOpen() {
     auto button = fileOptionsMenu.getButton();
-    FM_DBG lilka::serial.log("Enter onFileOptionsMenuOpen");
+    FM_DBG LEP;
     if (button == FM_OKAY_BUTTON) {
         if (isCurrentDirSelected()) {
             FM_UI_CANT_DO_OP;
@@ -573,8 +573,8 @@ void FileManagerApp::onFileOptionsMenuOpen() {
 }
 
 void FileManagerApp::onFileOptionsMenuOpenWith() {
+    FM_DBG LEP;
     auto button = fileOptionsMenu.getButton();
-    FM_DBG lilka::serial.log("Enter onFileOptionsMenuOpenWith");
     if (button == FM_OKAY_BUTTON) {
         if (isCurrentDirSelected()) {
             FM_UI_CANT_DO_OP;
@@ -587,8 +587,8 @@ void FileManagerApp::onFileOptionsMenuOpenWith() {
 }
 
 void FileManagerApp::onFileOptionsMenuMKDir() {
+    FM_DBG LEP;
     auto button = fileOptionsMenu.getButton();
-    FM_DBG lilka::serial.log("Enter onFileOptionsMenuMKDir");
     if (button == FM_OKAY_BUTTON) {
         mkdirInput.setValue(FM_DEFAULT_NEW_FOLDER_NAME);
         while (!mkdirInput.isFinished()) {
@@ -617,8 +617,8 @@ void FileManagerApp::onFileOptionsMenuMKDir() {
 }
 
 void FileManagerApp::onFileOptionsMenuDelete() {
+    FM_DBG LEP;
     auto button = fileOptionsMenu.getButton();
-    FM_DBG lilka::serial.log("Enter onFileOptionsMenuDelete");
     if (button == FM_OKAY_BUTTON) {
         if (mode == FM_MODE_SELECT) {
             lilka::Alert checkAlert(
@@ -652,8 +652,8 @@ void FileManagerApp::onFileOptionsMenuDelete() {
 }
 
 void FileManagerApp::onFileOptionsMenuRename() {
+    FM_DBG LEP;
     auto button = fileOptionsMenu.getButton();
-    FM_DBG lilka::serial.log("Enter onFileOptionsMenuRename");
     if (button == FM_OKAY_BUTTON) {
         if (isCurrentDirSelected()) {
             FM_UI_CANT_DO_OP;
@@ -695,8 +695,8 @@ void FileManagerApp::onFileOptionsMenuRename() {
 }
 
 void FileManagerApp::onFileOptionsMenuInfo() {
+    FM_DBG LEP;
     auto button = fileOptionsMenu.getButton();
-    FM_DBG lilka::serial.log("Enter onFileOptionsMenuRename");
     if (button == FM_OKAY_BUTTON) {
         fileInfoShowAlert();
         exitChildDialogs = true;
@@ -813,7 +813,7 @@ void FileManagerApp::fileLoadAsRom(const String& path) {
 }
 
 void FileManagerApp::onAnyMenuBack() {
-    FM_DBG lilka::serial.log("Enter onAnyMenuBack");
+    FM_DBG LEP;
 }
 
 void FileManagerApp::fileSelectionOptionsMenuShow() {
@@ -947,9 +947,9 @@ void FileManagerApp::fileListMenuShow() {
 }
 
 void FileManagerApp::onFileListMenuItem() {
+    FM_DBG LEP;
     auto button = fileListMenu.getButton();
     auto index = fileListMenu.getCursor();
-    FM_DBG lilka::serial.log("Enter onFileListMenuItem");
 
     if (fileListMenu.getCursor() == currentDirEntries.size()) {
         currentEntry = pathToEntry(lilka::fileutils.joinPath(currentPath, "."));
