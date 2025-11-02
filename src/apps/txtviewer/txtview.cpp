@@ -219,7 +219,7 @@ void TxtView::draw(Arduino_GFX* canvas) {
     // display doffs
     int16_t lineH = getLineHeight(canvas);
     int16_t y = lineH;
-
+    size_t countDisplayedLines = 0;
     for (size_t i = 0; i + 1 < doffs.size(); i++) {
         char* lineStart = doffs[i];
         char* lineEnd = doffs[i + 1];
@@ -233,8 +233,10 @@ void TxtView::draw(Arduino_GFX* canvas) {
         *lineEnd = backup;
 
         y += lineH;
+        countDisplayedLines++;
         if (y > canvas->height() - STATUS_BAR_HEIGHT) break;
     }
+    lastDisplayedLines = countDisplayedLines;
 
     // sleep
 }
@@ -258,7 +260,7 @@ void TxtView::tBlockRefresh() {
     TXT_DBG lilka::serial.log("tBlock full content:\n%.*s", tLen, tBlock);
 }
 
-void TxtView::nOffsRefresh() {
+void TxtView::nOffsRefresh(long maxoffset) {
     TXT_DBG LEP;
     noffs.clear();
     if (!tLen || tBlockRefreshRequired) // Nothing read
@@ -269,13 +271,14 @@ void TxtView::nOffsRefresh() {
     // do not check last character here
     for (; pCurrentChar < pEndBlock - 1; pCurrentChar++) {
         if (*pCurrentChar == '\n') {
-            noffs.push_back(pCurrentChar + 1);
+            if (maxoffset== -1 || maxoffset <= OFF2ROFF(pCurrentChar+1))
+                noffs.push_back(pCurrentChar + 1);
             TXT_DBG lilka::serial.log("Adding noff at %p\n", noffs.back());
         }
     }
     TXT_DBG lilka::serial.log("Added %d noffs \n", noffs.size());
 }
-void TxtView::dOffsRefresh() {
+void TxtView::dOffsRefresh(long maxoffset) {
     TXT_DBG LEP;
 
     if (!lastCanvas || tBlockRefreshRequired) {
@@ -304,7 +307,8 @@ void TxtView::dOffsRefresh() {
 
             // reached newline
             if (*(pLineEnd - 1) == '\n') {
-                doffs.push_back(pLineStart);
+                if (maxoffset== -1 || maxoffset <= OFF2ROFF(pLineStart))
+                    doffs.push_back(pLineStart);
                 TXT_DBG lilka::serial.log("Adding doff at %p\n", doffs.back());
                 *pLineEnd = backupChar;
                 break;
@@ -312,6 +316,7 @@ void TxtView::dOffsRefresh() {
 
             // check if line fits
             if (!isLineWithinCanvas(pLineStart, lastCanvas)) {
+                if (maxoffset== -1 || maxoffset <= OFF2ROFF(pLineStart))
                 doffs.push_back(pLineStart);
                 // TXT_DBG lilka::serial.log("Adding doff at %p\n", doffs.back());
                 *pLineEnd = backupChar;
@@ -347,8 +352,11 @@ void TxtView::scrollUp() {
     fseek(fp, prevNLineOffset, SEEK_SET);
     // Do refreshes inplace
     tBlockRefresh();
-    nOffsRefresh();
-    dOffsRefresh();
+
+    // Refresh till first doff
+    long maxoffset = OFF2ROFF(doffs[0]);
+    nOffsRefresh(maxoffset);
+    dOffsRefresh(maxoffset);
 
     // Test offsets
     TXT_DBG checkOffs(noffs, doffs);
@@ -389,13 +397,25 @@ void TxtView::scrollDown() {
 void TxtView::scrollPageUp() {
     TXT_DBG LEP;
     if (!fp) return;
-    tBlockRefreshRequired = true; // to be done in update()
+    for (int i=0; i < lastDisplayedLines; i++){
+        scrollUp();
+        // Do refreshes inplace
+        tBlockRefresh();
+        nOffsRefresh();
+        dOffsRefresh();
+    }
 }
 
 void TxtView::scrollPageDown() {
     TXT_DBG LEP;
     if (!fp) return;
-    tBlockRefreshRequired = true; // to be done in update()
+        for (int i=0; i < lastDisplayedLines; i++){
+        scrollDown();
+        // Do refreshes inplace
+        tBlockRefresh();
+        nOffsRefresh();
+        dOffsRefresh();
+    }
 }
 
 TxtView::~TxtView() {

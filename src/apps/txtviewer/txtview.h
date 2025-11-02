@@ -35,8 +35,8 @@ public:
 private:
     // Positioning and file read
     void tBlockRefresh(); // read text block, prepare noffs and doffs
-    void nOffsRefresh();
-    void dOffsRefresh();
+    void nOffsRefresh(long maxoffset = -1);
+    void dOffsRefresh(long maxoffset = -1);
 
     // Scrolling
     void scrollUp();
@@ -58,7 +58,7 @@ private:
     char tBuffer[TXT_BUFFER_SIZE]; // to be used by flineback()
     size_t tLen = 0; // text block length
     bool tBlockRefreshRequired = true; // inital value
-
+    size_t lastDisplayedLines = 0;  
     std::vector<char*> noffs; // offsets to actual lines[separated by \n]
     std::vector<char*> doffs; // offsets to displayed lines
 
