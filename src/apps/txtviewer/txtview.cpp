@@ -273,10 +273,10 @@ void TxtView::nOffsRefresh(long maxoffset) {
         if (*pCurrentChar == '\n') {
             if (maxoffset== -1 || maxoffset <= OFF2ROFF(pCurrentChar+1))
                 noffs.push_back(pCurrentChar + 1);
-            TXT_DBG lilka::serial.log("Adding noff at %p\n", noffs.back());
+            // TXT_DBG lilka::serial.log("Adding noff at %p\n", noffs.back());
         }
     }
-    TXT_DBG lilka::serial.log("Added %d noffs \n", noffs.size());
+    // TXT_DBG lilka::serial.log("Added %d noffs \n", noffs.size());
 }
 void TxtView::dOffsRefresh(long maxoffset) {
     TXT_DBG LEP;
@@ -309,7 +309,7 @@ void TxtView::dOffsRefresh(long maxoffset) {
             if (*(pLineEnd - 1) == '\n') {
                 if (maxoffset== -1 || maxoffset <= OFF2ROFF(pLineStart))
                     doffs.push_back(pLineStart);
-                TXT_DBG lilka::serial.log("Adding doff at %p\n", doffs.back());
+                // TXT_DBG lilka::serial.log("Adding doff at %p\n", doffs.back());
                 *pLineEnd = backupChar;
                 break;
             }
@@ -397,25 +397,34 @@ void TxtView::scrollDown() {
 void TxtView::scrollPageUp() {
     TXT_DBG LEP;
     if (!fp) return;
+    // Refresh till first doff
+    long maxoffset = OFF2ROFF(doffs[0]);
+
     for (int i=0; i < lastDisplayedLines; i++){
         scrollUp();
         // Do refreshes inplace
         tBlockRefresh();
-        nOffsRefresh();
-        dOffsRefresh();
+        nOffsRefresh(maxoffset);
+        dOffsRefresh(maxoffset);
     }
+    // time to make it better
+    nOffsRefresh();
+    dOffsRefresh();
 }
 
 void TxtView::scrollPageDown() {
     TXT_DBG LEP;
-    if (!fp) return;
-        for (int i=0; i < lastDisplayedLines; i++){
-        scrollDown();
-        // Do refreshes inplace
-        tBlockRefresh();
-        nOffsRefresh();
-        dOffsRefresh();
-    }
+    if (!fp || doffs.empty()||doffs.size() < lastDisplayedLines) return;
+
+    //  reached end of file
+    // if (MAX_BLO){
+    //     fseek(fp, 0, SEEK_SET); // go begining
+    //     tBlockRefreshRequired = true; // to be done in update()
+    //     return;
+    // }
+    // just skip to last displayed doff
+    fseek(fp, OFF2ROFF(doffs[lastDisplayedLines]), SEEK_SET);
+    tBlockRefreshRequired = true; // to be done in update()
 }
 
 TxtView::~TxtView() {
