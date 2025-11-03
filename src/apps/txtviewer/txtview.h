@@ -17,7 +17,6 @@
 
 #define OFF2ROFF(X)       X - tBlock + ftell(fp)
 
-
 class TxtView {
 public:
     TxtView();
@@ -40,7 +39,6 @@ private:
     void nOffsRefresh(long maxoffset = -1);
     void dOffsRefresh(long maxoffset = -1);
 
-
     // Scrolling
     void scrollUp();
     void scrollDown();
@@ -57,11 +55,11 @@ private:
     long tOffset = 0;
 
     // Text data
-    char tBlock[TXT_MAX_BLOCK_SIZE];
-    char tBuffer[TXT_BUFFER_SIZE]; // to be used by flineback()
+    char tBlock[TXT_MAX_BLOCK_SIZE] = {};
+    char tBuffer[TXT_BUFFER_SIZE] = {}; // to be used by flineback()
     size_t tLen = 0; // text block length
     bool tBlockRefreshRequired = true; // inital value
-    size_t lastDisplayedLines = 0;  
+    size_t lastDisplayedLines = 0;
     size_t maxLines = 0;
     std::vector<char*> noffs; // offsets to actual lines[separated by \n]
     std::vector<char*> doffs; // offsets to displayed lines

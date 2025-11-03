@@ -17,18 +17,18 @@ static inline char* ubackward(char* cstr) {
     // TXT_DBG LEP;
     if (!cstr) return cstr;
     char* p = cstr - 1;
-    while ((*(unsigned char*)p & 0xC0) == 0x80)
+    while ((*(reinterpret_cast<unsigned char*>(p)) & 0xC0) == 0x80)
         --p; // skip continuation bytes
     return p;
 }
 // get length of a first Unicode character
 static inline size_t ulen(char* cstr) {
-    auto nextchar = uforward(cstr);
+    const char* nextchar = uforward(cstr);
     return nextchar - cstr;
 }
 
 // Get length in Unicode characters
-size_t ulength(char* from, char* to = 0) {
+size_t ulength(char* from, const char* to = 0) {
     if (!from) return 0;
 
     size_t len = 0;
@@ -232,7 +232,7 @@ void TxtView::nOffsRefresh(long maxoffset) {
     if (!tLen || tBlockRefreshRequired) // Nothing read
         return;
     char* pCurrentChar = tBlock;
-    char* pEndBlock = tBlock + tLen;
+    const char* pEndBlock = tBlock + tLen;
     noffs.push_back(pCurrentChar);
     // do not check last character here
     for (; pCurrentChar < pEndBlock - 1; pCurrentChar++) {
@@ -324,7 +324,7 @@ void TxtView::scrollUp() {
     TXT_DBG lilka::serial.log("current offset %ld, prevline %ld", currentFileOffset, prevNLineOffset);
     // now we've to find doff before saved one
     bool found = false;
-    char* nextOffset = doffs[0];
+    const char* nextOffset = doffs[0];
     for (auto doff : doffs) {
         if (OFF2ROFF(doff) == currentFileOffset) {
             found = true;
@@ -367,7 +367,7 @@ void TxtView::scrollPageUp() {
 
 void TxtView::scrollPageDown() {
     TXT_DBG LEP;
-    if (!fp || doffs.empty() || doffs.size() < lastDisplayedLines) return;
+    if (!fp || doffs.empty() || doffs.size() - 1 < lastDisplayedLines) return;
 
     // TODO: determine end of file reached
     // NOTE: test on empty file
@@ -377,7 +377,6 @@ void TxtView::scrollPageDown() {
 
 TxtView::~TxtView() {
     TXT_DBG LEP;
-    if (!fp) return;
     // Never forget to close file
     if (fp) fclose(fp);
 }

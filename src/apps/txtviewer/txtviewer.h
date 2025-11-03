@@ -4,7 +4,7 @@
 
 class TxtViewerApp : public App {
 public:
-    TxtViewerApp(String fPath);
+    explicit TxtViewerApp(String fPath);
     TxtView tView;
 
 private:
