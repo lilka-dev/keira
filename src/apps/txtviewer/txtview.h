@@ -17,6 +17,7 @@
 
 #define OFF2ROFF(X)       X - tBlock + ftell(fp)
 
+
 class TxtView {
 public:
     TxtView();
@@ -38,6 +39,7 @@ private:
     void tBlockRefresh(); // read text block, prepare noffs and doffs
     void nOffsRefresh(long maxoffset = -1);
     void dOffsRefresh(long maxoffset = -1);
+
 
     // Scrolling
     void scrollUp();
