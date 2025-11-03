@@ -62,6 +62,7 @@ private:
     size_t tLen = 0; // text block length
     bool tBlockRefreshRequired = true; // inital value
     size_t lastDisplayedLines = 0;  
+    size_t maxLines = 0;
     std::vector<char*> noffs; // offsets to actual lines[separated by \n]
     std::vector<char*> doffs; // offsets to displayed lines
 

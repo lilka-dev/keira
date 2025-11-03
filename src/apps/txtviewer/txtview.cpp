@@ -179,6 +179,8 @@ void TxtView::draw(Arduino_GFX* canvas) {
     // display doffs
     int16_t lineH = getLineHeight(canvas);
     int16_t y = lineH;
+
+    maxLines = (canvas->height() - STATUS_BAR_HEIGHT) / (lineH + spacing);
     size_t countDisplayedLines = 0;
     for (size_t i = 0; i + 1 < doffs.size(); i++) {
         char* lineStart = doffs[i];
@@ -211,6 +213,9 @@ void TxtView::tBlockRefresh() {
 
     // Zero mem
     memset(tBlock, 0, TXT_MAX_BLOCK_SIZE);
+    // This zero memory may be not actually needed, and actually makes it slower
+    // but what we've to make better is
+    // TODO: shift already read block left/right and read not more than needed amount of bytes
     // Read text block
     long curPos = ftell(fp);
     tLen = fread(tBlock, 1, TXT_MAX_BLOCK_SIZE, fp);
@@ -300,7 +305,7 @@ void TxtView::dOffsRefresh(long maxoffset) {
 
 void TxtView::scrollUp() {
     TXT_DBG LEP;
-    if (!fp || doffs.empty() || !lastCanvas) return;
+    if (!fp || !lastCanvas) return;
 
     long currentFileOffset = ftell(fp);
     // Can't go back
@@ -312,7 +317,7 @@ void TxtView::scrollUp() {
     tBlockRefresh();
 
     // Refresh offs till first doff
-    long maxoffset = OFF2ROFF(doffs[0]);
+    long maxoffset = ftell(fp); // stick to current file position
     nOffsRefresh(maxoffset);
     dOffsRefresh(maxoffset);
 
@@ -350,10 +355,10 @@ void TxtView::scrollDown() {
 
 void TxtView::scrollPageUp() {
     TXT_DBG LEP;
-    // TODO: validate all scroll checks,  doffs.empty() looks absolutely incorrect here
-    if (!fp || doffs.empty() || !lastCanvas) return;
-    long maxoffset = OFF2ROFF(doffs[0]);
-    for (size_t i = 0; i < lastDisplayedLines; i++) {
+    if (!fp || !lastCanvas) return;
+    long maxoffset = ftell(fp); // stick to current file position
+    if (maxoffset == 0) return;
+    for (size_t i = 0; i < maxLines; i++) {
         scrollUp();
         nOffsRefresh(maxoffset);
         dOffsRefresh(maxoffset);
