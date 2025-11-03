@@ -49,7 +49,7 @@
 #define FT_JS_SCRIPT_ICON       &js_img
 #define FT_MOD_ICON             &music_img
 #define FT_LT_ICON              &music_img
-#define FT_TXT_ICON             &normalfile_img // TODO: add icon for TXT format
+#define FT_TXT_ICON             &textfile_img
 #define FT_DIR_ICON             &folder_img
 #define FT_OTHER_ICON           &normalfile_img
 #define FM_SELECTED_FOLDER_ICON &selectedfolder_img
@@ -110,6 +110,7 @@
 #include "../icons/music.h"
 #include "../icons/selectedfile.h"
 #include "../icons/selectedfolder.h"
+#include "../icons/textfile.h"
 // #include "../icons/textfile.h"
 
 // very bad test
