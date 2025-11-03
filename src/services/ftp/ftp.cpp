@@ -1,6 +1,6 @@
 #include "ftp.h"
-#include "servicemanager.h"
-#include "network.h"
+#include "keira/servicemanager.h"
+#include "services/network/network.h"
 
 FTPService::FTPService() : Service("ftp") {
     Preferences prefs;

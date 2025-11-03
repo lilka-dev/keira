@@ -1,6 +1,6 @@
 #include "gpiomanager.h"
-#include "icons/input.h"
-#include "icons/output.h"
+#include "apps/icons/input.h"
+#include "apps/icons/output.h"
 
 GPIOManagerApp::GPIOManagerApp() : App("GPIOManager") {
     menu.setTitle("GPIO");

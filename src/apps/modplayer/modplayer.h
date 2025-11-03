@@ -2,7 +2,7 @@
 
 #include <lilka.h>
 
-#include "app.h"
+#include "keira/app.h"
 #include "analyzer.h"
 
 typedef enum {

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "app.h"
+#include "keira/app.h"
 #include "sequencer.h"
 
 class LilTrackerApp : public App {

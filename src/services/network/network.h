@@ -1,7 +1,7 @@
 #pragma once
 
 #include <WiFi.h>
-#include "service.h"
+#include "keira/service.h"
 
 #define WIFI_KEIRA_NAMESPACE "kwifi"
 

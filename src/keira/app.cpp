@@ -1,8 +1,8 @@
 
-#include "app.h"
+#include "keira/app.h"
 
-#include "servicemanager.h"
-#include "services/watchdog.h"
+#include "keira/servicemanager.h"
+#include "services/watchdog/watchdog.h"
 
 App::App(const char* name) : App(name, 0, 24, lilka::display.width(), lilka::display.height() - 24) {
 }

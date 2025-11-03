@@ -1,6 +1,6 @@
 #include "clock.h"
-#include "network.h"
-#include "servicemanager.h"
+#include "services/network/network.h"
+#include "keira/servicemanager.h"
 
 ClockService::ClockService() : Service("clock") {
 }

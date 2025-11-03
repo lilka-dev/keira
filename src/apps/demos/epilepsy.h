@@ -1,6 +1,6 @@
 #pragma once
 
-#include "app.h"
+#include "keira/app.h"
 
 class EpilepsyApp : public App {
 public:

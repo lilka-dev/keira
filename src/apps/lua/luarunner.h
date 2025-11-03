@@ -2,7 +2,7 @@
 
 #include <Arduino.h>
 #include <lua.hpp>
-#include "app.h"
+#include "keira/app.h"
 
 // Abstract Lua runner app. Sets up Lua VM and provides a method to run Lua code.
 // Does not implement the run method.

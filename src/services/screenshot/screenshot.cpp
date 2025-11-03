@@ -1,9 +1,9 @@
 #include <contrib/LodePNG/lodepng.h>
 
-#include "screenshot.h"
-#include "appmanager.h"
-#include "servicemanager.h"
-#include "clock.h"
+#include "services/screenshot/screenshot.h"
+#include "keira/appmanager.h"
+#include "keira/servicemanager.h"
+#include "services/clock/clock.h"
 
 #if !defined(KEIRA_SCREENSHOT_BMP) && !defined(KEIRA_SCREENSHOT_PNG)
 // Uncomment one of the following lines to choose the screenshot format

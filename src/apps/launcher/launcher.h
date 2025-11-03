@@ -1,8 +1,8 @@
 #pragma once
 
-#include "services/network.h"
-#include "icons/app.h"
-#include "app.h"
+#include "services/network/network.h"
+#include "apps/icons/app.h"
+#include "keira/app.h"
 #include "keira/keira.h"
 
 typedef struct item_t {

@@ -1,13 +1,13 @@
 #include <WiFi.h>
 #include "keira/keira.h"
-#include "wifi_config.h"
-#include "servicemanager.h"
-#include "services/network.h"
+#include "apps/wificonfig/wificonfig.h"
+#include "keira/servicemanager.h"
+#include "services/network/network.h"
 
-#include "icons/wifi_0.h"
-#include "icons/wifi_1.h"
-#include "icons/wifi_2.h"
-#include "icons/wifi_3.h"
+#include "apps/icons/wifi_0.h"
+#include "apps/icons/wifi_1.h"
+#include "apps/icons/wifi_2.h"
+#include "apps/icons/wifi_3.h"
 
 WiFiConfigApp::WiFiConfigApp() : App("WiFi") {
 }

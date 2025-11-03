@@ -1,4 +1,4 @@
-#include "servicemanager.h"
+#include "keira/servicemanager.h"
 
 ServiceManager* ServiceManager::instance = NULL;
 

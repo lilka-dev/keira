@@ -1,6 +1,6 @@
 #pragma once
 
-#include "service.h"
+#include "keira/service.h"
 
 // TODO: Hardcoded timezone
 #define MYTZ PSTR("EET-2EEST,M3.5.0/3,M10.5.0/4") // Europe/Kyiv

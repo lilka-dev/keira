@@ -1,5 +1,5 @@
 #include <lilka.h>
-#include "app.h"
+#include "keira/app.h"
 #include "keira/keira.h"
 #define VOLUME_STEP          5
 #define VOLUME_BUTTON_DELAY  150

@@ -1,6 +1,6 @@
 #include <FtpServer.h>
-#include "services/network.h"
-#include "service.h"
+#include "services/network/network.h"
+#include "keira/service.h"
 
 #define FTP_USER            "lilka"
 #define FTP_PASSWORD_LENGTH 6

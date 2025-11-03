@@ -1,6 +1,6 @@
-#include "service.h"
-#include "servicemanager.h"
-#include "services/watchdog.h"
+#include "keira/service.h"
+#include "keira/servicemanager.h"
+#include "services/watchdog/watchdog.h"
 
 Service::Service(const char* name) : name(name), taskHandle(NULL), stackSize(4096) {
     Preferences prefs;

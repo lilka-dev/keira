@@ -2,7 +2,7 @@
 
 #include <lilka.h>
 #include "keira/keira.h"
-#include "appmanager.h"
+#include "keira/appmanager.h"
 #include "Preferences.h"
 
 class Service {

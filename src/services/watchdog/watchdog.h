@@ -1,7 +1,7 @@
 #pragma once
 
 #include <WiFi.h>
-#include "service.h"
+#include "keira/service.h"
 #ifndef WATCHDOG_UPDATE_TIME
 #    define WATCHDOG_UPDATE_TIME 10000
 #endif

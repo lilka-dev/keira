@@ -1,7 +1,7 @@
 
 #include "lualilka_ui.h"
 #include "lilka.h"
-#include "app.h"
+#include "keira/app.h"
 #include "lualilka_display.h"
 
 // <KEYBOARD UI ------------------------------------------------->

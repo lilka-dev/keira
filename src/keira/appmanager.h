@@ -4,7 +4,7 @@
 #include <Arduino.h>
 #include <lilka.h>
 
-#include "app.h"
+#include "keira/app.h"
 
 class AppManager {
 public:
