@@ -16,13 +16,13 @@
 #include "apps/demos/transform.h"
 #include "apps/demos/cube.h"
 #include "apps/demos/epilepsy.h"
-#include "apps/demos/letris.h"
+#include "apps/letris/letris.h"
 #include "apps/demos/keyboard.h"
 #include "apps/demos/user_spi.h"
 #include "apps/demos/scan_i2c.h"
 #include "apps/demos/petpet.h"
 #include "apps/demos/combo.h"
-#include "apps/demos/gpiomanager.h"
+#include "apps/gpiomanager/gpiomanager.h"
 #include "apps/demos/callbacktest.h"
 #include "apps/tamagotchi/tamagotchi.h"
 #include "apps/lua/luarunner.h"
@@ -90,7 +90,6 @@ void LauncherApp::run() {
                             ITEM::APP(K_S_LAUNCHER_KEYBOARD, [this]() { this->runApp<KeyboardApp>(); }),
                             ITEM::APP(K_S_LAUNCHER_SPI_TEST, [this]() { this->runApp<UserSPIApp>(); }),
                             ITEM::APP(K_S_LAUNCHER_I2C_SCANNER, [this]() { this->runApp<ScanI2CApp>(); }),
-                            ITEM::APP(K_S_LAUNCHER_GPIO_MANAGER, [this]() { this->runApp<GPIOManagerApp>(); }),
                             ITEM::APP(K_S_LAUNCHER_COMBO, [this]() { this->runApp<ComboApp>(); }),
                             ITEM::APP(K_S_LAUNCHER_CALLBACK_TEST, [this]() { this->runApp<CallBackTestApp>(); }),
                         },
@@ -102,6 +101,7 @@ void LauncherApp::run() {
                     ITEM::APP(K_S_LAUNCHER_TAMAGOTCHI, [this]() { this->runApp<TamagotchiApp>(); }),
                     ITEM::APP(K_S_LAUNCHER_WEATHER, [this]() { this->runApp<WeatherApp>(); }),
                     ITEM::APP(K_S_LAUNCHER_PASTEBIN, [this]() { this->runApp<pastebinApp>(); }),
+                    ITEM::APP(K_S_LAUNCHER_GPIO_MANAGER, [this]() { this->runApp<GPIOManagerApp>(); }),
                 },
                 &demos_img,
                 lilka::colors::Pink
