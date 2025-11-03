@@ -13,7 +13,7 @@
 //=============================================   DEBUG   =============================================
 
 // So far Keira OS supports various features to provide a bit easier debugging for custom apps.
-// Most of those come in a form of togglable macro, which you can use together with 
+// Most of those come in a form of togglable macro, which you can use together with
 // PLATFORMIO_BUILD_FLAGS env variable, to set those options before Keira OS buildage
 
 // example ============================================================================================
@@ -23,7 +23,7 @@
 
 // Same thing could be also set directly in platformio.ini recipe file using build_flags option
 
-// Watchdog service 
+// Watchdog service
 
 // KEIRA_WATCHDOG allow u to run Watchdog serice to output reports about stack/memory usage of all
 // services/apps
@@ -34,13 +34,13 @@
 // default launcher
 
 // example ============================================================================================
-// PLATFORMIO_BUILD_FLAGS='-DKEIRA_DEBUG_APP=FileManagerApp -DKEIRA_DEBUG_APP_PARAMS=\"/sd\"' 
-// would allow u to autorun FileManagerApp and pass to it path to /sd folder 
+// PLATFORMIO_BUILD_FLAGS='-DKEIRA_DEBUG_APP=FileManagerApp -DKEIRA_DEBUG_APP_PARAMS=\"/sd\"'
+// would allow u to autorun FileManagerApp and pass to it path to /sd folder
 //=====================================================================================================
 
 // Exit/Entry point loggage, add it to begin/end of method/function to get a comprehensive log
 // about calls
-#define LEP lilka::serial.log("==> %s:%d %s\n", __FILE__, __LINE__, __PRETTY_FUNCTION__);
+#define LEP  lilka::serial.log("==> %s:%d %s\n", __FILE__, __LINE__, __PRETTY_FUNCTION__);
 #define LEXP lilka::serial.log("<== %s:%d %s\n", __FILE__, __LINE__, __PRETTY_FUNCTION__);
 
 //
