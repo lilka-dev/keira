@@ -5,8 +5,8 @@
 #include "sequencer.h"
 #include "lilka/serial.h"
 #include "utils/acquire.h"
-#include "servicemanager.h"
-#include "services/watchdog.h"
+#include "keira/servicemanager.h"
+#include "services/watchdog/watchdog.h"
 
 Sequencer::Sequencer(Sink* sink) :
     xMutex(xSemaphoreCreateMutex()), xPlaying(xSemaphoreCreateBinary()), sink(sink), masterVolume(0.25f) {

@@ -12,8 +12,8 @@
 #include <AudioFileSourcePROGMEM.h>
 
 #include "modplayer.h"
-#include "servicemanager.h"
-#include "services/watchdog.h"
+#include "keira/servicemanager.h"
+#include "services/watchdog/watchdog.h"
 
 ModPlayerApp::ModPlayerApp(String path) :
     App("MODPlayer", 0, 0, lilka::display.width(), lilka::display.height()),

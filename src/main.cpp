@@ -1,18 +1,18 @@
 #include <lilka.h>
 
-#include "keira_splash.h"
+#include "keira/keira_splash.h"
 
-#include "servicemanager.h"
-#include "appmanager.h"
+#include "keira/servicemanager.h"
+#include "keira/appmanager.h"
 
-#include "services/watchdog.h"
-#include "services/clock.h"
-#include "services/network.h"
-#include "services/screenshot.h"
-#include "services/telnet.h"
-#include "services/ftp.h"
-#include "apps/statusbar.h"
-#include "apps/launcher.h"
+#include "services/watchdog/watchdog.h"
+#include "services/clock/clock.h"
+#include "services/network/network.h"
+#include "services/screenshot/screenshot.h"
+#include "services/telnet/telnet.h"
+#include "services/ftp/ftp.h"
+#include "apps/statusbar/statusbar.h"
+#include "apps/launcher/launcher.h"
 
 AppManager* appManager = AppManager::getInstance();
 ServiceManager* serviceManager = ServiceManager::getInstance();

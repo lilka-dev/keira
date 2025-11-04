@@ -1,5 +1,5 @@
 #include "lualilka_display.h"
-#include "app.h"
+#include "keira/app.h"
 #include "lualilka_imageTransform.h"
 
 lilka::Canvas* getDrawable(lua_State* L) {

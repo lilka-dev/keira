@@ -3,8 +3,8 @@
 #include <lilka/config.h>
 
 #include "Preferences.h"
-#include "servicemanager.h"
-#include "services/clock.h"
+#include "keira/servicemanager.h"
+#include "services/clock/clock.h"
 #include "utils/json.h"
 #include "weather.h"
 #include "icons/weather_icons.h"

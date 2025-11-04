@@ -1,7 +1,7 @@
 #pragma once
 
 #include <lilka.h>
-#include "app.h"
+#include "keira/app.h"
 
 class MJSApp : public App {
 public:
