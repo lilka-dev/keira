@@ -3,8 +3,8 @@
 #include <lilka/config.h>
 
 #include "Preferences.h"
-#include "servicemanager.h"
-#include "services/clock.h"
+#include "keira/servicemanager.h"
+#include "services/clock/clock.h"
 #include "utils/json.h"
 #include "weather.h"
 #include "icons/weather_icons.h"
@@ -151,6 +151,7 @@ const char* urlTemplate = "https://api.open-meteo.com/v1/forecast"
                           "&current=temperature_2m,wind_speed_10m,weather_code";
 
 WeatherApp::WeatherApp() : App("Weather") {
+    setStackSize(8192);
 }
 
 void WeatherApp::run() {

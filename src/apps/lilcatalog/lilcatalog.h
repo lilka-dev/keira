@@ -2,8 +2,8 @@
 
 #include "keira/keira.h"
 
-#include <app.h>
-#include "appmanager.h"
+#include "keira/app.h"
+#include "keira/appmanager.h"
 // APPS:
 #include "../modplayer/modplayer.h"
 #include "../liltracker/liltracker.h"

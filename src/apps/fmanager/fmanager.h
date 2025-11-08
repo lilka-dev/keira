@@ -86,12 +86,12 @@
 #define FM_CALLBACK_PTHIS     reinterpret_cast<void*>(this)
 
 // DEPS:
-#include "appmanager.h"
+#include "keira/appmanager.h"
 #include <mbedtls/md5.h>
 #include "esp_log.h"
 #include "esp_err.h"
 #include <errno.h>
-#include "app.h"
+#include "keira/app.h"
 #include <dirent.h>
 #include <vector>
 #include <sys/stat.h>

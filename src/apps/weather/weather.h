@@ -1,6 +1,6 @@
 #pragma once
 #include "keira/keira.h"
-#include "app.h"
+#include "keira/app.h"
 
 typedef struct {
     bool isConfigured;

@@ -1,6 +1,6 @@
 #pragma once
 #include "keira/keira.h"
-#include "app.h"
+#include "keira/app.h"
 
 class ComboApp : public App {
 public:
