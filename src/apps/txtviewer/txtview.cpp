@@ -5,7 +5,7 @@
 static inline FileEncoding detectEncodingByFileBlock(const char* block, size_t len) {
     if (len == 0) return TXT_EMPTY;
 
-    const unsigned char* ptr = (const unsigned char*)block;
+    const unsigned char* ptr = reinterpret_cast<const unsigned char*>(block);
     const unsigned char* end = ptr + len;
     bool hasHighBit = false;
     bool isValidUtf8 = true;
@@ -431,9 +431,6 @@ void TxtView::scrollUp() {
     // Can't go back
     if (currentFileOffset == 0) return;
 
-    // Refresh offs till first doff
-    long maxoffset = ftell(fp); // stick to current file position
-
     // Do file refresh
     long nextBlockOffset = flineback(fp, tBuffer, TXT_BUFFER_SIZE);
 
@@ -460,7 +457,6 @@ void TxtView::scrollUp() {
         }
 
         // Move to the next block backward
-        if (doffs.empty()) break;
         nextBlockOffset = OFF2ROFF(doffs[0]); // pick the earliest doff before current
     }
 
