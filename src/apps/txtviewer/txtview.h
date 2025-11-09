@@ -1,6 +1,6 @@
 #pragma once
 #include <lilka.h>
-#define TXT_MAX_BLOCK_SIZE 512
+#define TXT_MAX_BLOCK_SIZE 1024
 #define TXT_BUFFER_SIZE    64
 // To be moved in lilka sdk
 
@@ -12,10 +12,16 @@
 #    define TXT_DBG if (0)
 #endif
 
-#define TXT_MARGIN_LEFT   38
-#define STATUS_BAR_HEIGHT 30
+#define TXT_MARGIN_LEFT   28 // as well as right :D
+#define STATUS_BAR_HEIGHT 25 // margin from the bottom, actually maybe name it toolbar
 
 #define OFF2ROFF(X)       X - tBlock + ftell(fp)
+
+// To be moved in K_S_STRINGS, but cause expected movage to sdk, 've no idea
+#define TXT_S_EMPTY       "== EMPTY =="
+#define TXT_S_ENC_UNKNOWN "== UNKNOWN ENCODING =="
+
+typedef enum { TXT_UNKNOWN, TXT_EMPTY, TXT_UTF8, TXT_BIN, TXT_LEGACY } FileEncoding;
 
 class TxtView {
 public:
@@ -31,6 +37,11 @@ public:
     void setFont(const uint8_t* font);
     void setSpacing(uint16_t spacing); // distance between lines in pixels
     void setTextSize(uint8_t textSize); // actually is scale, but in GFX is named this way
+
+    // Misc options
+    void jumpToOffset(long offset); // jump to nearest offset
+    long getFileSize();
+
     ~TxtView();
 
 private:
@@ -52,7 +63,8 @@ private:
 
     // File stuff
     FILE* fp = NULL;
-    long tOffset = 0;
+    // long tOffset = 0; unused
+    long fSize = 0;
 
     // Text data
     char tBlock[TXT_MAX_BLOCK_SIZE] = {};
@@ -63,6 +75,7 @@ private:
     size_t maxLines = 0;
     std::vector<char*> noffs; // offsets to actual lines[separated by \n]
     std::vector<char*> doffs; // offsets to displayed lines
+    FileEncoding encoding = TXT_UNKNOWN;
 
     // UI options
     bool done = false; // TODO: move to ABSTRACT WIDGET

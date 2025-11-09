@@ -1,5 +1,5 @@
 #pragma once
-#include "app.h"
+#include "keira/app.h"
 #include "txtview.h"
 
 class TxtViewerApp : public App {

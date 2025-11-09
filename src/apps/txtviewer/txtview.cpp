@@ -2,6 +2,75 @@
 #include "keira/keira_macro.h"
 #include <errno.h>
 
+static inline FileEncoding detectEncodingByFileBlock(const char* block, size_t len) {
+    if (len == 0) return TXT_EMPTY;
+
+    const unsigned char* ptr = (const unsigned char*)block;
+    const unsigned char* end = ptr + len;
+    bool hasHighBit = false;
+    bool isValidUtf8 = true;
+    bool hasNonWhitespace = false;
+
+    while (ptr < end) {
+        unsigned char c = *ptr;
+
+        // Check for null bytes (binary indicator)
+        if (c == 0) return TXT_BIN;
+
+        // Track non-whitespace content
+        if (c != ' ' && c != '\t' && c != '\n' && c != '\r') {
+            hasNonWhitespace = true;
+        }
+
+        // Check for other common binary indicators
+        if (c < 0x20 && c != '\t' && c != '\n' && c != '\r') {
+            return TXT_BIN;
+        }
+
+        // ASCII range
+        if (c < 0x80) {
+            ptr++;
+            continue;
+        }
+
+        hasHighBit = true;
+
+        // UTF-8 validation
+        int extraBytes = 0;
+        if ((c & 0xE0) == 0xC0) extraBytes = 1; // 110xxxxx
+        else if ((c & 0xF0) == 0xE0) extraBytes = 2; // 1110xxxx
+        else if ((c & 0xF8) == 0xF0) extraBytes = 3; // 11110xxx
+        else {
+            isValidUtf8 = false;
+            break;
+        }
+
+        // Check if we have enough bytes left for the sequence
+        if (ptr + extraBytes >= end) {
+            // Incomplete sequence at end - not an error, just stop checking
+            break;
+        }
+
+        // Check continuation bytes
+        for (int i = 0; i < extraBytes; i++) {
+            ptr++;
+            if ((*ptr & 0xC0) != 0x80) {
+                isValidUtf8 = false;
+                break;
+            }
+        }
+
+        if (!isValidUtf8) break;
+        ptr++;
+    }
+
+    // If only whitespace found, treat as empty
+    if (!hasNonWhitespace) return TXT_EMPTY;
+
+    if (!hasHighBit) return TXT_UTF8; // Pure ASCII is valid UTF-8
+    return isValidUtf8 ? TXT_UTF8 : TXT_LEGACY;
+}
+
 // move to next Unicode character
 static inline char* uforward(char* cstr) {
     // TXT_DBG LEP;
@@ -53,8 +122,8 @@ size_t ulength(char* from, const char* to = 0) {
 }
 
 // expects bounds and cursor already set
-bool isLineWithinCanvas(char* pLine, Arduino_GFX* canvas) {
-    if (!pLine || !canvas) return false;
+static inline uint16_t getStringWidth(const char* pLine, Arduino_GFX* canvas) {
+    if (!pLine || !canvas) return 0;
 
     int16_t x = canvas->getCursorX();
     int16_t y = canvas->getCursorY();
@@ -62,11 +131,12 @@ bool isLineWithinCanvas(char* pLine, Arduino_GFX* canvas) {
     uint16_t w, h;
 
     canvas->getTextBounds(pLine, x, y, &bx, &by, &w, &h);
+    return w;
+}
 
-    // return (x + w <= canvas->width()-TXT_MARGIN_LEFT*2 && y + h <= canvas->height());
-    // assume wraping disabled
-    // TXT_DBG lilka::serial.log("Line = %s\nx =%d, y =%d, bx=%d, by=%d, w=%d, h=%d",pLine, x, y, bx, by, w, h);
-    return w < canvas->width() - TXT_MARGIN_LEFT * 2;
+// expects bounds and cursor already set
+bool isLineWithinCanvas(const char* pLine, Arduino_GFX* canvas) {
+    return getStringWidth(pLine, canvas) < canvas->width() - TXT_MARGIN_LEFT * 2;
 }
 
 long flineback(FILE* fp, char* buffer, size_t blength) {
@@ -138,6 +208,11 @@ void TxtView::setTextFile(const String& fPath) {
     if (fp == NULL) {
         lilka::serial.err("Tried to open file %s. Errno %d", fPath.c_str(), errno);
     }
+    fseek(fp, 0, SEEK_END);
+    fSize = ftell(fp);
+    fseek(fp, 0, SEEK_SET);
+
+    setvbuf(fp, NULL, _IOFBF, 0); // disable std buffering for file
     TXT_DBG lilka::serial.log("Set file to %s", fPath.c_str());
     tBlockRefreshRequired = true; // to be done in update()
 }
@@ -169,22 +244,39 @@ void TxtView::updateKeys() {
 
 void TxtView::draw(Arduino_GFX* canvas) {
     // TXT_DBG LEP;
-    setCanvasOptions(canvas);
     lastCanvas = canvas;
 
     // Doesn't look like we've something to display
     // could be a first run, so we have no data prepared
-    if (doffs.empty()) return;
+    if (!fp) return;
+
+    // Setup canvas options
+    setCanvasOptions(canvas);
+
+    // Determine line height
+    int16_t lineHeight = getLineHeight(canvas);
+    int16_t y = lineHeight; // counter
+
+    // TODO: determine good font/size for this
+    // Check if encoding supported
+    if (encoding == TXT_EMPTY) {
+        auto w = getStringWidth(TXT_S_EMPTY, canvas);
+        canvas->setCursor((canvas->width() - w) / 2, (canvas->height() / 2) - lineHeight);
+        canvas->print(TXT_S_EMPTY);
+        return;
+    } else if (encoding != TXT_UTF8) {
+        auto w = getStringWidth(TXT_S_ENC_UNKNOWN, canvas);
+        canvas->setCursor((canvas->width() - w) / 2, (canvas->height() / 2) - lineHeight);
+        canvas->print(TXT_S_ENC_UNKNOWN);
+        return;
+    }
 
     // display doffs
-    int16_t lineH = getLineHeight(canvas);
-    int16_t y = lineH;
-
-    maxLines = (canvas->height() - STATUS_BAR_HEIGHT) / (lineH + spacing);
+    maxLines = (canvas->height() - STATUS_BAR_HEIGHT) / (lineHeight + spacing);
     size_t countDisplayedLines = 0;
-    for (size_t i = 0; i + 1 < doffs.size(); i++) {
+    for (size_t i = 0; i < doffs.size(); i++) {
         char* lineStart = doffs[i];
-        char* lineEnd = doffs[i + 1];
+        char* lineEnd = (i + 1 == doffs.size()) ? tBlock + tLen : doffs[i + 1]; // last line check
 
         char backup = *lineEnd;
         *lineEnd = '\0';
@@ -195,7 +287,7 @@ void TxtView::draw(Arduino_GFX* canvas) {
         // TXT_DBG lilka::serial.log("drawing %s, Length %d, ULength %d", lineStart, strlen(lineStart), ulength(lineStart));
         *lineEnd = backup;
 
-        y += lineH + spacing;
+        y += lineHeight + spacing;
         countDisplayedLines++;
         if (y > canvas->height() - STATUS_BAR_HEIGHT) break;
     }
@@ -222,8 +314,13 @@ void TxtView::tBlockRefresh() {
     fseek(fp, curPos, SEEK_SET); // save original file offset, could be useful for refresh
     tBlockRefreshRequired = false;
 
+    // Detect enoding
+    if (encoding == TXT_UNKNOWN) {
+        encoding = detectEncodingByFileBlock(tBlock, tLen);
+    }
     TXT_DBG lilka::serial.log("Read %d bytes from %ld Position", tLen, curPos);
     // TXT_DBG lilka::serial.log("tBlock full content:\n%.*s", tLen, tBlock);
+    TXT_DBG lilka::serial.log("Encoding %d", encoding);
 }
 
 void TxtView::nOffsRefresh(long maxoffset) {
@@ -259,6 +356,11 @@ void TxtView::dOffsRefresh(long maxoffset) {
 
     for (auto noff : noffs) {
         char* pLineStart = noff;
+
+        // add a bit of caching here
+        // mostly lines would fit + - 1 character, except
+        // really funky fonts, so maybe cache a bit and shift
+        // or maybe leave it this way to make it universal enough
 
         // skip if noff points past the block
         if (pLineStart >= tBlock + tLen) continue;
@@ -300,6 +402,24 @@ void TxtView::dOffsRefresh(long maxoffset) {
             if (next <= pLineEnd || next > tBlock + tLen) break;
             pLineEnd = next;
         }
+        // Add the final line
+        if (pLineStart < tBlock + tLen) {
+            if (doffs.empty() || doffs.back() != pLineStart) {
+                if (maxoffset == -1 || maxoffset <= OFF2ROFF(pLineStart)) {
+                    doffs.push_back(pLineStart);
+                }
+            }
+        }
+        // TXT_DBG {
+        //     if (!doffs.empty()) {
+        //         lilka::serial.log("Last doff: %s", doffs[doffs.size() - 1]);
+        //     }
+        //     lilka::serial.log("pLineStart: %p (%s)", pLineStart, pLineStart);
+        //     lilka::serial.log("pLineEnd: %p (%s)", pLineEnd, pLineEnd);
+        //     lilka::serial.log("tBlock: %p", tBlock);
+        //     lilka::serial.log("tBlock+tLen: %p", tBlock + tLen);
+        //     lilka::serial.log("tLen: %zu", tLen);
+        // }
     }
 }
 
@@ -311,17 +431,39 @@ void TxtView::scrollUp() {
     // Can't go back
     if (currentFileOffset == 0) return;
 
-    // Do file refresh
-    long prevNLineOffset = flineback(fp, tBuffer, TXT_BUFFER_SIZE);
-    fseek(fp, prevNLineOffset, SEEK_SET);
-    tBlockRefresh();
-
     // Refresh offs till first doff
     long maxoffset = ftell(fp); // stick to current file position
-    nOffsRefresh(maxoffset);
-    dOffsRefresh(maxoffset);
 
-    TXT_DBG lilka::serial.log("current offset %ld, prevline %ld", currentFileOffset, prevNLineOffset);
+    // Do file refresh
+    long nextBlockOffset = flineback(fp, tBuffer, TXT_BUFFER_SIZE);
+
+    // do some mind fuck to fix long lines problem
+    while (true) {
+        fseek(fp, nextBlockOffset, SEEK_SET);
+        tBlockRefresh(); // we need to make it work faster, idk
+
+        // Refresh offsets for this block
+        long maxoffset = ftell(fp);
+        nOffsRefresh(maxoffset);
+        dOffsRefresh(maxoffset);
+
+        // Stop if this block now contains the target offset
+        if (currentFileOffset - nextBlockOffset < TXT_MAX_BLOCK_SIZE) {
+            break;
+        }
+
+        // stuck check
+        long newOffset = OFF2ROFF(doffs[0]);
+        if (newOffset >= nextBlockOffset) {
+            TXT_DBG lilka::serial.log("scrollUp: can't go back further");
+            break;
+        }
+
+        // Move to the next block backward
+        if (doffs.empty()) break;
+        nextBlockOffset = OFF2ROFF(doffs[0]); // pick the earliest doff before current
+    }
+
     // now we've to find doff before saved one
     bool found = false;
     const char* nextOffset = doffs[0];
@@ -402,6 +544,15 @@ void TxtView::setSpacing(uint16_t spacing) {
 void TxtView::setTextSize(uint8_t textSize) {
     this->textSize = textSize;
     tBlockRefreshRequired = true; // to be done in update()
+}
+
+void TxtView::jumpToOffset(long offset) {
+    // TODO: jumpToOffset() implementation
+    // jump in the middle, recalc nearest doff, jump here, refresh block
+}
+
+long TxtView::getFileSize() {
+    return fSize;
 }
 
 void TxtView::setCanvasOptions(Arduino_GFX* canvas) {
