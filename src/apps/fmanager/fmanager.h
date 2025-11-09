@@ -111,7 +111,6 @@
 #include "../icons/selectedfile.h"
 #include "../icons/selectedfolder.h"
 #include "../icons/textfile.h"
-// #include "../icons/textfile.h"
 
 // very bad test
 // /sd/1 => /sd/1122/1
