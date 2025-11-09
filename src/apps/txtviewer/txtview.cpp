@@ -233,7 +233,7 @@ void TxtView::updateButtons() {
     else if (state.b.justPressed) done = true;
 
     for (lilka::Button activationButton : activationButtons) {
-        lilka::_StateButtons& buttonsArray = *reinterpret_cast<lilka::_StateButtons*>(&state);
+        const lilka::_StateButtons& buttonsArray = *reinterpret_cast<lilka::_StateButtons*>(&state);
         if (buttonsArray[activationButton].justPressed) {
             button = activationButton;
             done = true;
