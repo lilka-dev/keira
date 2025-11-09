@@ -188,15 +188,6 @@ TxtView::TxtView() {
     TXT_DBG LEP;
 }
 
-bool TxtView::isFinished() {
-    // TXT_DBG LEP;
-    // TODO: move to ABSTRACT WIDGET
-    if (done) {
-        done = false;
-        return true;
-    }
-    return false;
-}
 // TODO: PSRAM VFS for other cases?
 void TxtView::setTextFile(const String& fPath) {
     TXT_DBG LEP;
@@ -219,7 +210,7 @@ void TxtView::setTextFile(const String& fPath) {
 
 void TxtView::update() {
     // TXT_DBG LEP;
-    updateKeys();
+    updateButtons();
     // We've to check if we actually can prepare data
     // Cause we've no real idea about canvas dimensions
     // it could be impossible to do
@@ -232,7 +223,7 @@ void TxtView::update() {
     }
 }
 
-void TxtView::updateKeys() {
+void TxtView::updateButtons() {
     // TXT_DBG LEP;
     auto state = lilka::controller.getState();
     if (state.up.justPressed) scrollUp();
@@ -240,6 +231,17 @@ void TxtView::updateKeys() {
     else if (state.left.justPressed) scrollPageUp();
     else if (state.right.justPressed) scrollPageDown();
     else if (state.b.justPressed) done = true;
+
+    for (lilka::Button activationButton : activationButtons) {
+        lilka::_StateButtons& buttonsArray = *reinterpret_cast<lilka::_StateButtons*>(&state);
+        if (buttonsArray[activationButton].justPressed) {
+            button = activationButton;
+            done = true;
+            // Should be made after done flag setup to allow to clear it by isFinished() call
+            if (clbk) clbk(clbkData);
+        }
+    }
+    vTaskDelay(LILKA_UI_UPDATE_DELAY_MS / portTICK_PERIOD_MS);
 }
 
 void TxtView::draw(Arduino_GFX* canvas) {
@@ -272,7 +274,7 @@ void TxtView::draw(Arduino_GFX* canvas) {
     }
 
     // display doffs
-    maxLines = (canvas->height() - STATUS_BAR_HEIGHT) / (lineHeight + spacing);
+    maxLines = (canvas->height() - TXT_MARGIN_BOTTOM) / (lineHeight + spacing);
     size_t countDisplayedLines = 0;
     for (size_t i = 0; i < doffs.size(); i++) {
         char* lineStart = doffs[i];
@@ -289,7 +291,7 @@ void TxtView::draw(Arduino_GFX* canvas) {
 
         y += lineHeight + spacing;
         countDisplayedLines++;
-        if (y > canvas->height() - STATUS_BAR_HEIGHT) break;
+        if (y > canvas->height() - TXT_MARGIN_BOTTOM) break;
     }
     lastDisplayedLines = countDisplayedLines;
 
@@ -523,7 +525,7 @@ void TxtView::setColor(uint16_t color) {
     this->color = color;
 }
 
-void TxtView::setBgColor(uint16_t bgColor) {
+void TxtView::setBackgroundColor(uint16_t bgColor) {
     this->bgColor = bgColor;
 };
 
@@ -551,9 +553,18 @@ long TxtView::getFileSize() {
     return fSize;
 }
 
+long TxtView::getOffset() {
+    return ftell(fp);
+}
+
+void TxtView::setCallback(PTXTViewCallback clbk, void* clbkData) {
+    this->clbk = clbk;
+    this->clbkData = clbkData;
+}
+
 void TxtView::setCanvasOptions(Arduino_GFX* canvas) {
     canvas->setTextBound(
-        TXT_MARGIN_LEFT, 0, canvas->width() - 2 * TXT_MARGIN_LEFT, canvas->height() - STATUS_BAR_HEIGHT
+        TXT_MARGIN_LEFT, 0, canvas->width() - 2 * TXT_MARGIN_LEFT, canvas->height() - TXT_MARGIN_BOTTOM
     );
     canvas->setCursor(TXT_MARGIN_LEFT, 0);
     canvas->fillScreen(bgColor);

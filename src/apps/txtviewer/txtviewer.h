@@ -6,6 +6,7 @@ class TxtViewerApp : public App {
 public:
     explicit TxtViewerApp(String fPath);
     TxtView tView;
+    void queueDraw();
 
 private:
     TxtViewerApp();

@@ -11,3 +11,8 @@ void TxtViewerApp::run() {
         queueDraw();
     }
 }
+
+void TxtViewerApp::queueDraw() {
+    // show control buttons
+    App::queueDraw();
+}

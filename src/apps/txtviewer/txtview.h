@@ -1,5 +1,6 @@
 #pragma once
-#include <lilka.h>
+#include "abstractwidget.h"
+
 #define TXT_MAX_BLOCK_SIZE 1024
 #define TXT_BUFFER_SIZE    64
 // To be moved in lilka sdk
@@ -13,7 +14,7 @@
 #endif
 
 #define TXT_MARGIN_LEFT   28 // as well as right :D
-#define STATUS_BAR_HEIGHT 25 // margin from the bottom, actually maybe name it toolbar
+#define TXT_MARGIN_BOTTOM 25 // margin from the bottom, actually maybe name it toolbar
 
 #define OFF2ROFF(X)       X - tBlock + ftell(fp)
 
@@ -22,18 +23,17 @@
 #define TXT_S_ENC_UNKNOWN "== UNKNOWN ENCODING =="
 
 typedef enum { TXT_UNKNOWN, TXT_EMPTY, TXT_UTF8, TXT_BIN, TXT_LEGACY } FileEncoding;
-
-class TxtView {
+typedef void (*PTXTViewCallback)(void*);
+class TxtView : public AbstractWidget {
 public:
     TxtView();
-    bool isFinished();
     void setTextFile(const String& fPath);
-    void update();
-    void draw(Arduino_GFX* canvas);
+    void update() override;
+    void draw(Arduino_GFX* canvas) override;
 
     // Display options
     void setColor(uint16_t color);
-    void setBgColor(uint16_t bgColor);
+    void setBackgroundColor(uint16_t bgColor);
     void setFont(const uint8_t* font);
     void setSpacing(uint16_t spacing); // distance between lines in pixels
     void setTextSize(uint8_t textSize); // actually is scale, but in GFX is named this way
@@ -41,6 +41,9 @@ public:
     // Misc options
     void jumpToOffset(long offset); // jump to nearest offset
     long getFileSize();
+    long getOffset();
+    // Callback setup. To be triggered on any activation button
+    void setCallback(PTXTViewCallback clbk, void* clbkData);
 
     ~TxtView();
 
@@ -57,7 +60,7 @@ private:
     void scrollPageDown();
 
     // Input
-    void updateKeys();
+    void updateButtons();
     // Canvas setup
     void setCanvasOptions(Arduino_GFX* canvas);
 
@@ -78,7 +81,6 @@ private:
     FileEncoding encoding = TXT_UNKNOWN;
 
     // UI options
-    bool done = false; // TODO: move to ABSTRACT WIDGET
     uint16_t color = lilka::colors::White;
     uint16_t bgColor = lilka::colors::Black;
     const uint8_t* font = FONT_8x13;
@@ -88,4 +90,8 @@ private:
     // we need somehow calculate how much lines/characters fit display
     // so we store last canvas pointer to be acessible in dOffsRefresh
     Arduino_GFX* lastCanvas = NULL;
+
+    // Callback
+    PTXTViewCallback clbk = nullptr;
+    void* clbkData = nullptr;
 };
