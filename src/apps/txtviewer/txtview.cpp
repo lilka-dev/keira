@@ -274,7 +274,16 @@ void TxtView::draw(Arduino_GFX* canvas) {
     }
 
     // display doffs
-    maxLines = (canvas->height() - TXT_MARGIN_BOTTOM) / (lineHeight + spacing);
+    int availableHeight = canvas->height() - TXT_MARGIN_BOTTOM;
+
+    // Calculate the number of lines that can be displayed
+    maxLines = availableHeight / (lineHeight + spacing);
+
+    // Adjust if there is leftover space for a partial line
+    if (availableHeight % (lineHeight + spacing) > 0) {
+        maxLines++;
+    }
+
     size_t countDisplayedLines = 0;
     for (size_t i = 0; i < doffs.size(); i++) {
         char* lineStart = doffs[i];
@@ -328,8 +337,15 @@ void TxtView::tBlockRefresh() {
 void TxtView::nOffsRefresh(long maxoffset) {
     TXT_DBG LEP;
     noffs.clear();
-    if (!tLen || tBlockRefreshRequired) // Nothing read
+    if (!lastCanvas) {
+        TXT_DBG lilka::serial.err("No access to lastCanvas, can't calc doffs");
+        tBlockRefreshRequired = true;
         return;
+    }
+    if (tBlockRefreshRequired) {
+        TXT_DBG lilka::serial.err("Txt block refresh requied, skiping...");
+        return;
+    }
     char* pCurrentChar = tBlock;
     const char* pEndBlock = tBlock + tLen;
     noffs.push_back(pCurrentChar);
@@ -345,9 +361,13 @@ void TxtView::nOffsRefresh(long maxoffset) {
 void TxtView::dOffsRefresh(long maxoffset) {
     TXT_DBG LEP;
 
-    if (!lastCanvas || tBlockRefreshRequired) {
+    if (!lastCanvas) {
         TXT_DBG lilka::serial.err("No access to lastCanvas, can't calc doffs");
         tBlockRefreshRequired = true;
+        return;
+    }
+    if (tBlockRefreshRequired) {
+        TXT_DBG lilka::serial.err("Txt block refresh requied, skiping...");
         return;
     }
 
@@ -483,7 +503,8 @@ void TxtView::scrollUp() {
 
 void TxtView::scrollDown() {
     TXT_DBG LEP;
-    if (!fp) return;
+    // lock scrolling in case we've nothing new to display
+    if (!fp || doffs.empty() || lastDisplayedLines < maxLines) return;
 
     if (doffs.size() > 1) {
         fseek(fp, OFF2ROFF(doffs[1]), SEEK_SET);
@@ -498,17 +519,17 @@ void TxtView::scrollPageUp() {
     if (!fp || !lastCanvas) return;
     long maxoffset = ftell(fp); // stick to current file position
     if (maxoffset == 0) return;
+    TXT_DBG lilka::serial.log("Max lines = %d", maxLines);
     for (size_t i = 0; i < maxLines; i++) {
         scrollUp();
-        nOffsRefresh(maxoffset);
-        dOffsRefresh(maxoffset);
     }
 }
 
 void TxtView::scrollPageDown() {
     TXT_DBG LEP;
-    if (!fp || doffs.empty() || doffs.size() - 1 < lastDisplayedLines) return;
+    if (!fp || doffs.empty() || lastDisplayedLines < maxLines) return;
 
+    TXT_DBG lilka::serial.log("displayed lines = %d", lastDisplayedLines);
     // TODO: determine end of file reached
     // NOTE: test on empty file
     fseek(fp, OFF2ROFF(doffs[lastDisplayedLines]), SEEK_SET);
