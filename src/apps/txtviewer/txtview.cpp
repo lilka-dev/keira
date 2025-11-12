@@ -218,8 +218,8 @@ void TxtView::update() {
     // just wait a few cycles
     if (lastCanvas && tBlockRefreshRequired) {
         tBlockRefresh();
-        nOffsRefresh();
-        dOffsRefresh();
+        nPtrRefresh();
+        dPtrRefresh();
     }
 }
 
@@ -273,7 +273,7 @@ void TxtView::draw(Arduino_GFX* canvas) {
         return;
     }
 
-    // display doffs
+    // display dptrs
     int availableHeight = canvas->height() - TXT_MARGIN_BOTTOM;
 
     // Calculate the number of lines that can be displayed
@@ -285,9 +285,9 @@ void TxtView::draw(Arduino_GFX* canvas) {
     }
 
     size_t countDisplayedLines = 0;
-    for (size_t i = 0; i < doffs.size(); i++) {
-        char* lineStart = doffs[i];
-        char* lineEnd = (i + 1 == doffs.size()) ? tBlock + tLen : doffs[i + 1]; // last line check
+    for (size_t i = 0; i < dptrs.size(); i++) {
+        char* lineStart = dptrs[i];
+        char* lineEnd = (i + 1 == dptrs.size()) ? tBlock + tLen : dptrs[i + 1]; // last line check
 
         char backup = *lineEnd;
         *lineEnd = '\0';
@@ -308,7 +308,7 @@ void TxtView::draw(Arduino_GFX* canvas) {
 }
 
 void TxtView::tBlockRefresh() {
-    TXT_DBG LEP;
+    // TXT_DBG LEP;
     if (fp == NULL) {
         TXT_DBG lilka::serial.log("File not open. Skiping");
         return; // nothing to refresh. Wait till next update
@@ -329,16 +329,16 @@ void TxtView::tBlockRefresh() {
     if (encoding == TXT_UNKNOWN) {
         encoding = detectEncodingByFileBlock(tBlock, tLen);
     }
-    TXT_DBG lilka::serial.log("Read %d bytes from %ld Position", tLen, curPos);
+    // TXT_DBG lilka::serial.log("Read %d bytes from %ld Position", tLen, curPos);
     // TXT_DBG lilka::serial.log("tBlock full content:\n%.*s", tLen, tBlock);
-    TXT_DBG lilka::serial.log("Encoding %d", encoding);
+    // TXT_DBG lilka::serial.log("Encoding %d", encoding);
 }
 
-void TxtView::nOffsRefresh(long maxoffset) {
-    TXT_DBG LEP;
-    noffs.clear();
+void TxtView::nPtrRefresh(long maxoffset) {
+    // TXT_DBG LEP;
+    nptrs.clear();
     if (!lastCanvas) {
-        TXT_DBG lilka::serial.err("No access to lastCanvas, can't calc doffs");
+        TXT_DBG lilka::serial.err("No access to lastCanvas, can't calc dptrs");
         tBlockRefreshRequired = true;
         return;
     }
@@ -348,21 +348,21 @@ void TxtView::nOffsRefresh(long maxoffset) {
     }
     char* pCurrentChar = tBlock;
     const char* pEndBlock = tBlock + tLen;
-    noffs.push_back(pCurrentChar);
+    nptrs.push_back(pCurrentChar);
     // do not check last character here
     for (; pCurrentChar < pEndBlock - 1; pCurrentChar++) {
         if (*pCurrentChar == '\n') {
-            if (maxoffset == -1 || maxoffset <= OFF2ROFF(pCurrentChar + 1)) noffs.push_back(pCurrentChar + 1);
-            // TXT_DBG lilka::serial.log("Adding noff at %p\n", noffs.back());
+            if (maxoffset == -1 || maxoffset <= TADDR2OFF(pCurrentChar + 1)) nptrs.push_back(pCurrentChar + 1);
+            // TXT_DBG lilka::serial.log("Adding dptr at %p\n", nptrs.back());
         }
     }
-    // TXT_DBG lilka::serial.log("Added %d noffs \n", noffs.size());
+    // TXT_DBG lilka::serial.log("Added %d nptrs \n", nptrs.size());
 }
-void TxtView::dOffsRefresh(long maxoffset) {
-    TXT_DBG LEP;
+void TxtView::dPtrRefresh(long maxoffset) {
+    // TXT_DBG LEP;
 
     if (!lastCanvas) {
-        TXT_DBG lilka::serial.err("No access to lastCanvas, can't calc doffs");
+        TXT_DBG lilka::serial.err("No access to lastCanvas, can't calc dptrs");
         tBlockRefreshRequired = true;
         return;
     }
@@ -374,17 +374,17 @@ void TxtView::dOffsRefresh(long maxoffset) {
     // readjust canvas options if something changed
     setCanvasOptions(lastCanvas);
 
-    doffs.clear();
+    dptrs.clear();
 
-    for (auto noff : noffs) {
-        char* pLineStart = noff;
+    for (auto dptr : nptrs) {
+        char* pLineStart = dptr;
 
         // add a bit of caching here
         // mostly lines would fit + - 1 character, except
         // really funky fonts, so maybe cache a bit and shift
         // or maybe leave it this way to make it universal enough
 
-        // skip if noff points past the block
+        // skip if dptr points past the block
         if (pLineStart >= tBlock + tLen) continue;
 
         char* pLineEnd = uforward(pLineStart); // first letter
@@ -396,16 +396,16 @@ void TxtView::dOffsRefresh(long maxoffset) {
 
             // reached newline
             if (*(pLineEnd - 1) == '\n') {
-                if (maxoffset == -1 || maxoffset <= OFF2ROFF(pLineStart)) doffs.push_back(pLineStart);
-                // TXT_DBG lilka::serial.log("Adding doff at %p\n", doffs.back());
+                if (maxoffset == -1 || maxoffset <= TADDR2OFF(pLineStart)) dptrs.push_back(pLineStart);
+                // TXT_DBG lilka::serial.log("Adding dptr at %p\n", dptrs.back());
                 *pLineEnd = backupChar;
                 break;
             }
 
             // check if line fits
             if (!isLineWithinCanvas(pLineStart, lastCanvas)) {
-                if (maxoffset == -1 || maxoffset <= OFF2ROFF(pLineStart)) doffs.push_back(pLineStart);
-                // TXT_DBG lilka::serial.log("Adding doff at %p\n", doffs.back());
+                if (maxoffset == -1 || maxoffset <= TADDR2OFF(pLineStart)) dptrs.push_back(pLineStart);
+                // TXT_DBG lilka::serial.log("Adding dptr at %p\n", dptrs.back());
                 *pLineEnd = backupChar;
 
                 // move backward safely
@@ -426,15 +426,15 @@ void TxtView::dOffsRefresh(long maxoffset) {
         }
         // Add the final line
         if (pLineStart < tBlock + tLen) {
-            if (doffs.empty() || doffs.back() != pLineStart) {
-                if (maxoffset == -1 || maxoffset <= OFF2ROFF(pLineStart)) {
-                    doffs.push_back(pLineStart);
+            if (dptrs.empty() || dptrs.back() != pLineStart) {
+                if (maxoffset == -1 || maxoffset <= TADDR2OFF(pLineStart)) {
+                    dptrs.push_back(pLineStart);
                 }
             }
         }
         // TXT_DBG {
-        //     if (!doffs.empty()) {
-        //         lilka::serial.log("Last doff: %s", doffs[doffs.size() - 1]);
+        //     if (!dptrs.empty()) {
+        //         lilka::serial.log("Last dptr: %s", dptrs[dptrs.size() - 1]);
         //     }
         //     lilka::serial.log("pLineStart: %p (%s)", pLineStart, pLineStart);
         //     lilka::serial.log("pLineEnd: %p (%s)", pLineEnd, pLineEnd);
@@ -442,72 +442,109 @@ void TxtView::dOffsRefresh(long maxoffset) {
         //     lilka::serial.log("tBlock+tLen: %p", tBlock + tLen);
         //     lilka::serial.log("tLen: %zu", tLen);
         // }
+        // TXT_DBG for (auto dptr:dptrs){ // AM HERE
+        //     lilka::serial.log("dptr addr %x", TADDR2OFF(dptr));
+        // }
     }
 }
 
-void TxtView::scrollUp() {
+void TxtView::scrollUp(size_t linesToScroll) {
     TXT_DBG LEP;
     if (!fp || !lastCanvas) return;
 
-    long currentFileOffset = ftell(fp);
+    long anchorOffset = ftell(fp);
     // Can't go back
-    if (currentFileOffset == 0) return;
+    if (anchorOffset == 0) return;
 
-    // Do file refresh
-    long nextBlockOffset = flineback(fp, tBuffer, TXT_BUFFER_SIZE);
+    TxtScrollDirection direction = TXT_BACKWARD;
 
-    // do some mind fuck to fix long lines problem
-    while (true) {
-        fseek(fp, nextBlockOffset, SEEK_SET);
-        tBlockRefresh(); // we need to make it work faster, idk
+    size_t skipLeft = linesToScroll;
 
-        // Refresh offsets for this block
-        long maxoffset = ftell(fp);
-        nOffsRefresh(maxoffset);
-        dOffsRefresh(maxoffset);
+    long currBlockOffset;
 
-        // Stop if this block now contains the target offset
-        if (currentFileOffset - nextBlockOffset < TXT_MAX_BLOCK_SIZE) {
+    while (1) {
+        // go back a line
+        if (direction == TXT_BACKWARD) {
+            currBlockOffset = flineback(fp, tBuffer, TXT_BUFFER_SIZE);
+
+        } else // carefully seek for an anchor cause it's lost(extremely long line found)
+        {
+            if (!dptrs.empty()) currBlockOffset = TADDR2OFF(dptrs[1]);
+            else {
+                TXT_DBG lilka::serial.err("oh fuck.. dptrs empty");
+            }
+        }
+
+        // reload block
+        fseek(fp, currBlockOffset, SEEK_SET);
+        tBlockRefresh();
+
+        // refresh constraints
+        nPtrRefresh();
+        dPtrRefresh();
+
+        // not actually needed but let's say, why not check
+        if (dptrs.empty()) {
+            TXT_DBG lilka::serial.err("No dptrs found? Impossible");
+            return;
+        }
+
+        // seek the anchor
+        bool anchorFound = false;
+        size_t anchorOffsetIndex = 0;
+        // anchor offset index always zero, why?
+        for (const auto dptr : dptrs) {
+            TXT_DBG lilka::serial.log("dptr addr %x, anchor %x", TADDR2OFF(dptr), anchorOffset);
+            if (TADDR2OFF(dptr) >= anchorOffset) {
+                anchorFound = true;
+                break;
+            }
+            anchorOffsetIndex++;
+        }
+
+        // captain, there's no anchor, we've to do find it or we gonna
+        // swim in an ocean for all ethernity
+        if (!anchorFound) {
+            direction = TXT_FORWARD; // too much backward
+            TXT_DBG lilka::serial.log("Anchor not found");
+            continue; // skip the fuck
+        }
+
+        TXT_DBG lilka::serial.log(
+            "Anchor [ index %d, offset %x ] Skip left [ %d ]", anchorOffsetIndex, anchorOffset, skipLeft
+        );
+
+
+        // our ship lays on a piece of land, there's no water around
+        if (anchorOffsetIndex == 0) {
+            TXT_DBG lilka::serial.log("what");
             break;
         }
 
-        // stuck check
-        long newOffset = OFF2ROFF(doffs[0]);
-        if (newOffset >= nextBlockOffset) {
-            TXT_DBG lilka::serial.log("scrollUp: can't go back further");
+        if (skipLeft > anchorOffsetIndex) { // we're close, but not yet
+            TXT_DBG lilka::serial.log("wee, go next iteration");
+            skipLeft = skipLeft - anchorOffsetIndex;
+            anchorOffset = TADDR2OFF(dptrs[0]);
+            fseek(fp, anchorOffset, SEEK_SET);
+            direction = TXT_BACKWARD;
+        } else { // yeh we did it :D
+            TXT_DBG lilka::serial.log("all good, we know where to jump");
+            anchorOffset = TADDR2OFF(dptrs[anchorOffsetIndex - skipLeft]);
+            fseek(fp, anchorOffset, SEEK_SET);
             break;
         }
-
-        // Move to the next block backward
-        nextBlockOffset = OFF2ROFF(doffs[0]); // pick the earliest doff before current
     }
 
-    // now we've to find doff before saved one
-    bool found = false;
-    const char* nextOffset = doffs[0];
-    for (auto doff : doffs) {
-        if (OFF2ROFF(doff) == currentFileOffset) {
-            found = true;
-            break;
-        }
-        nextOffset = doff;
-    }
-    if (found) fseek(fp, OFF2ROFF(nextOffset), SEEK_SET);
-    else {
-        TXT_DBG lilka::serial.err("Doff not found, check doffs/noffs consistency");
-        return; // looks like we already here
-    }
-    // should be where need at next refresh
-    tBlockRefreshRequired = true; // to be done in update()
+    tBlockRefreshRequired = true;
 }
 
 void TxtView::scrollDown() {
     TXT_DBG LEP;
     // lock scrolling in case we've nothing new to display
-    if (!fp || doffs.empty() || lastDisplayedLines < maxLines) return;
+    if (!fp || dptrs.empty() || lastDisplayedLines < maxLines) return;
 
-    if (doffs.size() > 1) {
-        fseek(fp, OFF2ROFF(doffs[1]), SEEK_SET);
+    if (dptrs.size() > 1) {
+        fseek(fp, TADDR2OFF(dptrs[1]), SEEK_SET);
     } else {
         fseek(fp, 0, SEEK_SET); // go begining
     }
@@ -520,19 +557,17 @@ void TxtView::scrollPageUp() {
     long maxoffset = ftell(fp); // stick to current file position
     if (maxoffset == 0) return;
     TXT_DBG lilka::serial.log("Max lines = %d", maxLines);
-    for (size_t i = 0; i < maxLines; i++) {
-        scrollUp();
-    }
+    scrollUp(maxLines);
 }
 
 void TxtView::scrollPageDown() {
     TXT_DBG LEP;
-    if (!fp || doffs.empty() || lastDisplayedLines < maxLines) return;
+    if (!fp || dptrs.empty() || lastDisplayedLines < maxLines) return;
 
     TXT_DBG lilka::serial.log("displayed lines = %d", lastDisplayedLines);
     // TODO: determine end of file reached
     // NOTE: test on empty file
-    fseek(fp, OFF2ROFF(doffs[lastDisplayedLines]), SEEK_SET);
+    fseek(fp, TADDR2OFF(dptrs[lastDisplayedLines]), SEEK_SET);
     tBlockRefreshRequired = true; // to be done in update()
 }
 
@@ -567,7 +602,7 @@ void TxtView::setTextSize(uint8_t textSize) {
 
 void TxtView::jumpToOffset(long offset) {
     // TODO: jumpToOffset() implementation
-    // jump in the middle, recalc nearest doff, jump here, refresh block
+    // jump in the middle, recalc nearest dptr, jump here, refresh block
 }
 
 long TxtView::getFileSize() {

@@ -16,7 +16,10 @@
 #define TXT_MARGIN_LEFT   28 // as well as right :D
 #define TXT_MARGIN_BOTTOM 25 // margin from the bottom, actually maybe name it toolbar
 
-#define OFF2ROFF(X)       X - tBlock + ftell(fp)
+// tBlockAddrToOffset
+#define TADDR2OFF(X)       X - tBlock + ftell(fp)
+
+typedef enum {TXT_FORWARD, TXT_BACKWARD} TxtScrollDirection;
 
 // To be moved in K_S_STRINGS, but cause expected movage to sdk, 've no idea
 #define TXT_S_EMPTY       "== EMPTY =="
@@ -50,11 +53,11 @@ public:
 private:
     // Positioning and file read
     void tBlockRefresh(); // read text block, prepare noffs and doffs
-    void nOffsRefresh(long maxoffset = -1);
-    void dOffsRefresh(long maxoffset = -1);
+    void nPtrRefresh(long maxoffset = -1);
+    void dPtrRefresh(long maxoffset = -1);
 
     // Scrolling
-    void scrollUp();
+    void scrollUp(size_t linesToScroll = 1);
     void scrollDown();
     void scrollPageUp();
     void scrollPageDown();
@@ -76,8 +79,8 @@ private:
     bool tBlockRefreshRequired = true; // inital value
     size_t lastDisplayedLines = 0;
     size_t maxLines = 0;
-    std::vector<char*> noffs; // offsets to actual lines[separated by \n]
-    std::vector<char*> doffs; // offsets to displayed lines
+    std::vector<char*> nptrs; // ptrs to \n separated lines withing tBlock
+    std::vector<char*> dptrs; // ptrs to displayed lines withing tBlock
     FileEncoding encoding = TXT_UNKNOWN;
 
     // UI options
