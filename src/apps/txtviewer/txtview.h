@@ -17,9 +17,9 @@
 #define TXT_MARGIN_BOTTOM 25 // margin from the bottom, actually maybe name it toolbar
 
 // tBlockAddrToOffset
-#define TADDR2OFF(X)       X - tBlock + ftell(fp)
+#define TADDR2OFF(X) X - tBlock + ftell(fp)
 
-typedef enum {TXT_FORWARD, TXT_BACKWARD} TxtScrollDirection;
+typedef enum { TXT_FORWARD, TXT_BACKWARD } TxtScrollDirection;
 
 // To be moved in K_S_STRINGS, but cause expected movage to sdk, 've no idea
 #define TXT_S_EMPTY       "== EMPTY =="

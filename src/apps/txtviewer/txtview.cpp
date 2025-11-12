@@ -514,7 +514,6 @@ void TxtView::scrollUp(size_t linesToScroll) {
             "Anchor [ index %d, offset %x ] Skip left [ %d ]", anchorOffsetIndex, anchorOffset, skipLeft
         );
 
-
         // our ship lays on a piece of land, there's no water around
         if (anchorOffsetIndex == 0) {
             TXT_DBG lilka::serial.log("what");
