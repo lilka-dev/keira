@@ -21,6 +21,7 @@
 #include "lualilka_serial.h"
 #include "lualilka_http.h"
 #include "lualilka_ui.h"
+#define SERIAL_DELAY 1000
 
 jmp_buf stopjmp;
 
@@ -339,6 +340,7 @@ void LuaFileRunnerApp::run() {
 }
 
 LuaLiveRunnerApp::LuaLiveRunnerApp() : AbstractLuaRunnerApp("Lua source run") {
+    setStackSize(8192);
 }
 
 void LuaLiveRunnerApp::run() {
@@ -353,6 +355,7 @@ void LuaLiveRunnerApp::run() {
         if (lilka::controller.getState().a.justPressed) {
             return;
         }
+
         canvas->setFont(FONT_10x20);
         canvas->setCursor(8, 48);
         canvas->fillScreen(lilka::colors::Black);
@@ -363,39 +366,42 @@ void LuaLiveRunnerApp::run() {
         queueDraw();
 
         // Read serial data
-        Serial.setTimeout(100);
+        // Default arduino timeout is set to 1000 ms
+        Serial.setTimeout(SERIAL_DELAY / 2);
         String code;
+        Serial.setRxBufferSize(LUA_SERIAL_TEMPORARY_BUFFER_RX_SIZE); // 16 KB would be enough for everything
+        // Note: shit reads not more than amount of this buffer size, so we temporary increase it to make it larger
+        // to then decrease to default. idk, it just doesn't work other way
+        // await till first chunk
         while (!Serial.available()) {
             if (lilka::controller.getState().a.justPressed) {
+                // restore old rx buffer size
+                Serial.setRxBufferSize(256);
                 return;
             }
+            vTaskDelay(pdMS_TO_TICKS(15));
         }
+
+        auto lastRead = millis();
         while (1) {
-            // Read lines from serial.
-            // It nothing is read for 0.5 seconds, stop reading.
-            if (lilka::controller.getState().a.justPressed) {
-                return;
-            }
-            String line = Serial.readString();
-            canvas->setCursor(8, 180);
-            // if (line.length() == 0) {
-            //     canvas->fillScreen(canvas->color565(0, 128, 0));
-            //     canvas->print("Запуск...");
-            //     break;
-            // } else {
-            //     canvas->fillScreen(canvas->color565(128, 128, 0));
-            //     canvas->print(String("Зчитано: ") + code.length() + " Б");
+            // Await till chunk ready
+            // Chunks? haha, forget, it doesn't work, just read one big line
+            // while (!Serial.available()) {
+            //     // await for SERIAL_DELAY for next chunk
+            //     LUA_DBG lilka::serial.log("Awaiting next chunk...");
+            //     if (millis() - lastRead > SERIAL_DELAY) {
+            //         LUA_DBG lilka::serial.log("Chunk prepared, trying to read");
+            //         break;
+            //     }
+            //     vTaskDelay(pdMS_TO_TICKS(15));  // sleep a while
             // }
-            if (line.length() == 0) {
-                canvas->fillScreen(lilka::colors::Green);
-                canvas->print("Запуск...");
-                queueDraw();
-                break;
-            } else {
-                canvas->fillScreen(canvas->color565(128, 128, 0));
-                canvas->print("Завантаження...");
-                queueDraw();
-            }
+
+            // read chunk
+            String line = Serial.readString();
+            Serial.flush();
+            lastRead = millis();
+
+            if (line.length() == 0) break;
             code += line;
         }
 
@@ -403,28 +409,37 @@ void LuaLiveRunnerApp::run() {
         // If code contains \r and \n - replace them with \n
         // If code contains only \r - replace it with \n
         // If code contains only \n - leave it as is
+        // why the heck we care about line endings at all?
         if (code.indexOf('\r') != -1) {
             if (code.indexOf('\n') != -1) {
-                lilka::serial.log("Line ends: CR and LF");
+                LUA_DBG lilka::serial.log("Line ends: CR and LF");
                 code.replace("\r", "");
             } else {
-                lilka::serial.log("Line ends: CR only");
+                LUA_DBG lilka::serial.log("Line ends: CR only");
                 code.replace("\r", "\n");
             }
         } else {
-            lilka::serial.log("Line ends: LF only");
+            LUA_DBG lilka::serial.log("Line ends: LF only");
         }
 
         // TODO: This is a temporary fix: https://github.com/espressif/arduino-esp32/issues/9221
+        // Probably doesn't matter anymore
         lilka::fileutils.isSDAvailable();
 
-        execSource(code);
+        // Display ui stuff
+        canvas->fillScreen(lilka::colors::Green);
+        canvas->fillScreen(canvas->color565(128, 128, 0));
+        canvas->setCursor(8, 180);
+        canvas->print("Завантаження...");
+        queueDraw();
+
+        LUA_DBG lilka::serial.log("Read %d bytes of code", code.length());
+        LUA_DBG lilka::serial.log(code.c_str());
+        // restore old rx buffer size, and allowing to use our memory again. hehe
+        Serial.setRxBufferSize(256);
 
         // Run the code
-        // int retCode = lilka::lua_runsource(canvas, code);
-        // if (retCode) {
-        //     lilka::ui_alert(canvas, "Lua", String("Увага!\nКод завершення: ") + retCode);
-        // }
+        execSource(code);
     }
 
 #endif
