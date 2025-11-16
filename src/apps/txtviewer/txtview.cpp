@@ -1,7 +1,7 @@
 #include "txtview.h"
 #include "keira/keira_macro.h"
 #include <errno.h>
-
+// ===== MEMORY
 static inline FileEncoding detectEncodingByFileBlock(const char* block, size_t len) {
     if (len == 0) return TXT_EMPTY;
 
@@ -71,6 +71,56 @@ static inline FileEncoding detectEncodingByFileBlock(const char* block, size_t l
     return isValidUtf8 ? TXT_UTF8 : TXT_LEGACY;
 }
 
+size_t shiftMemLeft(char* block, const size_t shiftAmount, const size_t contentLength, const size_t blockSize) {
+    if (!block || blockSize == 0 || contentLength == 0) {
+        return 0;
+    }
+
+    // Cap toShift to contentLength
+    size_t toShift = (shiftAmount > contentLength) ? contentLength : shiftAmount;
+
+    // Calculate new content length after shift
+    size_t newContentLength = contentLength - toShift;
+
+    // Move memory left (memmove handles overlapping regions)
+    memmove(block, block + toShift, newContentLength);
+
+    // Zero out the freed space at the end
+    if (newContentLength < blockSize) {
+        memset(block + newContentLength, 0, blockSize - newContentLength);
+    }
+
+    return toShift;
+}
+
+// Shift memory to the right (for scrolling up - adds space at start)
+// Returns the actual number of bytes shifted
+size_t shiftMemRight(char* block, const size_t shiftAmount, const size_t contentLength, const size_t blockSize) {
+    if (!block || blockSize == 0) {
+        return 0;
+    }
+
+    // Cap toShift to available space
+    size_t availableSpace = blockSize - contentLength;
+    size_t toShift = (shiftAmount > availableSpace) ? availableSpace : shiftAmount;
+
+    if (toShift == 0) {
+        return 0;
+    }
+
+    // Move memory right (memmove handles overlapping regions)
+    memmove(block + toShift, block, contentLength);
+
+    // Zero out the space at the beginning
+    memset(block, 0, toShift);
+
+    return toShift;
+}
+
+// ===== END MEMORY
+
+// ===== UNICODE
+
 // move to next Unicode character
 static inline char* uforward(char* cstr) {
     // TXT_DBG LEP;
@@ -120,7 +170,9 @@ size_t ulength(char* from, const char* to = 0) {
 
     return len;
 }
+// ===== END UNICODE
 
+// ===== CANVAS
 // expects bounds and cursor already set
 static inline uint16_t getStringWidth(const char* pLine, Arduino_GFX* canvas) {
     if (!pLine || !canvas) return 0;
@@ -141,7 +193,8 @@ bool isLineWithinCanvas(const char* pLine, Arduino_GFX* canvas) {
 
 long flineback(FILE* fp, char* buffer, size_t blength) {
     if (!fp || !buffer || blength == 0) return 0;
-
+    // TODO: add caching to this one, store values in noffs_cache, implement in a form of macro,
+    // stick back to original implementation in case nothing found in cache
     long initialPos = ftell(fp);
     if (initialPos <= 0) return 0;
 
@@ -184,6 +237,9 @@ static inline int16_t getLineHeight(Arduino_GFX* canvas) {
     return h;
 }
 
+// ===== END CANVAS
+
+// ===== TXT VIEW
 TxtView::TxtView() {
     TXT_DBG LEP;
 }
@@ -191,6 +247,7 @@ TxtView::TxtView() {
 // TODO: PSRAM VFS for other cases?
 void TxtView::setTextFile(const String& fPath) {
     TXT_DBG LEP;
+    // TODO: reset all used vars, caches, offsets here
     if (fp) { // close old file
         fclose(fp);
         fp = NULL;
@@ -221,6 +278,7 @@ void TxtView::update() {
         nPtrRefresh();
         dPtrRefresh();
     }
+    vTaskDelay(pdMS_TO_TICKS(10));
 }
 
 void TxtView::updateButtons() {
@@ -261,6 +319,7 @@ void TxtView::draw(Arduino_GFX* canvas) {
 
     // TODO: determine good font/size for this
     // Check if encoding supported
+    // TODO: fix first few frames problem, displays this stuff when nothing loaded yet
     if (encoding == TXT_EMPTY) {
         auto w = getStringWidth(TXT_S_EMPTY, canvas);
         canvas->setCursor((canvas->width() - w) / 2, (canvas->height() / 2) - lineHeight);
@@ -314,16 +373,72 @@ void TxtView::tBlockRefresh() {
         return; // nothing to refresh. Wait till next update
     }
 
-    // Zero mem
-    memset(tBlock, 0, TXT_MAX_BLOCK_SIZE);
     // This zero memory may be not actually needed, and actually makes it slower
     // but what we've to make better is
     // TODO: shift already read block left/right and read not more than needed amount of bytes
     // Read text block
-    long curPos = ftell(fp);
-    tLen = fread(tBlock, 1, TXT_MAX_BLOCK_SIZE, fp);
-    fseek(fp, curPos, SEEK_SET); // save original file offset, could be useful for refresh
+
+    long toReadFrom = ftell(fp);
+
+    // check if we read it already
+    bool alreadyRead = tOffset == toReadFrom;
+    if (alreadyRead) {
+        tBlockRefreshRequired = false;
+        return;
+    }
+
+    // should be read anyways in this scenario
+    bool initalOffsetOrCantBeReadLazy = (tOffset == -1) || (labs(toReadFrom - tOffset) >= TXT_MAX_BLOCK_SIZE / 2);
+    if (initalOffsetOrCantBeReadLazy) {
+        // Zero mem
+        memset(tBlock, 0, TXT_MAX_BLOCK_SIZE);
+        tLen = fread(tBlock, 1, TXT_MAX_BLOCK_SIZE, fp);
+    } else { // do the lazy read
+        long offsetSignedDelta = toReadFrom - tOffset;
+        if (offsetSignedDelta > 0) {
+            // Moving forward: shift buffer left, refill at end
+            size_t shifted = shiftMemLeft(tBlock, offsetSignedDelta, tLen, TXT_MAX_BLOCK_SIZE);
+
+            // After shift, we have (tLen - shifted) bytes of old content
+            // We need to read new data starting from the end of remaining content
+            size_t remainingInBuffer = tLen - shifted; // This is safe, shifted <= tLen
+            size_t spaceAvailable = TXT_MAX_BLOCK_SIZE - remainingInBuffer;
+
+            // File position to read from: we've advanced by 'shifted' bytes
+            // Old buffer started at tOffset, now it starts at (tOffset + shifted)
+            // We need to read starting from (tOffset + tLen) which = toReadFrom + remainingInBuffer
+            long filePos = tOffset + tLen; // or: toReadFrom + remainingInBuffer
+            fseek(fp, filePos, SEEK_SET);
+
+            // Read into end of buffer
+            size_t actuallyRead = fread(tBlock + remainingInBuffer, 1, spaceAvailable, fp);
+            tLen = remainingInBuffer + actuallyRead;
+
+        } else if (offsetSignedDelta < 0) {
+            size_t shiftAmount = (size_t)(-offsetSignedDelta);
+
+            // Clamp shift amount first
+            size_t actualShift = (shiftAmount > TXT_MAX_BLOCK_SIZE) ? TXT_MAX_BLOCK_SIZE : shiftAmount;
+
+            // Clamp content to fit after shift
+            size_t clampedContentLength = (actualShift >= TXT_MAX_BLOCK_SIZE) ? 0 : (TXT_MAX_BLOCK_SIZE - actualShift);
+
+            if (clampedContentLength > tLen) {
+                clampedContentLength = tLen;
+            }
+
+            size_t shifted = shiftMemRight(tBlock, actualShift, clampedContentLength, TXT_MAX_BLOCK_SIZE);
+
+            fseek(fp, toReadFrom, SEEK_SET);
+            size_t actuallyRead = fread(tBlock, 1, shifted, fp);
+
+            tLen = actuallyRead + clampedContentLength;
+        }
+    }
+
+    fseek(fp, toReadFrom, SEEK_SET); // save original file offset, could be useful for refresh
     tBlockRefreshRequired = false;
+    tOffset = toReadFrom; // save current position
 
     // Detect enoding
     if (encoding == TXT_UNKNOWN) {
@@ -492,9 +607,8 @@ void TxtView::scrollUp(size_t linesToScroll) {
         // seek the anchor
         bool anchorFound = false;
         size_t anchorOffsetIndex = 0;
-        // anchor offset index always zero, why?
         for (const auto dptr : dptrs) {
-            TXT_DBG lilka::serial.log("dptr addr %x, anchor %x", TADDR2OFF(dptr), anchorOffset);
+            TXT_DBG lilka::serial.log("dptr off %x, anchor %x", TADDR2OFF(dptr), anchorOffset);
             if (TADDR2OFF(dptr) >= anchorOffset) {
                 anchorFound = true;
                 break;
@@ -628,3 +742,5 @@ void TxtView::setCanvasOptions(Arduino_GFX* canvas) {
     canvas->setTextWrap(false);
     canvas->setFont(font);
 }
+
+// ===== END TXT VIEW

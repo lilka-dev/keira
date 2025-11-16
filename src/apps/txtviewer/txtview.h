@@ -69,7 +69,7 @@ private:
 
     // File stuff
     FILE* fp = NULL;
-    // long tOffset = 0; unused
+    long tOffset = -1; // to be used ONLY in tBlockRefresh!
     long fSize = 0;
 
     // Text data
