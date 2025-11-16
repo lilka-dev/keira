@@ -1,6 +1,7 @@
 #pragma once
 
 #include "keira/app.h"
+#include "coleco_core.h"
 
 class LilecoApp : public App {
 public:
@@ -8,7 +9,6 @@ public:
     void run() override;
 
 private:
-    void drawScreen();
-
     String selectedFileName;
+    String romPath;
 };

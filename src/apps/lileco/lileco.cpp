@@ -1,7 +1,7 @@
 #include "lileco.h"
 
 LilecoApp::LilecoApp(String path) :
-    App("Lileco", 0, 0, lilka::display.width(), lilka::display.height()) {
+    App("Lileco", 0, 0, lilka::display.width(), lilka::display.height()), romPath(path) {
     setFlags(AppFlags::APP_FLAG_FULLSCREEN);
 
     String localPath = lilka::fileutils.getLocalPathInfo(path).path;
@@ -18,25 +18,21 @@ LilecoApp::LilecoApp(String path) :
 }
 
 void LilecoApp::run() {
-    while (1) {
-        drawScreen();
-        lilka::State state = lilka::controller.getState();
-        if (state.b.justPressed) {
-            break;
-        }
-        vTaskDelay(16 / portTICK_PERIOD_MS);
+    lileco::ColecoCore core;
+    if (!core.start(this, romPath)) {
+        lilka::Alert alert("Lileco", "Unable to start emulator.\nCheck coleco.rom BIOS.");
+        lilka::serial.err("Failed to start Coleco emulator for %s", romPath.c_str());
+        vTaskDelay(1500 / portTICK_PERIOD_MS);
+        return;
     }
-}
 
-void LilecoApp::drawScreen() {
-    canvas->fillScreen(lilka::colors::Black);
-    canvas->setFont(FONT_8x13);
-    canvas->setTextColor(lilka::colors::White);
-    canvas->drawTextAligned("Lileco", canvas->width() / 2, 40, lilka::ALIGN_CENTER, lilka::ALIGN_CENTER);
-    canvas->drawTextAligned(
-        "Selected ColecoVision ROM:", canvas->width() / 2, canvas->height() / 2 - 20, lilka::ALIGN_CENTER, lilka::ALIGN_CENTER
-    );
-    canvas->drawTextAligned(selectedFileName.c_str(), canvas->width() / 2, canvas->height() / 2 + 10, lilka::ALIGN_CENTER, lilka::ALIGN_CENTER);
-    canvas->drawTextAligned("Press B to exit", canvas->width() / 2, canvas->height() - 30, lilka::ALIGN_CENTER, lilka::ALIGN_CENTER);
-    queueDraw();
+    while (1) {
+        lilka::State state = lilka::controller.getState();
+        bool exitCombo = (state.select.pressed && state.b.justPressed) || (state.b.pressed && state.select.justPressed);
+        if (exitCombo) break;
+
+        core.step(state);
+    }
+
+    core.stop();
 }
