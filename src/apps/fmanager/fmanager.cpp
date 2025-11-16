@@ -268,6 +268,10 @@ FMEntry FileManagerApp::pathToEntry(const String& path) {
         newEntry.type = FT_NES_ROM;
         newEntry.icon = FT_NES_ICON;
         newEntry.color = FT_NES_ROM_COLOR;
+    } else if (lowerCasedPath.endsWith(".col")) {
+        newEntry.type = FT_COLECO_ROM;
+        newEntry.icon = FT_COLECO_ROM_ICON;
+        newEntry.color = FT_COLECO_ROM_COLOR;
     } else if (lowerCasedPath.endsWith(".bin")) {
         newEntry.type = FT_BIN;
         newEntry.icon = FT_BIN_ICON;
@@ -311,6 +315,9 @@ void FileManagerApp::openCurrentEntry() {
     switch (currentEntry.type) {
         case FT_NES_ROM:
             K_FT_NES_HANDLER(path);
+            break;
+        case FT_COLECO_ROM:
+            K_FT_COLECO_HANDLER(path);
             break;
         case FT_BIN:
             FM_DEFAULT_FT_BIN_HANDLER(path);
