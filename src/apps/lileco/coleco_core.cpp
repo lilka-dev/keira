@@ -131,6 +131,7 @@ void ColecoCore::presentFrame() {
     if (!app || !app->canvas) return;
 
     app->canvas->draw16bitRGBBitmap(frameOffsetX, frameOffsetY, frameBuffer.data(), SCREEN_WIDTH, SCREEN_HEIGHT);
+    app->drawHelpHint();
     app->queueDraw();
 }
 

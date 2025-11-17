@@ -7,8 +7,11 @@ class LilecoApp : public App {
 public:
     explicit LilecoApp(String path);
     void run() override;
+    void drawHelpHint();
 
 private:
+    void showControlsOverlay(lileco::ColecoCore& core);
+
     String selectedFileName;
     String romPath;
 };
