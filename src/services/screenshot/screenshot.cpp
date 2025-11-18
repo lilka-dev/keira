@@ -95,6 +95,7 @@ private:
 #endif
 
 ScreenshotService::ScreenshotService() : Service("screenshot") {
+    setStackSize(8192);
 }
 
 bool ScreenshotService::saveScreenshot(lilka::Canvas* canvas) {
