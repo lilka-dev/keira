@@ -6,6 +6,7 @@
 #include <cstdio>
 
 #include "lileco.h"
+#include "audio.h"
 #include "core/Colem.h"
 #include "core/emuapi.h"
 
@@ -64,6 +65,7 @@ void ColecoCore::stop() {
     if (!running) return;
     running = false;
     coc_Stop();
+    ColecoAudio::instance().stop();
     setActiveCore(nullptr);
 }
 

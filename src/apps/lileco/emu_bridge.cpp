@@ -1,4 +1,5 @@
 #include "coleco_core.h"
+#include "audio.h"
 
 #include <esp_heap_caps.h>
 #include <lilka.h>
@@ -99,9 +100,11 @@ int emu_setKeymap(int) {
 }
 
 void emu_sndInit(void) {
+    lileco::ColecoAudio::instance().init();
 }
 
-void emu_sndPlaySound(int, int, int) {
+void emu_sndPlaySound(int chan, int volume, int freq) {
+    lileco::ColecoAudio::instance().setChannel(chan, freq, volume);
 }
 
 void emu_sndPlayBuzz(int, int) {
