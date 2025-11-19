@@ -4,8 +4,7 @@
 #include "utils/json.h"
 #include <sys/stat.h>
 
-#define BASIC_URL         "https://catalog.lilka.dev/apps/"
-#define CATALOG_URL       "https://catalog.lilka.dev/apps/index_0.json"
+#define CATALOG_BASE_URL  "https://catalog.lilka.dev/apps/"
 #define CATALOG_BASE_PATH "/sdcard/catalog/apps/"
 
 // Helper function to create directory recursively
@@ -52,7 +51,7 @@ void LilCatalogApp::doShowEntryDescription() {
 }
 
 void LilCatalogApp::fetchCatalogIndex() {
-    String catalogUrl = String(BASIC_URL) + "index_" + String(current_page) + ".json";
+    String catalogUrl = String(CATALOG_BASE_URL) + "index_" + String(current_page) + ".json";
 
     HTTPClient http;
     http.begin(catalogUrl);
@@ -69,7 +68,28 @@ void LilCatalogApp::fetchCatalogIndex() {
             if (error) {
                 delete catalogDoc;
                 catalogDoc = nullptr;
+
+                lilka::Alert alert(K_S_LILCATALOG_APP, "Failed to parse catalog JSON");
+                alert.draw(canvas);
+                queueDraw();
+                while (!alert.isFinished()) {
+                    alert.update();
+                }
             }
+        } else {
+            lilka::Alert alert(K_S_LILCATALOG_APP, "HTTP error: " + String(httpCode));
+            alert.draw(canvas);
+            queueDraw();
+            while (!alert.isFinished()) {
+                alert.update();
+            }
+        }
+    } else {
+        lilka::Alert alert(K_S_LILCATALOG_APP, "Failed to connect to catalog server");
+        alert.draw(canvas);
+        queueDraw();
+        while (!alert.isFinished()) {
+            alert.update();
         }
     }
     http.end();
@@ -109,7 +129,7 @@ void LilCatalogApp::fetchManifestDetails() {
         return;
     }
 
-    String manifestUrl = String(BASIC_URL) + entry.manifestName + "/index.json";
+    String manifestUrl = String(CATALOG_BASE_URL) + entry.manifestName + "/index.json";
 
     HTTPClient http;
     http.begin(manifestUrl);
@@ -118,6 +138,13 @@ void LilCatalogApp::fetchManifestDetails() {
     if (httpCode == HTTP_CODE_OK) {
         String payload = http.getString();
         parseManifestDetails(payload, entry);
+    } else {
+        lilka::Alert alert(K_S_LILCATALOG_APP, "Failed to load app details: " + String(httpCode));
+        alert.draw(canvas);
+        queueDraw();
+        while (!alert.isFinished()) {
+            alert.update();
+        }
     }
     http.end();
 }
@@ -171,7 +198,7 @@ void LilCatalogApp::fetchIconForEntry() {
     }
 
     // Download icon if not cached
-    String iconUrl = String(BASIC_URL) + entry.manifestName + "/" + entry.icon_min;
+    String iconUrl = String(CATALOG_BASE_URL) + entry.manifestName + "/" + entry.icon_min;
 
     HTTPClient http;
     http.begin(iconUrl);
@@ -204,8 +231,31 @@ void LilCatalogApp::fetchIconForEntry() {
                 if (cacheFile) {
                     fwrite(iconBuffer, 1, bytesRead, cacheFile);
                     fclose(cacheFile);
+                } else {
+                    lilka::Alert alert(K_S_LILCATALOG_APP, "Failed to save icon to cache");
+                    alert.draw(canvas);
+                    queueDraw();
+                    while (!alert.isFinished()) {
+                        alert.update();
+                    }
                 }
             }
+        } else {
+            hasIcon = false;
+            lilka::Alert alert(K_S_LILCATALOG_APP, "Invalid icon size: " + String(len) + " bytes");
+            alert.draw(canvas);
+            queueDraw();
+            while (!alert.isFinished()) {
+                alert.update();
+            }
+        }
+    } else {
+        hasIcon = false;
+        lilka::Alert alert(K_S_LILCATALOG_APP, "Failed to download icon: " + String(httpCode));
+        alert.draw(canvas);
+        queueDraw();
+        while (!alert.isFinished()) {
+            alert.update();
         }
     }
     http.end();
@@ -233,7 +283,7 @@ void LilCatalogApp::downloadAppFiles() {
             continue;
         }
 
-        String execFileUrl = String(BASIC_URL) + entry.manifestName + "/" + execFile.location;
+        String execFileUrl = String(CATALOG_BASE_URL) + entry.manifestName + "/" + execFile.location;
         String fileName = execFile.location.substring(execFile.location.lastIndexOf('/') + 1);
         String filePath = dirPath + "/" + fileName;
 
@@ -260,6 +310,22 @@ void LilCatalogApp::downloadAppFiles() {
                     }
                 }
                 fclose(file);
+            } else {
+                lilka::Alert alert(K_S_LILCATALOG_APP, "Failed to create file: " + fileName);
+                alert.draw(canvas);
+                queueDraw();
+                while (!alert.isFinished()) {
+                    alert.update();
+                }
+            }
+        } else {
+            lilka::Alert alert(
+                K_S_LILCATALOG_APP, "Failed to download file: " + fileName + " (" + String(httpCode) + ")"
+            );
+            alert.draw(canvas);
+            queueDraw();
+            while (!alert.isFinished()) {
+                alert.update();
             }
         }
         http.end();

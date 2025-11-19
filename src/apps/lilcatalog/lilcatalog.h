@@ -19,21 +19,10 @@ typedef struct {
 } catalog_entry_file;
 
 typedef struct {
-    String origin;
-} catalog_source_location;
-
-typedef struct {
-    catalog_source_location location;
-} catalog_sources;
-
-typedef struct {
     String name;
     String description;
     String short_description;
     String author;
-    catalog_sources sources;
-    std::vector<String> screenshots;
-    String icon;
     String icon_min;
     String manifestName; // Store manifest directory name
     std::vector<catalog_entry_file> executionfiles;
