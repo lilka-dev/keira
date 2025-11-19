@@ -24,17 +24,19 @@
 // APPS:  /////////////////////////////////////////////////////////////////////////////////////////////
 #include "keira/appmanager.h"
 #include "apps/modplayer/modplayer.h"
+#include "apps/lileco/lileco.h"
 #include "apps/liltracker/liltracker.h"
 #include "apps/lua/luarunner.h"
 #include "apps/mjs/mjsrunner.h"
 #include "apps/nes/nesapp.h"
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // FILETYPE HANDLERS:  ////////////////////////////////////////////////////////////////////////////////
-#define K_FT_NES_HANDLER(X)        AppManager::getInstance()->runApp(new NesApp(X))
-#define K_FT_LUA_SCRIPT_HANDLER(X) AppManager::getInstance()->runApp(new LuaFileRunnerApp(X))
-#define K_FT_JS_SCRIPT_HANDLER(X)  AppManager::getInstance()->runApp(new MJSApp(X))
-#define K_FT_MOD_HANDLER(X)        AppManager::getInstance()->runApp(new ModPlayerApp(X))
-#define K_FT_LT_HANDLER(X)         AppManager::getInstance()->runApp(new LilTrackerApp(X))
+#define K_FT_NES_HANDLER(X)         AppManager::getInstance()->runApp(new NesApp(X))
+#define K_FT_COLECO_HANDLER(X)      AppManager::getInstance()->runApp(new LilecoApp(X))
+#define K_FT_LUA_SCRIPT_HANDLER(X)  AppManager::getInstance()->runApp(new LuaFileRunnerApp(X))
+#define K_FT_JS_SCRIPT_HANDLER(X)   AppManager::getInstance()->runApp(new MJSApp(X))
+#define K_FT_MOD_HANDLER(X)         AppManager::getInstance()->runApp(new ModPlayerApp(X))
+#define K_FT_LT_HANDLER(X)          AppManager::getInstance()->runApp(new LilTrackerApp(X))
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // GUIDELINE: Use Keira global filetype handlers(K_FT_) if possible
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
