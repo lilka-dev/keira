@@ -1,3 +1,8 @@
+/** ColecoVision Emulator for Lilka - Main app: declarations ********/
+/**                                                                **/
+/** Author: Oleksii "Alder" Derkach  [https://github.com/alder/]   **/
+/**                                                                **/
+/********************************************************************/
 #pragma once
 
 #include "keira/app.h"

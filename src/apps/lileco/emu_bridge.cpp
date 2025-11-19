@@ -1,3 +1,9 @@
+/** ColecoVision Emulator API for Lilka: implementations **************************************/
+/**                                                                                          **/
+/** Author: Oleksii Derkach                                                                  **/
+/** Based on espMCUME (https://github.com/Jean-MarcHarvengt/espMCUME/) by Jean-Marc Harvengt **/
+/**                                                                                          **/
+/**********************************************************************************************/
 #include "coleco_core.h"
 #include "audio.h"
 

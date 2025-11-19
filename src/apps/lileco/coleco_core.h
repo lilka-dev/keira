@@ -1,3 +1,8 @@
+/** ColecoVision Emulator for Lilka - ColecoCore class: declarations ****/
+/**                                                                    **/
+/** Author: Oleksii "Alder" Derkach  [https://github.com/alder/]       **/
+/**                                                                    **/
+/************************************************************************/
 #pragma once
 
 #include <Arduino.h>

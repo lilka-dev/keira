@@ -1,3 +1,8 @@
+/** ColecoVision Emulator for Lilka - Main app: implementations ********/
+/**                                                                   **/
+/** Author: Oleksii "Alder" Derkach  [https://github.com/alder/]      **/
+/**                                                                   **/
+/***********************************************************************/
 #include "lileco.h"
 
 LilecoApp::LilecoApp(String path) :

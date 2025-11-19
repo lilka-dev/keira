@@ -1,3 +1,8 @@
+/** ColecoVision Emulator for Lilka - ColecoAudio class: implementations ****/
+/**                                                                        **/
+/** Author: Oleksii "Alder" Derkach  [https://github.com/alder/]           **/
+/**                                                                        **/
+/****************************************************************************/
 #include "audio.h"
 
 #include <Arduino.h>

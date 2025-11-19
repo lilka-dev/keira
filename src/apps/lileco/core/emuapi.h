@@ -1,3 +1,9 @@
+/** ColecoVision Emulator API for Lilka: declarations *****************************************/
+/**                                                                                          **/
+/** Author: Oleksii "Alder" Derkach  [https://github.com/alder/]                             **/
+/** Based on espMCUME [https://github.com/Jean-MarcHarvengt/espMCUME/] by Jean-Marc Harvengt **/
+/**                                                                                          **/
+/**********************************************************************************************/
 #pragma once
 
 #include <stdint.h>

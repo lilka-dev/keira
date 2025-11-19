@@ -1,3 +1,8 @@
+/** ColecoVision Emulator for Lilka - ColecoCore class: implementations ****/
+/**                                                                       **/
+/** Author: Oleksii "Alder" Derkach  [https://github.com/alder/]          **/
+/**                                                                       **/
+/***************************************************************************/
 #include "coleco_core.h"
 
 #include <esp_heap_caps.h>

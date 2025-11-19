@@ -1,3 +1,9 @@
+/** ColecoVision Emulator     *************************************/
+/**                                                              **/
+/** Author: Jean-Marc Harvengt                                   **/
+/** Project repo: https://github.com/Jean-MarcHarvengt/espMCUME/ **/
+/**                                                              **/
+/******************************************************************/
 #include "options.h"
 
 #include "Z80.h"            /* Z80 CPU emulation             */
