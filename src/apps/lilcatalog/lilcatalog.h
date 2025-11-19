@@ -1,6 +1,7 @@
 #pragma once
 
 #include "keira/keira.h"
+#include <ArduinoJson.h>
 
 #include "keira/app.h"
 #include "keira/appmanager.h"
@@ -13,57 +14,54 @@
 #include "../fmanager/fmanager.h"
 
 typedef struct {
-    String source;
-    String target;
-    FileType type;
+    String type;
+    String location;
 } catalog_entry_file;
+
+typedef struct {
+    String origin;
+} catalog_source_location;
+
+typedef struct {
+    catalog_source_location location;
+} catalog_sources;
 
 typedef struct {
     String name;
     String description;
+    String short_description;
     String author;
-    std::vector<catalog_entry_file> files;
+    catalog_sources sources;
+    std::vector<String> screenshots;
+    String icon;
+    String icon_min;
+    String manifestName; // Store manifest directory name
+    std::vector<catalog_entry_file> executionfiles;
 } catalog_entry;
-
-typedef struct {
-    String name;
-    std::vector<catalog_entry> entries;
-} catalog_category;
-
-typedef enum {
-    LILCATALOG_CATALOG,
-    LILCATALOG_CATEGORY,
-    LILCATALOG_ENTRY,
-    LILCATALOG_ENTRY_DESCRIPTION
-} LilCatelogState;
 
 class LilCatalogApp : public App {
 public:
     LilCatalogApp();
 
 private:
-    LilCatelogState state = LILCATALOG_CATALOG;
-    String catalog_url;
-    String path_catalog_file;
-    String path_catalog_folder;
+    int num_pages = 0;
+    int current_page = 0;
+    int current_entry = 0;
+    int num_entries = 0;
+    JsonDocument* catalogDoc = nullptr;
+    std::vector<catalog_entry> entries;
+    uint16_t iconBuffer[64 * 64]; // Single static icon buffer for current entry
+    bool hasIcon = false;
 
-    catalog_category category;
-    catalog_entry entry;
+    void fetchCatalogIndex(); // Fetch index_{page}.json
+    void parseCatalogIndex(); // Parse index and get manifest names
+    void fetchManifestDetails(); // Fetch full details for current entry on demand
+    void parseManifestDetails(String payload, catalog_entry& entry);
+    void fetchIconForEntry(); // Download icon for current entry
+    void downloadAppFiles(); // Download all execution files for installation
 
-    lilka::Menu catalogMenu;
-    lilka::Menu categoryMenu;
-    lilka::Menu entryMenu;
-
-    std::vector<catalog_category> catalog;
-
-    void parseCatalog();
-    void fetchCatalog();
-
-    void fetchEntry();
     bool validateEntry();
     void removeEntry();
-    void executeEntry();
-    void fileLoadAsRom(const String& path);
 
     void doShowCatalog();
     void doShowCategory();
@@ -74,6 +72,4 @@ private:
 
     void processMenu();
     void processBackButton();
-
-    void showAlert(const String& message);
 };
