@@ -284,10 +284,19 @@ void TxtView::update() {
 void TxtView::updateButtons() {
     // TXT_DBG LEP;
     auto state = lilka::controller.getState();
+
+    /* 
+    TODO: to be restored after large single line blocks optimizations
+    BY LINE/BY PAGE SCROLL 
     if (state.up.justPressed) scrollUp();
     else if (state.down.justPressed) scrollDown();
     else if (state.left.justPressed) scrollPageUp();
     else if (state.right.justPressed) scrollPageDown();
+    */
+
+    // BY Page only scroll
+    if (state.up.justPressed) scrollPageUp();
+    else if (state.down.justPressed) scrollPageDown();
     else if (state.b.justPressed) done = true;
 
     for (lilka::Button activationButton : activationButtons) {
