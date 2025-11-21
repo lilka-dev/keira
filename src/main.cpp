@@ -1,4 +1,5 @@
 #include <lilka.h>
+#include <esp_system.h>
 
 #include "keira/keira_splash.h"
 
@@ -20,6 +21,15 @@ ServiceManager* serviceManager = ServiceManager::getInstance();
 void setup() {
     lilka::display.setSplash(keira_splash, keira_splash_length);
     lilka::begin();
+
+    // Play startup sound only on cold boot
+    if (lilka::multiboot.getResetReason() == ESP_RST_POWERON) {
+        lilka::audio.playStartupSound();
+        lilka::display.showStartupScreen();
+    } else {
+        lilka::serial.log("Reset reason is %d", lilka::multiboot.getResetReason());
+    }
+
 #ifdef KEIRA_WATCHDOG
     serviceManager->addService(new WatchdogService());
 #endif
