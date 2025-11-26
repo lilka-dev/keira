@@ -86,12 +86,14 @@ void TxtViewerApp::fontSetSize(int8_t newSize) {
 
     tView.setFont(fonts[fontIndex]);
     tView.setTextSize(scale);
+    toolBar.forceUpdate();
 }
 
 void TxtViewerApp::fontSetSpacing(uint8_t newSpacing) {
     if (newSpacing > TXTV_MAX_SPACING) return;
 
     tView.setSpacing(newSpacing);
+    toolBar.forceUpdate();
 }
 
 void TxtViewerApp::fontSizeInc() {
@@ -134,7 +136,7 @@ void TxtViewerApp::fontSpacingDec() {
 String TxtViewerApp::onGetStrProgress() {
     // [===========      ] 80%
     auto max = tView.getFileSize();
-    auto curPos = tView.getOffset();
+    auto curPos = tView.getOffset()+tView.getCountDisplayedBytes();
 
     // TODO: detemine TXTV_PROGRESS_LEN from toolbar width in characters
     size_t countSegments = curPos * TXTV_PROGRESS_LEN / max;

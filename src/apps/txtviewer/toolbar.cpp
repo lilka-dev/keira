@@ -50,6 +50,20 @@ void ToolBarWidget::prevPage() {
     cursor = (nextPageIndex < 0) ? pages.size() - 1 : nextPageIndex;
 }
 
+void ToolBarWidget::forceUpdate(bool forceCurrentPage) {
+    if (pages.empty()) return;
+    
+    if (forceCurrentPage) {
+        auto& curPage = pages[cursor];
+
+        curPage.lastUpdateTime = 0;
+    } else {
+        for (auto& page : pages) {
+            page.lastUpdateTime = 0;
+        }
+    }
+}
+
 size_t ToolBarWidget::getCursor() {
     return cursor;
 }

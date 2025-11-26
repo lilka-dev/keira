@@ -40,6 +40,7 @@ public:
     void addPage(PGetStrCallback clbkGetStr, void* clbkGetStrData, unsigned long updateInterval = 1000);
     void nextPage();
     void prevPage();
+    void forceUpdate(bool forceCurrentPage = true);
     size_t getCursor();
 private:
     size_t cursor = 0;
