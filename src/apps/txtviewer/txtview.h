@@ -1,8 +1,8 @@
 #pragma once
 #include "abstractwidget.h"
 
-#define TXT_MAX_BLOCK_SIZE 1024
-#define TXT_BUFFER_SIZE    64
+#define TXT_MAX_BLOCK_SIZE 4096
+#define TXT_BUFFER_SIZE    512
 // To be moved in lilka sdk
 
 //
@@ -78,6 +78,7 @@ private:
     size_t tLen = 0; // text block length
     bool tBlockRefreshRequired = true; // inital value
     size_t lastDisplayedLines = 0;
+    size_t lastDisplayedBytes = 0;
     size_t maxLines = 0;
     std::vector<char*> nptrs; // ptrs to \n separated lines withing tBlock
     std::vector<char*> dptrs; // ptrs to displayed lines withing tBlock

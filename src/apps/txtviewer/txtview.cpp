@@ -348,7 +348,7 @@ void TxtView::draw(Arduino_GFX* canvas) {
     maxLines = availableHeight / (lineHeight + spacing);
 
     // Adjust if there is leftover space for a partial line
-    if (availableHeight % (lineHeight + spacing) > 0) {
+    if (availableHeight % (lineHeight + spacing) >= lineHeight) {
         maxLines++;
     }
 
@@ -381,11 +381,6 @@ void TxtView::tBlockRefresh() {
         TXT_DBG lilka::serial.log("File not open. Skiping");
         return; // nothing to refresh. Wait till next update
     }
-
-    // This zero memory may be not actually needed, and actually makes it slower
-    // but what we've to make better is
-    // TODO: shift already read block left/right and read not more than needed amount of bytes
-    // Read text block
 
     long toReadFrom = ftell(fp);
 
@@ -684,9 +679,9 @@ void TxtView::scrollPageUp() {
 
 void TxtView::scrollPageDown() {
     TXT_DBG LEP;
+    TXT_DBG lilka::serial.log("displayed lines = %d max lines = %d", lastDisplayedLines, maxLines);
     if (!fp || dptrs.empty() || lastDisplayedLines < maxLines) return;
 
-    TXT_DBG lilka::serial.log("displayed lines = %d", lastDisplayedLines);
     // TODO: determine end of file reached
     // NOTE: test on empty file
     fseek(fp, TADDR2OFF(dptrs[lastDisplayedLines]), SEEK_SET);
@@ -732,7 +727,7 @@ long TxtView::getFileSize() {
 }
 
 long TxtView::getOffset() {
-    return ftell(fp);
+    return fp ? ftell(fp) : 0;
 }
 
 void TxtView::setCallback(PTXTViewCallback clbk, void* clbkData) {

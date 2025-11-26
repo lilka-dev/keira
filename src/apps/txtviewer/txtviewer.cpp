@@ -2,6 +2,7 @@
 
 // ===== CONFIGURATION
 TxtViewerApp::TxtViewerApp(String fPath) : App("Text Viewer") {
+    setStackSize(8192);
     fontSetSize(fontSize);
 
     // Configure TxtViewer
@@ -14,6 +15,9 @@ TxtViewerApp::TxtViewerApp(String fPath) : App("Text Viewer") {
     toolBar.addPage(TXTV_TOOLBAR_CALLBACK(onGetStrFontSpacing), TXTV_CALLBACK_PTHIS);
 
     tView.setTextFile(fPath);
+    tView.addActivationButton(lilka::Button::D);
+    tView.addActivationButton(lilka::Button::A);
+    tView.addActivationButton(lilka::Button::C);
 }
 // ===== END CONFIGURATION
 
@@ -21,15 +25,38 @@ void TxtViewerApp::onTxtViewerButton() {
     auto aButton = tView.getButton();
     if (aButton == K_BTN_BACK) return;
 
-    if (aButton == lilka::Button::D) toolBar.nextPage();
+    if (aButton == lilka::Button::C) toolBar.nextPage();
 
-    if (aButton == lilka::Button::A)
-        ; // inc page val
-    // TODO: switch across TxtToolBarPage enum, depending on page do different stuff
+    // Inc
+    if (aButton == lilka::Button::A) {
+        auto cur = toolBar.getCursor();
+        switch (cur) {
+            case TXTV_PROGRESS:
 
-    if (aButton == lilka::Button::C)
-        ; // dec page val
-    // TODO: switch across TxtToolBarPage enum, depending on page do different stuff
+                break;
+            case TXTV_FONT_SIZE:
+                fontSizeInc();
+                break;
+            case TXTV_FONT_SPACING:
+                fontSpacingInc();
+                break;
+        }
+    }
+    // Dec
+    if (aButton == lilka::Button::D) {
+        auto cur = toolBar.getCursor();
+        switch (cur) {
+            case TXTV_PROGRESS:
+
+                break;
+            case TXTV_FONT_SIZE:
+                fontSizeDec();
+                break;
+            case TXTV_FONT_SPACING:
+                fontSpacingDec();
+                break;
+        }
+    }
 
     tView.isFinished(); // clear finished flag
 }
@@ -109,13 +136,29 @@ String TxtViewerApp::onGetStrProgress() {
     auto max = tView.getFileSize();
     auto curPos = tView.getOffset();
 
-    auto piece = curPos / max;
+    // TODO: detemine TXTV_PROGRESS_LEN from toolbar width in characters
+    size_t countSegments = curPos * TXTV_PROGRESS_LEN / max;
+    String progStr = "[";
+
+    for (size_t i = 0; i < countSegments; i++)
+        progStr += "=";
+
+    size_t countSpaces = TXTV_PROGRESS_LEN - countSegments;
+    for (size_t i = 0; i < countSpaces; i++)
+        progStr += " ";
+
+    progStr += "]";
+
+    String offStr = StringFormat(" %ld / %ld", curPos, max);
+    progStr += offStr;
+
+    return progStr;
 }
 
 String TxtViewerApp::onGetStrFontSize() {
-    // SIZE: 10  D(-) A(+)
+    return StringFormat("Font SIZE %d C(-) A(+)", fontSize);
 }
 String TxtViewerApp::onGetStrFontSpacing() {
-    // SPACE: 10  D(-) A(+)
+    return StringFormat("Font SPACE %d C(-) A(+)", fontSpacing);
 }
 // ===== END TOOLBAR
