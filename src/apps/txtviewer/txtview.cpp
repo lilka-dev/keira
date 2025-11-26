@@ -353,6 +353,8 @@ void TxtView::draw(Arduino_GFX* canvas) {
     }
 
     size_t countDisplayedLines = 0;
+    size_t countDisplayedBytes = 0;
+
     for (size_t i = 0; i < dptrs.size(); i++) {
         char* lineStart = dptrs[i];
         char* lineEnd = (i + 1 == dptrs.size()) ? tBlock + tLen : dptrs[i + 1]; // last line check
@@ -368,9 +370,11 @@ void TxtView::draw(Arduino_GFX* canvas) {
 
         y += lineHeight + spacing;
         countDisplayedLines++;
+        countDisplayedBytes += (lineEnd - lineStart);
         if (y > canvas->height() - TXT_MARGIN_BOTTOM) break;
     }
     lastDisplayedLines = countDisplayedLines;
+    lastDisplayedBytes = countDisplayedBytes;
 
     // sleep
 }
@@ -728,6 +732,10 @@ long TxtView::getFileSize() {
 
 long TxtView::getOffset() {
     return fp ? ftell(fp) : 0;
+}
+
+size_t TxtView::getCountDisplayedBytes(){
+    return lastDisplayedBytes;
 }
 
 void TxtView::setCallback(PTXTViewCallback clbk, void* clbkData) {

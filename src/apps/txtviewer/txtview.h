@@ -45,6 +45,8 @@ public:
     void jumpToOffset(long offset); // jump to nearest offset
     long getFileSize();
     long getOffset();
+    size_t getCountDisplayedBytes();
+
     // Callback setup. To be triggered on any activation button
     void setCallback(PTXTViewCallback clbk, void* clbkData);
 
