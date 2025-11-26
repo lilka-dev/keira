@@ -260,7 +260,6 @@ void TxtView::setTextFile(const String& fPath) {
     fSize = ftell(fp);
     fseek(fp, 0, SEEK_SET);
 
-    setvbuf(fp, NULL, _IOFBF, 0); // disable std buffering for file
     TXT_DBG lilka::serial.log("Set file to %s", fPath.c_str());
     tBlockRefreshRequired = true; // to be done in update()
 }

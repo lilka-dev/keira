@@ -1,7 +1,7 @@
 #pragma once
 #include "abstractwidget.h"
 
-#define TXT_MAX_BLOCK_SIZE 4096
+#define TXT_MAX_BLOCK_SIZE 2048
 #define TXT_BUFFER_SIZE    512
 // To be moved in lilka sdk
 
