@@ -151,7 +151,7 @@ String TxtViewerApp::onGetStrProgress() {
 
     progStr += "]";
 
-    String offStr = StringFormat(" %ld / %ld", curPos, max);
+    String offStr = lilka::fileutils.getHumanFriendlySize(curPos, true) + "/" + lilka::fileutils.getHumanFriendlySize(max, true);
     progStr += offStr;
 
     return progStr;
