@@ -44,15 +44,7 @@ bool ColecoAudio::init() {
     memset(channelPhases, 0, sizeof(channelPhases));
 
     running = true;
-    BaseType_t res = xTaskCreatePinnedToCore(
-        audioTaskTrampoline,
-        "coleco_audio",
-        4096,
-        this,
-        1,
-        &taskHandle,
-        1
-    );
+    BaseType_t res = xTaskCreatePinnedToCore(audioTaskTrampoline, "coleco_audio", 4096, this, 1, &taskHandle, 1);
     if (res != pdPASS) {
         lilka::serial.err("ColecoAudio: failed to start audio task");
         running = false;
@@ -93,6 +85,10 @@ void ColecoAudio::setChannel(uint8_t channel, int frequency, int volume) {
 }
 
 void ColecoAudio::audioTaskTrampoline(void* arg) {
+#ifdef KEIRA_WATCHDOG
+    auto wd = ServiceManager::getInstance()->getService<WatchdogService>("watchdog");
+    if (wd != NULL) wd->addCurrentTask(WATCHDOG_TASK_MISC);
+#endif
     static_cast<ColecoAudio*>(arg)->audioTask();
 }
 
