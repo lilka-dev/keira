@@ -103,7 +103,7 @@ void ColecoAudio::audioTask() {
             samplePair[0] = buffer[i * 2];
             samplePair[1] = buffer[i * 2 + 1];
             while (running && output && !output->ConsumeSample(samplePair)) {
-                vTaskDelay(1);
+                vTaskDelay(10/portTICK_PERIOD_MS);
             }
         }
     }
