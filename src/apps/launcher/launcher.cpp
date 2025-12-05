@@ -154,7 +154,7 @@ void LauncherApp::run() {
                                             telnetService->setEnabled(!telnetService->getEnabled());
                                 },
                                 nullptr,
-                                0,
+                                lilka::colors::White,
                                 [this](void* item) {
                                             lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
                                             TelnetService* telnetService = static_cast<TelnetService*>(
@@ -174,7 +174,7 @@ void LauncherApp::run() {
                                             ftpService->setEnabled(!ftpService->getEnabled());
                                 },
                                 nullptr,
-                                0,
+                                lilka::colors::White,
                                 [this](void* item) {
                                             lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
                                             FTPService* ftpService = static_cast<FTPService*>(
@@ -187,7 +187,7 @@ void LauncherApp::run() {
                                 K_S_LAUNCHER_FTP_USER,
                                 nullptr,
                                 nullptr,
-                                0,
+                                lilka::colors::White,
                                 [this](void* item) {
                                             lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
                                             FTPService* ftpService = static_cast<FTPService*>(
@@ -205,7 +205,7 @@ void LauncherApp::run() {
                                             ftpService->createPassword();
                                 },
                                 nullptr,
-                                0,
+                                lilka::colors::White,
                                 [this](void* item) {
                                             lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
                                             FTPService* ftpService = static_cast<FTPService*>(
