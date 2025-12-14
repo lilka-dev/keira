@@ -572,11 +572,9 @@ void TxtView::dPtrRefresh(long maxoffset) {
 
 void TxtView::scrollUp(size_t linesToScroll) {
     TXT_DBG LEP;
-    if (!fp || !lastCanvas) return;
+    if (!canScroll(TXT_BACKWARD)) return;
 
     long anchorOffset = ftell(fp);
-    // Can't go back
-    if (anchorOffset == 0) return;
 
     TxtScrollDirection direction = TXT_BACKWARD;
 
@@ -661,7 +659,7 @@ void TxtView::scrollUp(size_t linesToScroll) {
 void TxtView::scrollDown() {
     TXT_DBG LEP;
     // lock scrolling in case we've nothing new to display
-    if (!fp || dptrs.empty() || lastDisplayedLines < maxLines) return;
+    if (!canScroll(TXT_FORWARD)) return;
 
     if (dptrs.size() > 1) {
         fseek(fp, TADDR2OFF(dptrs[1]), SEEK_SET);
@@ -673,9 +671,7 @@ void TxtView::scrollDown() {
 
 void TxtView::scrollPageUp() {
     TXT_DBG LEP;
-    if (!fp || !lastCanvas) return;
-    long maxoffset = ftell(fp); // stick to current file position
-    if (maxoffset == 0) return;
+    if (!canScroll(TXT_BACKWARD)) return;
     TXT_DBG lilka::serial.log("Max lines = %d", maxLines);
     scrollUp(maxLines);
 }
@@ -683,10 +679,9 @@ void TxtView::scrollPageUp() {
 void TxtView::scrollPageDown() {
     TXT_DBG LEP;
     TXT_DBG lilka::serial.log("displayed lines = %d max lines = %d", lastDisplayedLines, maxLines);
-    if (!fp || dptrs.empty() || lastDisplayedLines < maxLines) return;
 
-    // TODO: determine end of file reached
-    // NOTE: test on empty file
+    if (!canScroll(TXT_FORWARD)) return;
+
     fseek(fp, TADDR2OFF(dptrs[lastDisplayedLines]), SEEK_SET);
     tBlockRefreshRequired = true; // to be done in update()
 }
@@ -733,7 +728,7 @@ long TxtView::getOffset() {
     return fp ? ftell(fp) : 0;
 }
 
-size_t TxtView::getCountDisplayedBytes(){
+size_t TxtView::getCountDisplayedBytes() {
     return lastDisplayedBytes;
 }
 
@@ -754,4 +749,9 @@ void TxtView::setCanvasOptions(Arduino_GFX* canvas) {
     canvas->setFont(font);
 }
 
+bool TxtView::canScroll(TxtScrollDirection TxtScrollDirection) {
+    if (TxtScrollDirection == TXT_FORWARD)
+        return fp && lastCanvas && (dptrs.size() > lastDisplayedLines) && (lastDisplayedLines == maxLines);
+    else return fp && lastCanvas && ftell(fp) != 0;
+}
 // ===== END TXT VIEW

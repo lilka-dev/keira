@@ -68,6 +68,8 @@ private:
     void updateButtons();
     // Canvas setup
     void setCanvasOptions(Arduino_GFX* canvas);
+    // Checks
+    bool canScroll(TxtScrollDirection scrollDirection);
 
     // File stuff
     FILE* fp = NULL;
