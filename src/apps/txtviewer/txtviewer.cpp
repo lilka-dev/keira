@@ -135,11 +135,14 @@ void TxtViewerApp::fontSpacingDec() {
 // char * maybe? and static buffer, should be cool :)
 String TxtViewerApp::onGetStrProgress() {
     // [===========      ] 80%
-    auto max = tView.getFileSize();
-    auto curPos = tView.getOffset()+tView.getCountDisplayedBytes();
+    auto fSize = tView.getFileSize();
+    auto curPos = tView.getOffset() + tView.getCountDisplayedBytes();
+
+    // Handle empty file
+    if (fSize == 0) return "";
 
     // TODO: detemine TXTV_PROGRESS_LEN from toolbar width in characters
-    size_t countSegments = curPos * TXTV_PROGRESS_LEN / max;
+    size_t countSegments = curPos * TXTV_PROGRESS_LEN / fSize;
     String progStr = "[";
 
     for (size_t i = 0; i < countSegments; i++)
@@ -151,7 +154,8 @@ String TxtViewerApp::onGetStrProgress() {
 
     progStr += "]";
 
-    String offStr = lilka::fileutils.getHumanFriendlySize(curPos, true) + "/" + lilka::fileutils.getHumanFriendlySize(max, true);
+    String offStr =
+        lilka::fileutils.getHumanFriendlySize(curPos, true) + "/" + lilka::fileutils.getHumanFriendlySize(fSize, true);
     progStr += offStr;
 
     return progStr;
