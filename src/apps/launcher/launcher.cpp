@@ -47,6 +47,7 @@
 
 #include <WiFi.h> // for setWiFiTxPower
 #include <Preferences.h>
+#include <lilka/spi.h>
 
 LauncherApp::LauncherApp() : App("Launcher") {
     networkService = static_cast<NetworkService*>(ServiceManager::getInstance()->getService<NetworkService>("network"));
@@ -142,6 +143,7 @@ void LauncherApp::run() {
                     ),
                     ITEM::MENU(K_S_LAUNCHER_WIFI_NETWORKS, [this]() { this->wifiManager(); }),
                     ITEM::MENU(K_S_LAUNCHER_WIFI_TX_POWER, [this]() { this->setWiFiTxPower(); }),
+                    ITEM::MENU(K_S_LAUNCHER_SPI_SD_SPEED, [this]() { this->setSpiSDSpeed(); }),
                     ITEM::MENU(K_S_LAUNCHER_SOUND, [this]() { this->runApp<SoundConfigApp>(); }),
                     ITEM::SUBMENU(K_S_LAUNCHER_SERVICES, {
                         ITEM::SUBMENU(K_S_LAUNCHER_TELNET, {
@@ -337,6 +339,46 @@ void LauncherApp::setWiFiTxPower() {
     prefs.putInt("txPower", static_cast<int>(values[index]));
     prefs.end();
 }
+
+void LauncherApp::setSpiSDSpeed() {
+    uint32_t sdFrequencies[] = {
+        4000000, // 4  MHz
+        16000000, // 16 MHz
+        20000000, // 20 MHz
+        40000000, // 40 MHz
+        80000000 // 80 MHz
+    };
+
+    lilka::Menu setSpiSDSpeedMenu;
+    setSpiSDSpeedMenu.setTitle(K_S_LAUNCHER_SPI_SD_SPEED);
+    setSpiSDSpeedMenu.addActivationButton(K_BTN_BACK); // Exit
+
+    // Add frequencies to menu
+    for (auto i = 0; i < sizeof(sdFrequencies) / sizeof(sdFrequencies[0]); i++)
+        setSpiSDSpeedMenu.addItem(StringFormat("%d MHz", sdFrequencies[i] / 1000000));
+
+    // Perform draw
+    while (!setSpiSDSpeedMenu.isFinished()) {
+        setSpiSDSpeedMenu.update();
+        setSpiSDSpeedMenu.draw(canvas);
+        queueDraw();
+    }
+    auto button = setSpiSDSpeedMenu.getButton();
+
+    if (button == K_BTN_BACK) return;
+
+    auto index = setSpiSDSpeedMenu.getCursor();
+
+    // store new frequency to NVS
+    Preferences prefs;
+    prefs.begin(LILKA_SPI_NVS_NAMESPACE, false);
+    uint32_t sdFrequency = sdFrequencies[index];
+    prefs.putUInt(LILKA_SPI_NVS_SD_FREQUENCY_KEY, sdFrequency);
+    prefs.end();
+
+    alert("", K_S_CHANGE_ON_NEXT_BOOT);
+}
+
 void LauncherApp::wifiToggle() {
     networkService->setEnabled(!networkService->getEnabled());
 }

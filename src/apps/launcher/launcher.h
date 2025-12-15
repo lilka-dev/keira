@@ -68,6 +68,7 @@ private:
     void setWiFiTxPower();
     void wifiToggle();
     void wifiManager();
+    void setSpiSDSpeed();
     void about();
     void info();
     void partitions();

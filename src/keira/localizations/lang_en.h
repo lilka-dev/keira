@@ -34,7 +34,7 @@
 #define K_S_SERVICES                    "Services"
 #define K_S_FTP                         "FTP"
 #define K_S_TELNET                      "Telnet"
-
+#define K_S_CHANGE_ON_NEXT_BOOT         "Changes would apply on next boot"
 #define K_S_OS_NAME                     "Keira OS"
 #define K_S_OS_DESCRIPTION              "by Андерсон & friends"
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -76,6 +76,7 @@
 #define K_S_LAUNCHER_WIFI_ADAPTER      "WiFi"
 #define K_S_LAUNCHER_WIFI_NETWORKS     "WiFi Networks"
 #define K_S_LAUNCHER_WIFI_TX_POWER     "WiFi Power"
+#define K_S_LAUNCHER_SPI_SD_SPEED      "SD card frequency"
 #define K_S_LAUNCHER_SOUND             "Sound"
 #define K_S_LAUNCHER_SERVICES          K_S_SERVICES
 #define K_S_LAUNCHER_FTP               K_S_FTP
