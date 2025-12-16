@@ -334,7 +334,6 @@ void FileManagerApp::openCurrentEntry() {
             FT_DEFAULT_OTHER_HANDLER;
             break;
     }
-    vTaskDelay(SUSPEND_AWAIT_TIME / portTICK_RATE_MS);
     changeMode(FM_MODE_RELOAD);
     exitChildDialogs = true;
 }

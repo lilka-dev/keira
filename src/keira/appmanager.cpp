@@ -30,58 +30,15 @@ void AppManager::setPanel(App* app) {
     xSemaphoreGive(lock);
 }
 
-struct SuspensionData {
-    SemaphoreHandle_t lock;
-    App* topApp;
-};
-
-/// Spawn a new app and pause the current one.
+/// Spawn a new app
 void AppManager::runApp(App* app) {
-    // If there's an app already running, pause it
+    // lock just in case, though it works without it anyways
+    // but let's say, it access data, so why not
     xSemaphoreTake(lock, portMAX_DELAY);
 
-    App* topApp = NULL;
-    if (apps.size() > 0) {
-        topApp = apps.back();
-    }
-    apps.push_back(app);
-    app->start();
+    appsToRun.push_back(app);
 
-    // So why all this mess? Here's the deal:
-    //
-    // We can't call suspend() directly from this method, because this method will likely be called from topApp itself,
-    // which would stop execution of this method at the moment of calling suspend().
-    // This would cause a deadlock because the lock will never be released.
-    //
-    // We could release lock *before* calling suspend() (and we did that until recently), but then there's a race condition:
-    // 1. Mutex is released
-    // 2. New top app starts and stops very quickly, triggering resume() on previous top app
-    // 3. We finally reach topApp->suspend() and it's too late - the previous top app is already resumed, so we suspend the wrong app, and the system hangs
-    //
-    // TODO: We should probably use queues to talk to AppManager and avoid all this mess with RTOS functions being called by gosh knows who. /AD
-    // Anyway - behold: an additional task that will suspend the top app and release the lock when it's done.
-    // create a single thread and wait for task spawning job maybe?
-    SuspensionData* suspensionData = new SuspensionData{lock, topApp};
-    xTaskCreate(
-        [](void* param) {
-            SuspensionData* data = static_cast<SuspensionData*>(param);
-            App* topApp = data->topApp;
-            SemaphoreHandle_t lock = data->lock;
-            delete data;
-
-            if (topApp != NULL) {
-                topApp->suspend();
-            }
-            xSemaphoreGive(lock);
-
-            vTaskDelete(NULL);
-        },
-        "runApp",
-        4096,
-        suspensionData,
-        1,
-        NULL
-    );
+    xSemaphoreGive(lock);
 }
 
 /// Remove the top app and resume the previous one.
@@ -109,6 +66,18 @@ App* AppManager::removeTopApp() {
 /// If the top app has finished, it is removed from the list and the next app is resumed.
 void AppManager::loop() {
     xSemaphoreTake(lock, portMAX_DELAY);
+    // Single place to control runing/suspending apps
+    if (!appsToRun.empty()) {
+        for (auto& appToRun : appsToRun) {
+            if (!apps.empty()) {
+                App* topApp = apps.back();
+                topApp->suspend();
+            }
+            apps.push_back(appToRun);
+            appToRun->start();
+        }
+        appsToRun.clear();
+    }
 
     if (apps.size()) {
         // Check if top app has finished
