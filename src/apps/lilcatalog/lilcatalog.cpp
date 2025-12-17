@@ -54,7 +54,6 @@ void LilCatalogApp::run() {
                 break;
         }
         queueDraw();
-        vTaskDelay(30 / portTICK_PERIOD_MS);
     }
 }
 
@@ -73,7 +72,7 @@ String LilCatalogApp::httpGet(const String& url) {
 
     client.setInsecure();
     http.begin(client, url);
-    http.setTimeout(10000);
+    http.setTimeout(CATALOG_HTTP_TIMEOUT);
 
     int httpCode = http.GET();
     String result = "";
@@ -101,7 +100,7 @@ bool LilCatalogApp::httpGetBinary(const String& url, uint8_t* buffer, size_t buf
 
     client.setInsecure();
     http.begin(client, url);
-    http.setTimeout(15000);
+    http.setTimeout(CATALOG_HTTP_TIMEOUT);
 
     int httpCode = http.GET();
 
@@ -117,7 +116,7 @@ bool LilCatalogApp::httpGetBinary(const String& url, uint8_t* buffer, size_t buf
                 *bytesRead += actualRead;
                 remaining -= actualRead;
             }
-            delay(1);
+            delay(5);
         }
 
         http.end();
@@ -134,7 +133,7 @@ bool LilCatalogApp::downloadFile(const String& url, const String& targetPath) {
 
     client.setInsecure();
     http.begin(client, url);
-    http.setTimeout(30000);
+    http.setTimeout(CATALOG_HTTP_TIMEOUT);
 
     int httpCode = http.GET();
 
@@ -154,17 +153,16 @@ bool LilCatalogApp::downloadFile(const String& url, const String& targetPath) {
         WiFiClient* stream = http.getStreamPtr();
         size_t size = http.getSize();
         size_t written = 0;
-        uint8_t buffer[1024];
 
         while (http.connected() && (written < size || size == (size_t)-1)) {
             size_t available = stream->available();
             if (available) {
-                size_t toRead = min(available, sizeof(buffer));
-                size_t actualRead = stream->readBytes(buffer, toRead);
-                file.write(buffer, actualRead);
+                size_t toRead = min(available, (size_t)CATALOG_DOWNLOAD_BUFFER_SIZE);
+                size_t actualRead = stream->readBytes(downloadBuffer, toRead);
+                file.write(downloadBuffer, actualRead);
                 written += actualRead;
             }
-            delay(1);
+            delay(5);
         }
 
         file.close();
@@ -182,7 +180,7 @@ bool LilCatalogApp::downloadFileWithProgress(const String& url, const String& ta
 
     client.setInsecure();
     http.begin(client, url);
-    http.setTimeout(60000);
+    http.setTimeout(CATALOG_HTTP_TIMEOUT);
 
     int httpCode = http.GET();
 
@@ -204,16 +202,15 @@ bool LilCatalogApp::downloadFileWithProgress(const String& url, const String& ta
         WiFiClient* stream = http.getStreamPtr();
         size_t size = http.getSize();
         size_t written = 0;
-        uint8_t buffer[2048];
 
         lilka::ProgressDialog dialog(K_S_LILCATALOG_APP, displayName);
 
         while (http.connected() && (written < size || size == (size_t)-1)) {
             size_t available = stream->available();
             if (available) {
-                size_t toRead = min(available, sizeof(buffer));
-                size_t actualRead = stream->readBytes(buffer, toRead);
-                file.write(buffer, actualRead);
+                size_t toRead = min(available, (size_t)CATALOG_DOWNLOAD_BUFFER_SIZE);
+                size_t actualRead = stream->readBytes(downloadBuffer, toRead);
+                file.write(downloadBuffer, actualRead);
                 written += actualRead;
 
                 if (size > 0) {
@@ -223,7 +220,7 @@ bool LilCatalogApp::downloadFileWithProgress(const String& url, const String& ta
                 dialog.draw(canvas);
                 queueDraw();
             }
-            delay(1);
+            delay(5);
         }
 
         file.close();

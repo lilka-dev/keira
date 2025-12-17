@@ -28,6 +28,12 @@
 #define CATALOG_ICON_CACHE_FOLDER     "/lilcatalog/icons"
 #define CATALOG_MANIFEST_CACHE_FOLDER "/lilcatalog/manifests"
 
+// HTTP timeout in milliseconds
+#define CATALOG_HTTP_TIMEOUT 10000
+
+// Download buffer size
+#define CATALOG_DOWNLOAD_BUFFER_SIZE 2048
+
 // Execution file types
 typedef enum { EXEC_TYPE_UNKNOWN, EXEC_TYPE_LUA, EXEC_TYPE_BINARY, EXEC_TYPE_ARCHIVE, EXEC_TYPE_IMAGE } ExecutionType;
 
@@ -90,6 +96,9 @@ private:
     // Icon buffer (64x64 RGB565)
     uint16_t iconBuffer[CATALOG_ICON_WIDTH * CATALOG_ICON_HEIGHT];
     bool iconLoaded = false;
+
+    // Download buffer (reused across all download operations)
+    uint8_t downloadBuffer[CATALOG_DOWNLOAD_BUFFER_SIZE];
 
     // Menus
     lilka::Menu mainMenu;
