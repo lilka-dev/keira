@@ -1,5 +1,6 @@
 #include "lilcatalog.h"
 #include <HTTPClient.h>
+#include <WiFi.h>
 #include <lilka/config.h>
 
 #include "utils/json.h"
@@ -12,66 +13,48 @@ LilCatalogApp::LilCatalogApp() : App(K_S_LILCATALOG_APP) {
 void LilCatalogApp::run() {
     if (!lilka::fileutils.isSDAvailable()) {
         showAlert(K_S_LILCATALOG_SD_NOTFOUND);
-        lilka::serial.log("SD card not found. Cannot continue.");
         return;
     }
-    lilka::serial.log("SD card found.");
 
     // Create catalog folder if needed
     if (!SD.exists(path_catalog_folder)) {
-        if (!SD.mkdir(path_catalog_folder.c_str())) {
-            showAlert(K_S_LILCATALOG_ERROR_CREATE_FOLDER);
-        }
+        SD.mkdir(path_catalog_folder.c_str());
     }
 
-    showTypeSelect();
+    // Show main menu first
+    showMainMenu();
 
     while (1) {
-        processMenu();
-        processBackButton();
-        queueDraw();
-    }
-}
-
-void LilCatalogApp::processMenu() {
-    switch (state) {
-        case LILCATALOG_TYPE_SELECT:
-            typeMenu.update();
-            typeMenu.draw(canvas);
-            break;
-        case LILCATALOG_LIST:
-            listMenu.update();
-            listMenu.draw(canvas);
-            break;
-        case LILCATALOG_ENTRY:
-            entryMenu.update();
-            entryMenu.draw(canvas);
-            break;
-        default:
-            break;
-    }
-}
-
-void LilCatalogApp::processBackButton() {
-    if (lilka::controller.peekState().b.justPressed) {
-        lilka::serial.log("B button pressed, going back.");
         switch (state) {
-            case LILCATALOG_TYPE_SELECT:
-                stop();
-                return;
+            case LILCATALOG_MAIN_MENU:
+                mainMenu.update();
+                mainMenu.draw(canvas);
+                if (lilka::controller.peekState().b.justPressed) {
+                    stop();
+                    return;
+                }
+                break;
             case LILCATALOG_LIST:
-                clearIconCache();
-                showTypeSelect();
+                handleInput();
+                drawAppView();
                 break;
             case LILCATALOG_ENTRY:
-                showEntryList();
+                entryMenu.update();
+                entryMenu.draw(canvas);
+                if (lilka::controller.peekState().b.justPressed) {
+                    state = LILCATALOG_LIST;
+                }
                 break;
-            case LILCATALOG_ENTRY_DESCRIPTION:
-                showEntry();
-                break;
-            default:
+            case LILCATALOG_DESCRIPTION:
+                drawDescription();
+                if (lilka::controller.getState().b.justPressed || lilka::controller.getState().a.justPressed) {
+                    state = LILCATALOG_ENTRY;
+                    showEntry();
+                }
                 break;
         }
+        queueDraw();
+        vTaskDelay(30 / portTICK_PERIOD_MS);
     }
 }
 
@@ -80,6 +63,11 @@ void LilCatalogApp::processBackButton() {
 // ================================
 
 String LilCatalogApp::httpGet(const String& url) {
+    // No network - return empty
+    if (WiFi.status() != WL_CONNECTED) {
+        return "";
+    }
+
     WiFiClientSecure client;
     HTTPClient http;
 
@@ -101,42 +89,41 @@ String LilCatalogApp::httpGet(const String& url) {
 }
 
 bool LilCatalogApp::httpGetBinary(const String& url, uint8_t* buffer, size_t bufferSize, size_t* bytesRead) {
+    *bytesRead = 0;
+
+    // No network - return false
+    if (WiFi.status() != WL_CONNECTED) {
+        return false;
+    }
+
     WiFiClientSecure client;
     HTTPClient http;
 
     client.setInsecure();
     http.begin(client, url);
-    http.setTimeout(10000);
+    http.setTimeout(15000);
 
     int httpCode = http.GET();
 
     if (httpCode == HTTP_CODE_OK) {
         WiFiClient* stream = http.getStreamPtr();
-        size_t size = http.getSize();
+        size_t remaining = bufferSize;
 
-        if (size > bufferSize) {
-            lilka::serial.err("Buffer too small: need %d, have %d", size, bufferSize);
-            http.end();
-            return false;
-        }
-
-        size_t read = 0;
-        while (http.connected() && (read < size)) {
+        while (http.connected() && remaining > 0) {
             size_t available = stream->available();
             if (available) {
-                size_t toRead = min(available, size - read);
-                size_t actualRead = stream->readBytes(buffer + read, toRead);
-                read += actualRead;
+                size_t toRead = min(available, remaining);
+                size_t actualRead = stream->readBytes(buffer + *bytesRead, toRead);
+                *bytesRead += actualRead;
+                remaining -= actualRead;
             }
             delay(1);
         }
 
-        *bytesRead = read;
         http.end();
         return true;
     }
 
-    lilka::serial.err("HTTP GET binary failed: %s, code: %d", url.c_str(), httpCode);
     http.end();
     return false;
 }
@@ -152,17 +139,14 @@ bool LilCatalogApp::downloadFile(const String& url, const String& targetPath) {
     int httpCode = http.GET();
 
     if (httpCode == HTTP_CODE_OK) {
-        // Create parent directories
         String parentDir = lilka::fileutils.getParentDirectory(targetPath);
         if (!lilka::fileutils.makePath(&SD, parentDir)) {
-            lilka::serial.err("Failed to create directory: %s", parentDir.c_str());
             http.end();
             return false;
         }
 
         fs::File file = SD.open(targetPath.c_str(), FILE_WRITE);
         if (!file) {
-            lilka::serial.err("Failed to open file for writing: %s", targetPath.c_str());
             http.end();
             return false;
         }
@@ -172,7 +156,7 @@ bool LilCatalogApp::downloadFile(const String& url, const String& targetPath) {
         size_t written = 0;
         uint8_t buffer[1024];
 
-        while (http.connected() && (written < size || size == -1)) {
+        while (http.connected() && (written < size || size == (size_t)-1)) {
             size_t available = stream->available();
             if (available) {
                 size_t toRead = min(available, sizeof(buffer));
@@ -185,11 +169,9 @@ bool LilCatalogApp::downloadFile(const String& url, const String& targetPath) {
 
         file.close();
         http.end();
-        lilka::serial.log("Downloaded %d bytes to %s", written, targetPath.c_str());
         return true;
     }
 
-    lilka::serial.err("Download failed: %s, code: %d", url.c_str(), httpCode);
     http.end();
     return false;
 }
@@ -205,7 +187,6 @@ bool LilCatalogApp::downloadFileWithProgress(const String& url, const String& ta
     int httpCode = http.GET();
 
     if (httpCode == HTTP_CODE_OK) {
-        // Create parent directories
         String parentDir = lilka::fileutils.getParentDirectory(targetPath);
         if (!lilka::fileutils.makePath(&SD, parentDir)) {
             showAlert(K_S_LILCATALOG_ERROR_DIRETORY_CREATE);
@@ -227,7 +208,7 @@ bool LilCatalogApp::downloadFileWithProgress(const String& url, const String& ta
 
         lilka::ProgressDialog dialog(K_S_LILCATALOG_APP, displayName);
 
-        while (http.connected() && (written < size || size == -1)) {
+        while (http.connected() && (written < size || size == (size_t)-1)) {
             size_t available = stream->available();
             if (available) {
                 size_t toRead = min(available, sizeof(buffer));
@@ -238,25 +219,15 @@ bool LilCatalogApp::downloadFileWithProgress(const String& url, const String& ta
                 if (size > 0) {
                     int progress = written * 100 / size;
                     dialog.setProgress(progress);
-                    dialog.draw(canvas);
-                    queueDraw();
                 }
+                dialog.draw(canvas);
+                queueDraw();
             }
-
-            // Check for cancel
-            if (lilka::controller.getState().b.justPressed) {
-                file.close();
-                SD.remove(targetPath.c_str());
-                http.end();
-                return false;
-            }
-
             delay(1);
         }
 
         file.close();
         http.end();
-        lilka::serial.log("Downloaded %d bytes to %s", written, targetPath.c_str());
         return true;
     }
 
@@ -275,17 +246,11 @@ bool LilCatalogApp::fetchIndex(int page) {
     queueDraw();
 
     char url[256];
-    if (currentType == CATALOG_TYPE_APPS) {
-        snprintf(url, sizeof(url), CATALOG_APPS_INDEX_URL, page);
-    } else {
-        snprintf(url, sizeof(url), CATALOG_MODS_INDEX_URL, page);
-    }
+    snprintf(url, sizeof(url), CATALOG_APPS_INDEX_URL, page);
 
-    lilka::serial.log("Fetching index: %s", url);
     String json = httpGet(url);
 
     if (json.length() == 0) {
-        showAlert(K_S_LILCATALOG_ERROR_LOAD_CATALOG);
         return false;
     }
 
@@ -305,8 +270,8 @@ bool LilCatalogApp::parseIndex(const String& json) {
     totalPages = doc["total_pages"].as<int>();
 
     entries.clear();
-    iconBufferValid = false;
-    currentIconIndex = -1;
+    iconLoaded = false;
+    loadedIconIndex = -1;
 
     JsonArray manifests = doc["manifests"].as<JsonArray>();
     for (JsonVariant v : manifests) {
@@ -314,7 +279,6 @@ bool LilCatalogApp::parseIndex(const String& json) {
         catalog_entry entry;
         entry.id = entryId;
 
-        // Fetch short manifest for basic info
         if (fetchEntryShortManifest(entryId, entry)) {
             entries.push_back(entry);
         }
@@ -326,12 +290,7 @@ bool LilCatalogApp::parseIndex(const String& json) {
 
 bool LilCatalogApp::fetchEntryShortManifest(const String& entryId, catalog_entry& entry) {
     char url[256];
-    if (currentType == CATALOG_TYPE_APPS) {
-        snprintf(url, sizeof(url), CATALOG_APP_SHORT_MANIFEST_URL, entryId.c_str());
-    } else {
-        // Mods use same structure
-        snprintf(url, sizeof(url), CATALOG_BASE_URL "/mods/%s/index_short.json", entryId.c_str());
-    }
+    snprintf(url, sizeof(url), CATALOG_APP_SHORT_MANIFEST_URL, entryId.c_str());
 
     String json = httpGet(url);
     if (json.length() == 0) {
@@ -346,38 +305,37 @@ bool LilCatalogApp::parseShortManifest(const String& json, catalog_entry& entry)
     DeserializationError error = deserializeJson(doc, json);
 
     if (error) {
-        lilka::serial.err("Short manifest parse error: %s", error.c_str());
         return false;
     }
 
     entry.name = doc["name"].as<String>();
     entry.short_description = doc["short_description"].as<String>();
 
-    if (doc.containsKey("executionfile")) {
-        entry.executionfile.type = parseExecutionType(doc["executionfile"]["type"].as<String>());
-        entry.executionfile.location = doc["executionfile"]["location"].as<String>();
+    if (doc.containsKey("entryfile")) {
+        entry.entryfile.type = parseExecutionType(doc["entryfile"]["type"].as<String>());
+        entry.entryfile.location = doc["entryfile"]["location"].as<String>();
     }
 
     return true;
 }
 
 bool LilCatalogApp::fetchEntryManifest(const String& entryId) {
-    lilka::Alert alert(K_S_LILCATALOG_APP, K_S_LILCATALOG_FILE_LOADING);
-    alert.draw(canvas);
-    queueDraw();
+    // Try cache first (for offline support)
+    String json = loadManifestFromCache(entryId);
 
-    char url[256];
-    if (currentType == CATALOG_TYPE_APPS) {
+    // If not in cache, try network
+    if (json.length() == 0) {
+        lilka::Alert alert(K_S_LILCATALOG_APP, K_S_LILCATALOG_FILE_LOADING);
+        alert.draw(canvas);
+        queueDraw();
+
+        char url[256];
         snprintf(url, sizeof(url), CATALOG_APP_MANIFEST_URL, entryId.c_str());
-    } else {
-        snprintf(url, sizeof(url), CATALOG_MOD_MANIFEST_URL, entryId.c_str());
+
+        json = httpGet(url);
     }
 
-    lilka::serial.log("Fetching manifest: %s", url);
-    String json = httpGet(url);
-
     if (json.length() == 0) {
-        showAlert(K_S_LILCATALOG_ERROR_LOAD_CATALOG);
         return false;
     }
 
@@ -389,28 +347,16 @@ bool LilCatalogApp::parseManifest(const String& json, catalog_entry& entry) {
     DeserializationError error = deserializeJson(doc, json);
 
     if (error) {
-        lilka::serial.err("Manifest parse error: %s", error.c_str());
         return false;
     }
 
     entry.name = doc["name"].as<String>();
     entry.short_description = doc["short_description"].as<String>();
     entry.description = doc["description"].as<String>();
-    entry.changelog = doc["changelog"].as<String>();
     entry.author = doc["author"].as<String>();
     entry.icon = doc["icon"].as<String>();
     entry.icon_min = doc["icon_min"].as<String>();
 
-    // Parse screenshots
-    entry.screenshots.clear();
-    if (doc.containsKey("screenshots")) {
-        JsonArray screenshots = doc["screenshots"].as<JsonArray>();
-        for (JsonVariant v : screenshots) {
-            entry.screenshots.push_back(v.as<String>());
-        }
-    }
-
-    // Parse sources
     if (doc.containsKey("sources")) {
         entry.sources.type = doc["sources"]["type"].as<String>();
         if (doc["sources"].containsKey("location")) {
@@ -418,41 +364,37 @@ bool LilCatalogApp::parseManifest(const String& json, catalog_entry& entry) {
         }
     }
 
-    // Parse execution file (for apps)
-    if (doc.containsKey("executionfile")) {
-        entry.executionfile.type = parseExecutionType(doc["executionfile"]["type"].as<String>());
-        entry.executionfile.location = doc["executionfile"]["location"].as<String>();
+    // Parse entryfile (main execution file)
+    if (doc.containsKey("entryfile")) {
+        entry.entryfile.type = parseExecutionType(doc["entryfile"]["type"].as<String>());
+        entry.entryfile.location = doc["entryfile"]["location"].as<String>();
     }
 
-    // Parse mod files (for mods)
-    entry.modfiles.clear();
-    if (doc.containsKey("modfiles")) {
-        JsonArray modfiles = doc["modfiles"].as<JsonArray>();
-        for (JsonVariant v : modfiles) {
-            catalog_mod_file mf;
-            mf.name = v["name"].as<String>();
-            if (v.containsKey("location")) {
-                mf.location = v["location"].as<String>();
+    // Parse additional files array
+    entry.files.clear();
+    if (doc.containsKey("files")) {
+        JsonArray filesArray = doc["files"].as<JsonArray>();
+        for (JsonObject fileObj : filesArray) {
+            catalog_file file;
+            file.type = parseExecutionType(fileObj["type"].as<String>());
+            file.location = fileObj["location"].as<String>();
+            if (fileObj.containsKey("description")) {
+                file.description = fileObj["description"].as<String>();
             }
-            entry.modfiles.push_back(mf);
+            entry.files.push_back(file);
         }
     }
 
-    lilka::serial.log("Parsed manifest: %s by %s", entry.name.c_str(), entry.author.c_str());
     return true;
 }
 
-bool LilCatalogApp::fetchMiniIcon(const String& entryId, const String& iconMinName, uint16_t* buffer) {
+bool LilCatalogApp::fetchIcon(const String& entryId, const String& iconMinName) {
     char url[256];
-    if (currentType == CATALOG_TYPE_APPS) {
-        snprintf(url, sizeof(url), CATALOG_APP_STATIC_URL, entryId.c_str(), iconMinName.c_str());
-    } else {
-        snprintf(url, sizeof(url), CATALOG_MOD_STATIC_URL, entryId.c_str(), iconMinName.c_str());
-    }
+    snprintf(url, sizeof(url), CATALOG_APP_STATIC_URL, entryId.c_str(), iconMinName.c_str());
 
     size_t bytesRead = 0;
-    if (httpGetBinary(url, (uint8_t*)buffer, CATALOG_ICON_MIN_SIZE, &bytesRead)) {
-        return bytesRead == CATALOG_ICON_MIN_SIZE;
+    if (httpGetBinary(url, (uint8_t*)iconBuffer, CATALOG_ICON_SIZE, &bytesRead)) {
+        return bytesRead == CATALOG_ICON_SIZE;
     }
     return false;
 }
@@ -471,12 +413,235 @@ FileType LilCatalogApp::executionTypeToFileType(ExecutionType type) {
             return FT_LUA_SCRIPT;
         case EXEC_TYPE_BINARY:
             return FT_BIN;
-        case EXEC_TYPE_ARCHIVE:
-            return FT_OTHER;
-        case EXEC_TYPE_IMAGE:
-            return FT_OTHER;
         default:
             return FT_OTHER;
+    }
+}
+
+// ================================
+// Icon Cache Methods
+// ================================
+
+String LilCatalogApp::getIconCachePath(const String& entryId) {
+    return String(CATALOG_ICON_CACHE_FOLDER) + "/" + entryId + ".bin";
+}
+
+bool LilCatalogApp::loadIconFromCache(const String& entryId) {
+    String cachePath = getIconCachePath(entryId);
+
+    if (!SD.exists(cachePath.c_str())) {
+        return false;
+    }
+
+    fs::File file = SD.open(cachePath.c_str(), FILE_READ);
+    if (!file) {
+        return false;
+    }
+
+    size_t bytesRead = file.read((uint8_t*)iconBuffer, CATALOG_ICON_SIZE);
+    file.close();
+
+    return bytesRead == CATALOG_ICON_SIZE;
+}
+
+bool LilCatalogApp::saveIconToCache(const String& entryId) {
+    if (!iconLoaded) {
+        return false;
+    }
+
+    if (!SD.exists(CATALOG_ICON_CACHE_FOLDER)) {
+        lilka::fileutils.makePath(&SD, CATALOG_ICON_CACHE_FOLDER);
+    }
+
+    String cachePath = getIconCachePath(entryId);
+    fs::File file = SD.open(cachePath.c_str(), FILE_WRITE);
+    if (!file) {
+        return false;
+    }
+
+    size_t written = file.write((uint8_t*)iconBuffer, CATALOG_ICON_SIZE);
+    file.close();
+
+    return written == CATALOG_ICON_SIZE;
+}
+
+void LilCatalogApp::loadCurrentIcon() {
+    if (currentIndex < 0 || currentIndex >= (int)entries.size()) {
+        iconLoaded = false;
+        return;
+    }
+
+    // Already loaded?
+    if (loadedIconIndex == currentIndex && iconLoaded) {
+        return;
+    }
+
+    const catalog_entry& entry = entries[currentIndex];
+    iconLoaded = false;
+    loadedIconIndex = currentIndex;
+
+    // Try cache first
+    if (loadIconFromCache(entry.id)) {
+        iconLoaded = true;
+        return;
+    }
+
+    // Need to get icon_min name - fetch full manifest
+    String iconMinName = entry.icon_min;
+    if (iconMinName.isEmpty()) {
+        char url[256];
+        snprintf(url, sizeof(url), CATALOG_APP_MANIFEST_URL, entry.id.c_str());
+        String json = httpGet(url);
+        if (json.length() > 0) {
+            JsonDocument doc(&spiRamAllocator);
+            if (!deserializeJson(doc, json)) {
+                if (doc.containsKey("icon_min")) {
+                    iconMinName = doc["icon_min"].as<String>();
+                }
+            }
+        }
+    }
+
+    if (iconMinName.isEmpty()) {
+        return;
+    }
+
+    // Fetch from network
+    if (fetchIcon(entry.id, iconMinName)) {
+        iconLoaded = true;
+        saveIconToCache(entry.id);
+    }
+}
+
+void LilCatalogApp::clearIconCache() {
+    iconLoaded = false;
+    loadedIconIndex = -1;
+
+    if (SD.exists(CATALOG_ICON_CACHE_FOLDER)) {
+        fs::File dir = SD.open(CATALOG_ICON_CACHE_FOLDER);
+        if (dir && dir.isDirectory()) {
+            fs::File entry = dir.openNextFile();
+            while (entry) {
+                String path = String(CATALOG_ICON_CACHE_FOLDER) + "/" + entry.name();
+                entry.close();
+                SD.remove(path.c_str());
+                entry = dir.openNextFile();
+            }
+            dir.close();
+        }
+        SD.rmdir(CATALOG_ICON_CACHE_FOLDER);
+    }
+}
+
+// ================================
+// Manifest Cache Methods
+// ================================
+
+String LilCatalogApp::getManifestCachePath(const String& entryId) {
+    return String(CATALOG_MANIFEST_CACHE_FOLDER) + "/" + entryId + ".json";
+}
+
+bool LilCatalogApp::saveManifestToCache(const String& entryId, const String& json) {
+    if (!lilka::fileutils.makePath(&SD, CATALOG_MANIFEST_CACHE_FOLDER)) {
+        return false;
+    }
+
+    String cachePath = getManifestCachePath(entryId);
+    fs::File file = SD.open(cachePath.c_str(), FILE_WRITE);
+    if (!file) {
+        return false;
+    }
+
+    file.print(json);
+    file.close();
+    return true;
+}
+
+String LilCatalogApp::loadManifestFromCache(const String& entryId) {
+    String cachePath = getManifestCachePath(entryId);
+
+    if (!SD.exists(cachePath.c_str())) {
+        return "";
+    }
+
+    fs::File file = SD.open(cachePath.c_str(), FILE_READ);
+    if (!file) {
+        return "";
+    }
+
+    String json = file.readString();
+    file.close();
+    return json;
+}
+
+bool LilCatalogApp::loadInstalledApps() {
+    entries.clear();
+    iconLoaded = false;
+    loadedIconIndex = -1;
+    currentIndex = 0;
+    currentPage = 0;
+    totalPages = 1;
+
+    // Scan manifest cache folder for installed apps
+    if (!SD.exists(CATALOG_MANIFEST_CACHE_FOLDER)) {
+        return false;
+    }
+
+    fs::File dir = SD.open(CATALOG_MANIFEST_CACHE_FOLDER);
+    if (!dir || !dir.isDirectory()) {
+        return false;
+    }
+
+    fs::File file = dir.openNextFile();
+    while (file) {
+        if (!file.isDirectory()) {
+            String filename = file.name();
+            if (filename.endsWith(".json")) {
+                // Extract entry ID from filename
+                String entryId = filename.substring(0, filename.length() - 5);
+
+                // Check if this app is actually installed (has execution file)
+                String execPath = path_catalog_folder + "/" + entryId;
+                if (SD.exists(execPath.c_str())) {
+                    // Load manifest from cache
+                    String json = file.readString();
+                    file.close();
+
+                    catalog_entry entry;
+                    entry.id = entryId;
+                    if (parseManifest(json, entry)) {
+                        entries.push_back(entry);
+                    }
+                } else {
+                    file.close();
+                }
+            } else {
+                file.close();
+            }
+        } else {
+            file.close();
+        }
+        file = dir.openNextFile();
+    }
+    dir.close();
+
+    return !entries.empty();
+}
+
+void LilCatalogApp::clearManifestCache() {
+    if (SD.exists(CATALOG_MANIFEST_CACHE_FOLDER)) {
+        fs::File dir = SD.open(CATALOG_MANIFEST_CACHE_FOLDER);
+        if (dir && dir.isDirectory()) {
+            fs::File entry = dir.openNextFile();
+            while (entry) {
+                String path = String(CATALOG_MANIFEST_CACHE_FOLDER) + "/" + entry.name();
+                entry.close();
+                SD.remove(path.c_str());
+                entry = dir.openNextFile();
+            }
+            dir.close();
+        }
+        SD.rmdir(CATALOG_MANIFEST_CACHE_FOLDER);
     }
 }
 
@@ -489,7 +654,7 @@ String LilCatalogApp::getEntryTargetPath() {
 }
 
 String LilCatalogApp::getEntryExecutablePath() {
-    return getEntryTargetPath() + "/" + currentEntry.executionfile.location;
+    return getEntryTargetPath() + "/" + currentEntry.entryfile.location;
 }
 
 bool LilCatalogApp::validateEntry() {
@@ -500,56 +665,72 @@ bool LilCatalogApp::validateEntry() {
 void LilCatalogApp::fetchEntry() {
     String targetDir = getEntryTargetPath();
 
-    // Create entry directory
     if (!lilka::fileutils.makePath(&SD, targetDir)) {
         showAlert(K_S_LILCATALOG_ERROR_DIRETORY_CREATE);
         return;
     }
 
-    // Build download URL
+    // Download entryfile (main file)
     char url[512];
-    if (currentType == CATALOG_TYPE_APPS) {
-        snprintf(
-            url,
-            sizeof(url),
-            CATALOG_APP_STATIC_URL,
-            currentEntry.id.c_str(),
-            currentEntry.executionfile.location.c_str()
-        );
-    } else {
-        snprintf(
-            url,
-            sizeof(url),
-            CATALOG_MOD_STATIC_URL,
-            currentEntry.id.c_str(),
-            currentEntry.executionfile.location.c_str()
-        );
-    }
+    snprintf(
+        url, sizeof(url), CATALOG_APP_STATIC_URL, currentEntry.id.c_str(), currentEntry.entryfile.location.c_str()
+    );
 
     String targetPath = getEntryExecutablePath();
 
-    lilka::serial.log("Downloading: %s -> %s", url, targetPath.c_str());
-
-    if (downloadFileWithProgress(url, targetPath, currentEntry.name)) {
-        showAlert(K_S_LILCATALOG_FILE_LOADING_COMPLETE);
-        // Refresh the entry menu to show new options
-        showEntry();
+    if (!downloadFileWithProgress(url, targetPath, currentEntry.name)) {
+        return;
     }
+
+    // Download additional files
+    for (const auto& file : currentEntry.files) {
+        snprintf(url, sizeof(url), CATALOG_APP_STATIC_URL, currentEntry.id.c_str(), file.location.c_str());
+
+        String filePath = getEntryTargetPath() + "/" + file.location;
+
+        if (!downloadFileWithProgress(url, filePath, file.location)) {
+            // Continue with other files even if one fails
+            lilka::serial.err("Failed to download: %s", file.location.c_str());
+        }
+    }
+
+    // Save manifest to cache for offline use
+    char manifestUrl[256];
+    snprintf(manifestUrl, sizeof(manifestUrl), CATALOG_APP_MANIFEST_URL, currentEntry.id.c_str());
+    String manifestJson = httpGet(manifestUrl);
+    if (manifestJson.length() > 0) {
+        saveManifestToCache(currentEntry.id, manifestJson);
+    }
+
+    showAlert(K_S_LILCATALOG_FILE_LOADING_COMPLETE);
+    showEntry();
 }
 
 void LilCatalogApp::removeEntry() {
-    String execPath = getEntryExecutablePath();
     String targetDir = getEntryTargetPath();
 
-    // Remove executable file
+    // Remove entryfile
+    String execPath = getEntryExecutablePath();
     if (SD.exists(execPath.c_str())) {
         SD.remove(execPath.c_str());
     }
 
-    // Try to remove directory (will only work if empty)
+    // Remove additional files
+    for (const auto& file : currentEntry.files) {
+        String filePath = targetDir + "/" + file.location;
+        if (SD.exists(filePath.c_str())) {
+            SD.remove(filePath.c_str());
+        }
+    }
+
     SD.rmdir(targetDir.c_str());
 
-    // Refresh entry menu
+    // Also remove cached manifest
+    String manifestPath = getManifestCachePath(currentEntry.id);
+    if (SD.exists(manifestPath.c_str())) {
+        SD.remove(manifestPath.c_str());
+    }
+
     showEntry();
 }
 
@@ -557,9 +738,7 @@ void LilCatalogApp::executeEntry() {
     String execPath = getEntryExecutablePath();
     String canonicalPath = lilka::fileutils.getCannonicalPath(&SD, execPath);
 
-    lilka::serial.log("Executing: %s (type: %d)", canonicalPath.c_str(), currentEntry.executionfile.type);
-
-    switch (currentEntry.executionfile.type) {
+    switch (currentEntry.entryfile.type) {
         case EXEC_TYPE_LUA:
             K_FT_LUA_SCRIPT_HANDLER(canonicalPath);
             break;
@@ -569,8 +748,6 @@ void LilCatalogApp::executeEntry() {
         case EXEC_TYPE_ARCHIVE:
             showAlert(K_S_LILCATALOG_ARCHIVE_NOTICE);
             break;
-        case EXEC_TYPE_IMAGE:
-        case EXEC_TYPE_UNKNOWN:
         default:
             showAlert(K_S_LILCATALOG_UNSUPPORTED_TYPE);
             break;
@@ -613,7 +790,6 @@ void LilCatalogApp::fileLoadAsRom(const String& path) {
     error = lilka::multiboot.finishAndReboot();
     if (error) {
         showAlert(String(K_S_LILCATALOG_ERROR_STAGE3) + error);
-        return;
     }
 }
 
@@ -621,58 +797,59 @@ void LilCatalogApp::fileLoadAsRom(const String& path) {
 // UI Methods
 // ================================
 
-void LilCatalogApp::showTypeSelect() {
-    state = LILCATALOG_TYPE_SELECT;
-    currentPage = 0;
-    totalPages = 0;
+void LilCatalogApp::showMainMenu() {
+    state = LILCATALOG_MAIN_MENU;
 
-    typeMenu.clearItems();
-    typeMenu.setTitle(K_S_LILCATALOG_APP);
+    mainMenu.clearItems();
+    mainMenu.setTitle(K_S_LILCATALOG_APP);
 
-    typeMenu.addItem(
+    mainMenu.addItem(
         K_S_LILCATALOG_APPS,
         nullptr,
         lilka::colors::White,
         K_S_LILCATALOG_EMPTY,
         [](void* ctx) {
             LilCatalogApp* app = static_cast<LilCatalogApp*>(ctx);
-            app->currentType = CATALOG_TYPE_APPS;
             if (app->fetchIndex(0)) {
-                app->showEntryList();
+                app->loadCurrentIcon();
+                app->state = LILCATALOG_LIST;
             }
         },
         this
     );
 
-    typeMenu.addItem(
-        K_S_LILCATALOG_MODS,
+    mainMenu.addItem(
+        K_S_LILCATALOG_INSTALLED,
         nullptr,
-        lilka::colors::White,
+        lilka::colors::Green,
         K_S_LILCATALOG_EMPTY,
         [](void* ctx) {
             LilCatalogApp* app = static_cast<LilCatalogApp*>(ctx);
-            app->currentType = CATALOG_TYPE_MODS;
-            if (app->fetchIndex(0)) {
-                app->showEntryList();
+            if (app->loadInstalledApps()) {
+                app->loadCurrentIcon();
+                app->state = LILCATALOG_LIST;
+            } else {
+                app->showAlert(K_S_LILCATALOG_NO_INSTALLED);
             }
         },
         this
     );
 
-    typeMenu.addItem(
+    mainMenu.addItem(
         K_S_LILCATALOG_CLEAR_CACHE,
         nullptr,
         lilka::colors::Orange,
         K_S_LILCATALOG_EMPTY,
         [](void* ctx) {
             LilCatalogApp* app = static_cast<LilCatalogApp*>(ctx);
-            app->clearAllIconCache();
+            app->clearIconCache();
+            app->clearManifestCache();
             app->showAlert(K_S_LILCATALOG_CACHE_CLEARED);
         },
         this
     );
 
-    typeMenu.addItem(
+    mainMenu.addItem(
         K_S_LILCATALOG_STOP,
         nullptr,
         lilka::colors::White,
@@ -684,104 +861,170 @@ void LilCatalogApp::showTypeSelect() {
         this
     );
 
-    typeMenu.setCursor(0);
-    typeMenu.update();
+    mainMenu.setCursor(0);
 }
 
-void LilCatalogApp::showEntryList() {
-    state = LILCATALOG_LIST;
+void LilCatalogApp::drawAppView() {
+    canvas->fillScreen(lilka::colors::Black);
+    canvas->setFont(FONT_6x13);
 
-    listMenu.clearItems();
+    if (entries.empty()) {
+        canvas->setTextColor(lilka::colors::White);
+        canvas->setCursor(canvas->width() / 2 - 40, canvas->height() / 2);
+        canvas->print(K_S_LILCATALOG_EMPTY);
+        return;
+    }
 
-    String title = (currentType == CATALOG_TYPE_APPS) ? K_S_LILCATALOG_APPS : K_S_LILCATALOG_MODS;
-    title += " (" + String(currentPage + 1) + "/" + String(totalPages) + ")";
-    listMenu.setTitle(title);
+    const catalog_entry& entry = entries[currentIndex];
 
-    for (size_t i = 0; i < entries.size(); i++) {
-        const catalog_entry& entry = entries[i];
+    // Draw header
+    canvas->fillRect(0, 0, canvas->width(), 20, lilka::colors::Black_olive);
+    canvas->setTextColor(lilka::colors::White);
+    canvas->setCursor(8, 14);
+    canvas->print(K_S_LILCATALOG_APPS);
 
-        // Create callback with entry index
-        listMenu.addItem(
-            entry.name,
-            nullptr,
-            lilka::colors::White,
-            entry.short_description,
-            [](void* ctx) {
-                // This is a simplified callback - we'll handle selection in processMenu
-            },
-            nullptr
+    // Draw 64x64 icon centered
+    int iconX = (canvas->width() - CATALOG_ICON_WIDTH) / 2;
+    int iconY = 30;
+
+    if (iconLoaded && loadedIconIndex == currentIndex) {
+        canvas->draw16bitRGBBitmapWithTranColor(
+            iconX, iconY, iconBuffer, lilka::colors::Black, CATALOG_ICON_WIDTH, CATALOG_ICON_HEIGHT
+        );
+    } else {
+        canvas->drawRect(iconX, iconY, CATALOG_ICON_WIDTH, CATALOG_ICON_HEIGHT, lilka::colors::Graygrey);
+        canvas->setTextColor(lilka::colors::Graygrey);
+        canvas->setCursor(iconX + 20, iconY + 35);
+        canvas->print("...");
+    }
+
+    // Draw navigation arrows
+    int arrowY = iconY + CATALOG_ICON_HEIGHT / 2;
+
+    if (currentIndex > 0 || currentPage > 0) {
+        canvas->fillTriangle(15, arrowY, 25, arrowY - 10, 25, arrowY + 10, lilka::colors::Cyan);
+    }
+
+    int totalItems = entries.size();
+    if (currentIndex < totalItems - 1 || currentPage < totalPages - 1) {
+        canvas->fillTriangle(
+            canvas->width() - 15,
+            arrowY,
+            canvas->width() - 25,
+            arrowY - 10,
+            canvas->width() - 25,
+            arrowY + 10,
+            lilka::colors::Cyan
         );
     }
 
-    // Add pagination controls
-    if (currentPage > 0) {
-        listMenu.addItem(
-            K_S_LILCATALOG_PREV_PAGE,
-            nullptr,
-            lilka::colors::Cyan,
-            K_S_LILCATALOG_EMPTY,
-            [](void* ctx) {
-                LilCatalogApp* app = static_cast<LilCatalogApp*>(ctx);
-                app->loadPrevPage();
-            },
-            this
-        );
+    // Draw app name - use smaller font and shorter truncation to avoid wrapping
+    canvas->setFont(FONT_6x13);
+    int nameY = iconY + CATALOG_ICON_HEIGHT + 12;
+    canvas->setTextColor(lilka::colors::White);
+
+    // Truncate name to fit (approx 26 chars at 6px width = 156px, screen ~240px)
+    char nameBuf[28];
+    strncpy(nameBuf, entry.name.c_str(), 24);
+    nameBuf[24] = '\0';
+    if (entry.name.length() > 24) {
+        nameBuf[21] = '.';
+        nameBuf[22] = '.';
+        nameBuf[23] = '.';
+    }
+    canvas->setCursor(10, nameY);
+    canvas->print(nameBuf);
+
+    // Draw type badge
+    const char* typeStr = nullptr;
+    switch (entry.entryfile.type) {
+        case EXEC_TYPE_LUA:
+            typeStr = "LUA";
+            break;
+        case EXEC_TYPE_BINARY:
+            typeStr = "BIN";
+            break;
+        default:
+            break;
     }
 
-    if (currentPage < totalPages - 1) {
-        listMenu.addItem(
-            K_S_LILCATALOG_NEXT_PAGE,
-            nullptr,
-            lilka::colors::Cyan,
-            K_S_LILCATALOG_EMPTY,
-            [](void* ctx) {
-                LilCatalogApp* app = static_cast<LilCatalogApp*>(ctx);
-                app->loadNextPage();
-            },
-            this
-        );
+    if (typeStr) {
+        int badgeX = 10;
+        int badgeY = nameY + 3;
+        canvas->fillRoundRect(badgeX, badgeY, 30, 12, 2, lilka::colors::Dark_cyan);
+        canvas->setTextColor(lilka::colors::White);
+        canvas->setCursor(badgeX + 4, badgeY + 10);
+        canvas->print(typeStr);
     }
 
-    listMenu.addItem(
-        K_S_LILCATALOG_BACK,
-        nullptr,
-        lilka::colors::White,
-        K_S_LILCATALOG_EMPTY,
-        [](void* ctx) {
-            LilCatalogApp* app = static_cast<LilCatalogApp*>(ctx);
-            app->showTypeSelect();
-        },
-        this
-    );
+    // Draw description - single line only, shorter to prevent wrapping
+    int descY = nameY + 22;
+    canvas->setTextColor(lilka::colors::Light_gray);
 
-    listMenu.setCursor(0);
-    listMenu.update();
+    char descBuf[36];
+    strncpy(descBuf, entry.short_description.c_str(), 32);
+    descBuf[32] = '\0';
+    if (entry.short_description.length() > 32) {
+        descBuf[29] = '.';
+        descBuf[30] = '.';
+        descBuf[31] = '.';
+    }
+    canvas->setCursor(10, descY);
+    canvas->print(descBuf);
 
-    // Handle entry selection via A button
-    while (state == LILCATALOG_LIST) {
-        listMenu.update();
-        listMenu.draw(canvas);
-        queueDraw();
+    // Draw item counter
+    canvas->setTextColor(lilka::colors::Graygrey);
+    char counterStr[16];
+    snprintf(counterStr, sizeof(counterStr), "%d/%d", currentIndex + 1, (int)entries.size());
+    canvas->setCursor(canvas->width() / 2 - 20, canvas->height() - 10);
+    canvas->print(counterStr);
 
-        if (lilka::controller.peekState().a.justPressed) {
-            int cursor = listMenu.getCursor();
-            if (cursor < (int)entries.size()) {
-                // Selected an entry
-                currentEntry = entries[cursor];
-                currentEntry.id = entries[cursor].id; // Preserve ID
+    // Draw hint
+    canvas->setCursor(10, canvas->height() - 10);
+    canvas->setTextColor(lilka::colors::Cyan);
+    canvas->print("A");
+    canvas->setTextColor(lilka::colors::Graygrey);
+    canvas->print("-OK B-Back");
+}
 
-                // Fetch full manifest
-                if (fetchEntryManifest(currentEntry.id)) {
-                    showEntry();
-                }
-            }
-            // Pagination and back buttons handled by callbacks
+void LilCatalogApp::handleInput() {
+    lilka::State st = lilka::controller.getState();
+
+    // Left - previous app
+    if (st.left.justPressed) {
+        if (currentIndex > 0) {
+            currentIndex--;
+            loadCurrentIcon(); // Load icon immediately after changing
+        } else if (currentPage > 0) {
+            loadPrevPage();
+            currentIndex = entries.size() - 1;
+            loadCurrentIcon();
         }
+    }
 
-        if (lilka::controller.peekState().b.justPressed) {
-            showTypeSelect();
-            return;
+    // Right - next app
+    if (st.right.justPressed) {
+        if (currentIndex < (int)entries.size() - 1) {
+            currentIndex++;
+            loadCurrentIcon(); // Load icon immediately after changing
+        } else if (currentPage < totalPages - 1) {
+            loadNextPage();
+            currentIndex = 0;
+            loadCurrentIcon();
         }
+    }
+
+    // A - select app
+    if (st.a.justPressed && !entries.empty()) {
+        currentEntry = entries[currentIndex];
+        if (fetchEntryManifest(currentEntry.id)) {
+            showEntry();
+        }
+    }
+
+    // B - back to main menu
+    if (st.b.justPressed) {
+        showMainMenu();
     }
 }
 
@@ -846,20 +1089,14 @@ void LilCatalogApp::showEntry() {
     entryMenu.addItem(
         K_S_LILCATALOG_ENTRY_DESCRIPTION,
         nullptr,
-        lilka::colors::White,
+        lilka::colors::Cyan,
         K_S_LILCATALOG_EMPTY,
         [](void* ctx) {
             LilCatalogApp* app = static_cast<LilCatalogApp*>(ctx);
-            app->showEntryDescription();
+            app->showDescription();
         },
         this
     );
-
-    if (!currentEntry.sources.origin.isEmpty()) {
-        entryMenu.addItem(
-            K_S_LILCATALOG_SOURCE, nullptr, lilka::colors::Cyan, currentEntry.sources.origin, nullptr, nullptr
-        );
-    }
 
     entryMenu.addItem(
         K_S_LILCATALOG_BACK,
@@ -868,111 +1105,97 @@ void LilCatalogApp::showEntry() {
         K_S_LILCATALOG_EMPTY,
         [](void* ctx) {
             LilCatalogApp* app = static_cast<LilCatalogApp*>(ctx);
-            app->showEntryList();
+            app->state = LILCATALOG_LIST;
         },
         this
     );
 
     entryMenu.setCursor(0);
-    entryMenu.update();
 }
 
-void LilCatalogApp::showEntryDescription() {
-    state = LILCATALOG_ENTRY_DESCRIPTION;
+void LilCatalogApp::showDescription() {
+    state = LILCATALOG_DESCRIPTION;
+}
 
-    // Try to load icon for display
-    bool hasIcon = false;
-    if (!currentEntry.icon_min.isEmpty()) {
-        // Try cache first, then network
-        if (loadIconFromCache(currentEntry.id)) {
-            hasIcon = true;
-        } else if (fetchMiniIcon(currentEntry.id, currentEntry.icon_min, iconBuffer)) {
-            iconBufferValid = true;
-            saveIconToCache(currentEntry.id);
-            hasIcon = true;
-        }
-    }
-
-    // Draw custom description screen with icon
+void LilCatalogApp::drawDescription() {
     canvas->fillScreen(lilka::colors::Black);
+    canvas->setFont(FONT_6x13);
 
-    int yPos = 8;
-    int xPos = 8;
-
-    // Draw icon if available
-    if (hasIcon && iconBufferValid) {
-        canvas->draw16bitRGBBitmapWithTranColor(
-            xPos, yPos, iconBuffer, lilka::colors::Black, CATALOG_ICON_MIN_WIDTH, CATALOG_ICON_MIN_HEIGHT
-        );
-        xPos += CATALOG_ICON_MIN_WIDTH + 8;
-    }
-
-    // Draw title next to icon
+    // Title
     canvas->setTextColor(lilka::colors::White);
-    canvas->setCursor(xPos, yPos + 4);
-    canvas->setTextSize(1);
-    canvas->println(currentEntry.name);
+    canvas->setCursor(8, 14);
 
-    // Draw author
-    canvas->setCursor(xPos, yPos + 20);
+    char nameBuf[28];
+    strncpy(nameBuf, currentEntry.name.c_str(), 24);
+    nameBuf[24] = '\0';
+    canvas->print(nameBuf);
+
+    // Author
+    canvas->setCursor(8, 30);
+    canvas->setTextColor(lilka::colors::Cyan);
+    canvas->print(K_S_LILCATALOG_ENTRY_DESCRIPTION_AUTHOR);
     canvas->setTextColor(lilka::colors::Light_gray);
-    canvas->println(currentEntry.author);
 
-    // Draw description below icon
-    yPos = hasIcon ? (8 + CATALOG_ICON_MIN_HEIGHT + 8) : 50;
-    canvas->setCursor(8, yPos);
+    char authorBuf[20];
+    strncpy(authorBuf, currentEntry.author.c_str(), 16);
+    authorBuf[16] = '\0';
+    canvas->print(authorBuf);
+
+    // Description - simple fixed-width lines
     canvas->setTextColor(lilka::colors::White);
 
-    // Word-wrap the description
     String desc = currentEntry.short_description;
-    int maxWidth = canvas->width() - 16;
-    int lineStart = 0;
-    int lineY = yPos;
+    if (desc.isEmpty()) {
+        desc = currentEntry.description;
+    }
 
-    for (int i = 0; i <= desc.length(); i++) {
-        if (i == desc.length() || desc[i] == '\n' || desc[i] == ' ') {
-            String word = desc.substring(lineStart, i);
-            int16_t x1, y1;
-            uint16_t w, h;
-            canvas->getTextBounds(word.c_str(), 0, 0, &x1, &y1, &w, &h);
+    int lineY = 50;
+    int maxCharsPerLine = 28; // ~168px at 6px per char
+    int maxLines = 10;
+    int charIndex = 0;
+    int linesDrawn = 0;
 
-            if (w > maxWidth || desc[i] == '\n') {
-                lineY += 12;
-                if (lineY > canvas->height() - 30) break;
-                canvas->setCursor(8, lineY);
-            }
-            canvas->print(word);
-            if (desc[i] == ' ') canvas->print(" ");
-            lineStart = i + 1;
+    while (charIndex < (int)desc.length() && linesDrawn < maxLines) {
+        // Find line end
+        int lineEnd = charIndex + maxCharsPerLine;
+        if (lineEnd > (int)desc.length()) {
+            lineEnd = desc.length();
+        }
+
+        // Check for newline before that
+        int newlinePos = desc.indexOf('\n', charIndex);
+        if (newlinePos >= 0 && newlinePos < lineEnd) {
+            lineEnd = newlinePos;
+        }
+
+        // Extract and print line
+        char lineBuf[32];
+        int lineLen = lineEnd - charIndex;
+        if (lineLen > 28) lineLen = 28;
+        strncpy(lineBuf, desc.c_str() + charIndex, lineLen);
+        lineBuf[lineLen] = '\0';
+
+        canvas->setCursor(8, lineY);
+        canvas->print(lineBuf);
+
+        lineY += 14;
+        linesDrawn++;
+        charIndex = lineEnd;
+        if (charIndex < (int)desc.length() && desc[charIndex] == '\n') {
+            charIndex++; // Skip newline
         }
     }
 
-    // Draw file info at bottom
-    if (!currentEntry.executionfile.location.isEmpty()) {
-        canvas->setCursor(8, canvas->height() - 20);
-        canvas->setTextColor(lilka::colors::Cyan);
-        canvas->print(K_S_LILCATALOG_ENTRY_DESCRIPTION_FILE);
-        canvas->println(currentEntry.executionfile.location);
-    }
-
-    queueDraw();
-
-    // Wait for button press
-    while (true) {
-        lilka::State state = lilka::controller.getState();
-        if (state.a.justPressed || state.b.justPressed) {
-            break;
-        }
-        delay(10);
-    }
-
-    state = LILCATALOG_ENTRY;
+    // Hint at bottom
+    canvas->setCursor(8, canvas->height() - 10);
+    canvas->setTextColor(lilka::colors::Graygrey);
+    canvas->print("A/B - Back");
 }
 
 void LilCatalogApp::loadNextPage() {
     if (currentPage < totalPages - 1) {
         if (fetchIndex(currentPage + 1)) {
-            showEntryList();
+            currentIndex = 0;
         }
     }
 }
@@ -980,153 +1203,9 @@ void LilCatalogApp::loadNextPage() {
 void LilCatalogApp::loadPrevPage() {
     if (currentPage > 0) {
         if (fetchIndex(currentPage - 1)) {
-            showEntryList();
+            currentIndex = entries.size() - 1;
         }
     }
-}
-
-// ================================
-// Icon Cache Methods
-// ================================
-
-String LilCatalogApp::getIconCachePath(const String& entryId) {
-    return String(CATALOG_ICON_CACHE_FOLDER) + "/" + entryId + ".bin";
-}
-
-bool LilCatalogApp::loadIconFromCache(const String& entryId) {
-    String cachePath = getIconCachePath(entryId);
-
-    if (!SD.exists(cachePath.c_str())) {
-        return false;
-    }
-
-    fs::File file = SD.open(cachePath.c_str(), FILE_READ);
-    if (!file) {
-        return false;
-    }
-
-    size_t bytesRead = file.read((uint8_t*)iconBuffer, CATALOG_ICON_MIN_SIZE);
-    file.close();
-
-    if (bytesRead == CATALOG_ICON_MIN_SIZE) {
-        iconBufferValid = true;
-        lilka::serial.log("Icon loaded from cache: %s", entryId.c_str());
-        return true;
-    }
-
-    return false;
-}
-
-bool LilCatalogApp::saveIconToCache(const String& entryId) {
-    if (!iconBufferValid) {
-        return false;
-    }
-
-    // Create cache folder if needed
-    if (!SD.exists(CATALOG_ICON_CACHE_FOLDER)) {
-        lilka::fileutils.makePath(&SD, CATALOG_ICON_CACHE_FOLDER);
-    }
-
-    String cachePath = getIconCachePath(entryId);
-    fs::File file = SD.open(cachePath.c_str(), FILE_WRITE);
-    if (!file) {
-        lilka::serial.err("Failed to create icon cache file: %s", cachePath.c_str());
-        return false;
-    }
-
-    size_t written = file.write((uint8_t*)iconBuffer, CATALOG_ICON_MIN_SIZE);
-    file.close();
-
-    lilka::serial.log("Icon saved to cache: %s (%d bytes)", entryId.c_str(), written);
-    return written == CATALOG_ICON_MIN_SIZE;
-}
-
-bool LilCatalogApp::loadIconForEntry(int entryIndex) {
-    if (entryIndex < 0 || entryIndex >= (int)entries.size()) {
-        return false;
-    }
-
-    const catalog_entry& entry = entries[entryIndex];
-
-    // Already loaded for this entry?
-    if (currentIconIndex == entryIndex && iconBufferValid) {
-        return true;
-    }
-
-    iconBufferValid = false;
-    currentIconIndex = entryIndex;
-
-    // Try to load from SD cache first
-    if (loadIconFromCache(entry.id)) {
-        return true;
-    }
-
-    // Need to fetch from network - get icon_min name from full manifest if we don't have it
-    String iconMinName = entry.icon_min;
-    if (iconMinName.isEmpty()) {
-        // Construct default name based on entry id
-        iconMinName = entry.id + "_min.bin";
-
-        // Try common patterns
-        char url[256];
-        if (currentType == CATALOG_TYPE_APPS) {
-            // First try fetching full manifest to get icon_min name
-            snprintf(url, sizeof(url), CATALOG_APP_MANIFEST_URL, entry.id.c_str());
-        } else {
-            snprintf(url, sizeof(url), CATALOG_MOD_MANIFEST_URL, entry.id.c_str());
-        }
-
-        String json = httpGet(url);
-        if (json.length() > 0) {
-            JsonDocument doc(&spiRamAllocator);
-            if (!deserializeJson(doc, json)) {
-                if (doc.containsKey("icon_min")) {
-                    iconMinName = doc["icon_min"].as<String>();
-                }
-            }
-        }
-    }
-
-    if (iconMinName.isEmpty()) {
-        return false;
-    }
-
-    // Fetch from network
-    if (fetchMiniIcon(entry.id, iconMinName, iconBuffer)) {
-        iconBufferValid = true;
-        // Save to cache for next time
-        saveIconToCache(entry.id);
-        return true;
-    }
-
-    return false;
-}
-
-void LilCatalogApp::clearIconCache() {
-    iconBufferValid = false;
-    currentIconIndex = -1;
-}
-
-void LilCatalogApp::clearAllIconCache() {
-    clearIconCache();
-
-    // Remove all cached icon files from SD
-    if (SD.exists(CATALOG_ICON_CACHE_FOLDER)) {
-        fs::File dir = SD.open(CATALOG_ICON_CACHE_FOLDER);
-        if (dir && dir.isDirectory()) {
-            fs::File entry = dir.openNextFile();
-            while (entry) {
-                String path = String(CATALOG_ICON_CACHE_FOLDER) + "/" + entry.name();
-                entry.close();
-                SD.remove(path.c_str());
-                entry = dir.openNextFile();
-            }
-            dir.close();
-        }
-        SD.rmdir(CATALOG_ICON_CACHE_FOLDER);
-    }
-
-    lilka::serial.log("Icon cache cleared");
 }
 
 void LilCatalogApp::showAlert(const String& message) {
@@ -1136,5 +1215,4 @@ void LilCatalogApp::showAlert(const String& message) {
     while (!alert.isFinished()) {
         alert.update();
     }
-    lilka::serial.log(message.c_str());
 }

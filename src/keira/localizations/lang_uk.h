@@ -249,7 +249,9 @@
 #define K_S_LILCATALOG_ARCHIVE_NOTICE                "Архіви потрібно розпакувати вручну"
 #define K_S_LILCATALOG_UNSUPPORTED_TYPE              "Непідтримуваний тип файлу"
 #define K_S_LILCATALOG_CLEAR_CACHE                   "Очистити кеш"
-#define K_S_LILCATALOG_CACHE_CLEARED                 "Кеш іконок очищено"
+#define K_S_LILCATALOG_CACHE_CLEARED                 "Кеш очищено"
+#define K_S_LILCATALOG_INSTALLED                     "Встановлені"
+#define K_S_LILCATALOG_NO_INSTALLED                  "Немає встановлених"
 
 #define K_S_LILCATALOG_ERROR_CREATE_FOLDER           "Помилка створення каталогу"
 #define K_S_LILCATALOG_ERROR_LOAD_CATALOG            "Помилка завантаження каталогу"

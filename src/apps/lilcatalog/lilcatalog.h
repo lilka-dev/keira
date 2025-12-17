@@ -12,28 +12,23 @@
 #include "../nes/nesapp.h"
 #include "../fmanager/fmanager.h"
 
-// Base URL for catalog API
+// Base URL for catalog API (apps only)
 #define CATALOG_BASE_URL               "https://catalog.lilka.dev"
 #define CATALOG_APPS_INDEX_URL         CATALOG_BASE_URL "/apps/index_%d.json"
-#define CATALOG_MODS_INDEX_URL         CATALOG_BASE_URL "/mods/index_%d.json"
 #define CATALOG_APP_MANIFEST_URL       CATALOG_BASE_URL "/apps/%s/index.json"
 #define CATALOG_APP_SHORT_MANIFEST_URL CATALOG_BASE_URL "/apps/%s/index_short.json"
 #define CATALOG_APP_STATIC_URL         CATALOG_BASE_URL "/apps/%s/static/%s"
-#define CATALOG_MOD_MANIFEST_URL       CATALOG_BASE_URL "/mods/%s/index.json"
-#define CATALOG_MOD_STATIC_URL         CATALOG_BASE_URL "/mods/%s/static/%s"
 
-// Icon size for mini icons (icon_min.bin is RGB565 raw format)
-#define CATALOG_ICON_MIN_WIDTH  32
-#define CATALOG_ICON_MIN_HEIGHT 32
-#define CATALOG_ICON_MIN_SIZE   (CATALOG_ICON_MIN_WIDTH * CATALOG_ICON_MIN_HEIGHT * 2)
+// Icon size for mini icons (icon_min.bin is RGB565 raw format, 64x64 px)
+#define CATALOG_ICON_WIDTH  64
+#define CATALOG_ICON_HEIGHT 64
+#define CATALOG_ICON_SIZE   (CATALOG_ICON_WIDTH * CATALOG_ICON_HEIGHT * 2) // 8192 bytes
 
-// Icon cache paths
-#define CATALOG_ICON_CACHE_FOLDER "/lilcatalog/icons"
+// Cache paths
+#define CATALOG_ICON_CACHE_FOLDER     "/lilcatalog/icons"
+#define CATALOG_MANIFEST_CACHE_FOLDER "/lilcatalog/manifests"
 
-// Catalog types
-typedef enum { CATALOG_TYPE_APPS, CATALOG_TYPE_MODS } CatalogType;
-
-// Execution file types from the new catalog API
+// Execution file types
 typedef enum { EXEC_TYPE_UNKNOWN, EXEC_TYPE_LUA, EXEC_TYPE_BINARY, EXEC_TYPE_ARCHIVE, EXEC_TYPE_IMAGE } ExecutionType;
 
 // Source info
@@ -42,47 +37,33 @@ typedef struct {
     String origin; // Repository URL
 } catalog_source;
 
-// Execution file info
+// File info (for entryfile and files array)
 typedef struct {
     ExecutionType type;
-    String location; // Filename in static folder or external URL
-} catalog_execution_file;
-
-// Mod file info (for mods)
-typedef struct {
-    String name;
     String location;
-} catalog_mod_file;
+    String description; // Optional description for additional files
+} catalog_file;
 
-// App/Mod entry from manifest
+// App entry from manifest
 typedef struct {
-    String id; // Directory name (e.g., "matrix-rain")
-    String name; // Display name
+    String id;
+    String name;
     String short_description;
-    String description; // Full markdown description
-    String changelog;
+    String description;
     String author;
-    String icon; // Icon filename
-    String icon_min; // Mini icon filename (32x32 RGB565 raw)
-    std::vector<String> screenshots;
+    String icon;
+    String icon_min;
     catalog_source sources;
-    catalog_execution_file executionfile;
-    std::vector<catalog_mod_file> modfiles; // For mods only
+    catalog_file entryfile; // Main entry file
+    std::vector<catalog_file> files; // Additional files
 } catalog_entry;
-
-// Index page data
-typedef struct {
-    int page;
-    int total_pages;
-    std::vector<String> manifests;
-} catalog_index;
 
 // UI States
 typedef enum {
-    LILCATALOG_TYPE_SELECT, // Select apps/mods
-    LILCATALOG_LIST, // List of entries
-    LILCATALOG_ENTRY, // Entry details
-    LILCATALOG_ENTRY_DESCRIPTION // Full description view
+    LILCATALOG_MAIN_MENU, // Main menu with options
+    LILCATALOG_LIST, // Single-item view with left/right scroll
+    LILCATALOG_ENTRY, // Entry details menu
+    LILCATALOG_DESCRIPTION // Full description view
 } LilCatalogState;
 
 class LilCatalogApp : public App {
@@ -90,8 +71,7 @@ public:
     LilCatalogApp();
 
 private:
-    LilCatalogState state = LILCATALOG_TYPE_SELECT;
-    CatalogType currentType = CATALOG_TYPE_APPS;
+    LilCatalogState state = LILCATALOG_LIST;
 
     String path_catalog_folder;
 
@@ -102,15 +82,17 @@ private:
     // Current entries loaded
     std::vector<catalog_entry> entries;
     catalog_entry currentEntry;
-    int currentIconIndex = -1;
 
-    // Single shared icon buffer (saves RAM - only one icon loaded at a time)
-    uint16_t iconBuffer[CATALOG_ICON_MIN_WIDTH * CATALOG_ICON_MIN_HEIGHT];
-    bool iconBufferValid = false;
+    // Single-item view state
+    int currentIndex = 0; // Currently displayed app index
+    int loadedIconIndex = -1; // Which entry's icon is in buffer
+
+    // Icon buffer (64x64 RGB565)
+    uint16_t iconBuffer[CATALOG_ICON_WIDTH * CATALOG_ICON_HEIGHT];
+    bool iconLoaded = false;
 
     // Menus
-    lilka::Menu typeMenu;
-    lilka::Menu listMenu;
+    lilka::Menu mainMenu;
     lilka::Menu entryMenu;
 
     // Network methods
@@ -123,15 +105,21 @@ private:
     bool fetchIndex(int page);
     bool fetchEntryManifest(const String& entryId);
     bool fetchEntryShortManifest(const String& entryId, catalog_entry& entry);
-    bool fetchMiniIcon(const String& entryId, const String& iconMinName, uint16_t* buffer);
+    bool fetchIcon(const String& entryId, const String& iconMinName);
 
-    // Icon cache methods (stores icons on SD card)
+    // Icon cache methods
     String getIconCachePath(const String& entryId);
     bool loadIconFromCache(const String& entryId);
     bool saveIconToCache(const String& entryId);
-    bool loadIconForEntry(int entryIndex);
+    void loadCurrentIcon();
     void clearIconCache();
-    void clearAllIconCache();
+
+    // Manifest cache methods
+    String getManifestCachePath(const String& entryId);
+    bool saveManifestToCache(const String& entryId, const String& json);
+    String loadManifestFromCache(const String& entryId);
+    bool loadInstalledApps(); // Load apps from cache for offline mode
+    void clearManifestCache();
 
     // Parsing
     bool parseIndex(const String& json);
@@ -150,16 +138,15 @@ private:
     void fileLoadAsRom(const String& path);
 
     // UI methods
-    void showTypeSelect();
-    void showEntryList();
+    void showMainMenu();
+    void drawAppView();
+    void handleInput();
     void showEntry();
-    void showEntryDescription();
+    void showDescription();
+    void drawDescription();
     void loadNextPage();
     void loadPrevPage();
 
     void run() override;
-    void processMenu();
-    void processBackButton();
-
     void showAlert(const String& message);
 };
