@@ -251,6 +251,8 @@
 
 #define K_S_LILCATALOG_ARCHIVE_NOTICE                "Archives need to be extracted manually"
 #define K_S_LILCATALOG_UNSUPPORTED_TYPE              "Unsupported file type"
+#define K_S_LILCATALOG_CLEAR_CACHE                   "Clear icon cache"
+#define K_S_LILCATALOG_CACHE_CLEARED                 "Icon cache cleared"
 
 #define K_S_LILCATALOG_ERROR_CREATE_FOLDER           "Error creating folder"
 #define K_S_LILCATALOG_ERROR_LOAD_CATALOG            "Error loading catalog"

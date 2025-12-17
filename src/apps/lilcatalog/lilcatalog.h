@@ -27,6 +27,9 @@
 #define CATALOG_ICON_MIN_HEIGHT 32
 #define CATALOG_ICON_MIN_SIZE   (CATALOG_ICON_MIN_WIDTH * CATALOG_ICON_MIN_HEIGHT * 2)
 
+// Icon cache paths
+#define CATALOG_ICON_CACHE_FOLDER "/lilcatalog/icons"
+
 // Catalog types
 typedef enum { CATALOG_TYPE_APPS, CATALOG_TYPE_MODS } CatalogType;
 
@@ -99,9 +102,11 @@ private:
     // Current entries loaded
     std::vector<catalog_entry> entries;
     catalog_entry currentEntry;
+    int currentIconIndex = -1;
 
-    // Mini icons cache (loaded from API)
-    std::vector<uint16_t*> iconCache;
+    // Single shared icon buffer (saves RAM - only one icon loaded at a time)
+    uint16_t iconBuffer[CATALOG_ICON_MIN_WIDTH * CATALOG_ICON_MIN_HEIGHT];
+    bool iconBufferValid = false;
 
     // Menus
     lilka::Menu typeMenu;
@@ -119,6 +124,14 @@ private:
     bool fetchEntryManifest(const String& entryId);
     bool fetchEntryShortManifest(const String& entryId, catalog_entry& entry);
     bool fetchMiniIcon(const String& entryId, const String& iconMinName, uint16_t* buffer);
+
+    // Icon cache methods (stores icons on SD card)
+    String getIconCachePath(const String& entryId);
+    bool loadIconFromCache(const String& entryId);
+    bool saveIconToCache(const String& entryId);
+    bool loadIconForEntry(int entryIndex);
+    void clearIconCache();
+    void clearAllIconCache();
 
     // Parsing
     bool parseIndex(const String& json);
@@ -149,5 +162,4 @@ private:
     void processBackButton();
 
     void showAlert(const String& message);
-    void clearIconCache();
 };

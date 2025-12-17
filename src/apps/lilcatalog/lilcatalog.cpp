@@ -305,7 +305,8 @@ bool LilCatalogApp::parseIndex(const String& json) {
     totalPages = doc["total_pages"].as<int>();
 
     entries.clear();
-    clearIconCache();
+    iconBufferValid = false;
+    currentIconIndex = -1;
 
     JsonArray manifests = doc["manifests"].as<JsonArray>();
     for (JsonVariant v : manifests) {
@@ -316,7 +317,6 @@ bool LilCatalogApp::parseIndex(const String& json) {
         // Fetch short manifest for basic info
         if (fetchEntryShortManifest(entryId, entry)) {
             entries.push_back(entry);
-            iconCache.push_back(nullptr); // Placeholder for icon
         }
     }
 
@@ -660,6 +660,19 @@ void LilCatalogApp::showTypeSelect() {
     );
 
     typeMenu.addItem(
+        K_S_LILCATALOG_CLEAR_CACHE,
+        nullptr,
+        lilka::colors::Orange,
+        K_S_LILCATALOG_EMPTY,
+        [](void* ctx) {
+            LilCatalogApp* app = static_cast<LilCatalogApp*>(ctx);
+            app->clearAllIconCache();
+            app->showAlert(K_S_LILCATALOG_CACHE_CLEARED);
+        },
+        this
+    );
+
+    typeMenu.addItem(
         K_S_LILCATALOG_STOP,
         nullptr,
         lilka::colors::White,
@@ -736,7 +749,6 @@ void LilCatalogApp::showEntryList() {
         K_S_LILCATALOG_EMPTY,
         [](void* ctx) {
             LilCatalogApp* app = static_cast<LilCatalogApp*>(ctx);
-            app->clearIconCache();
             app->showTypeSelect();
         },
         this
@@ -767,7 +779,6 @@ void LilCatalogApp::showEntryList() {
         }
 
         if (lilka::controller.peekState().b.justPressed) {
-            clearIconCache();
             showTypeSelect();
             return;
         }
@@ -869,15 +880,92 @@ void LilCatalogApp::showEntry() {
 void LilCatalogApp::showEntryDescription() {
     state = LILCATALOG_ENTRY_DESCRIPTION;
 
-    String description = K_S_LILCATALOG_ENTRY_DESCRIPTION_NAME + currentEntry.name + "\n" +
-                         K_S_LILCATALOG_ENTRY_DESCRIPTION_AUTHOR + currentEntry.author + "\n\n" +
-                         K_S_LILCATALOG_ENTRY_DESCRIPTION_DESCRIPTION + "\n" + currentEntry.short_description;
-
-    if (!currentEntry.executionfile.location.isEmpty()) {
-        description += "\n\n" + String(K_S_LILCATALOG_ENTRY_DESCRIPTION_FILE) + currentEntry.executionfile.location;
+    // Try to load icon for display
+    bool hasIcon = false;
+    if (!currentEntry.icon_min.isEmpty()) {
+        // Try cache first, then network
+        if (loadIconFromCache(currentEntry.id)) {
+            hasIcon = true;
+        } else if (fetchMiniIcon(currentEntry.id, currentEntry.icon_min, iconBuffer)) {
+            iconBufferValid = true;
+            saveIconToCache(currentEntry.id);
+            hasIcon = true;
+        }
     }
 
-    showAlert(description);
+    // Draw custom description screen with icon
+    canvas->fillScreen(lilka::colors::Black);
+
+    int yPos = 8;
+    int xPos = 8;
+
+    // Draw icon if available
+    if (hasIcon && iconBufferValid) {
+        canvas->draw16bitRGBBitmapWithTranColor(
+            xPos, yPos, iconBuffer, lilka::colors::Black, CATALOG_ICON_MIN_WIDTH, CATALOG_ICON_MIN_HEIGHT
+        );
+        xPos += CATALOG_ICON_MIN_WIDTH + 8;
+    }
+
+    // Draw title next to icon
+    canvas->setTextColor(lilka::colors::White);
+    canvas->setCursor(xPos, yPos + 4);
+    canvas->setTextSize(1);
+    canvas->println(currentEntry.name);
+
+    // Draw author
+    canvas->setCursor(xPos, yPos + 20);
+    canvas->setTextColor(lilka::colors::Light_gray);
+    canvas->println(currentEntry.author);
+
+    // Draw description below icon
+    yPos = hasIcon ? (8 + CATALOG_ICON_MIN_HEIGHT + 8) : 50;
+    canvas->setCursor(8, yPos);
+    canvas->setTextColor(lilka::colors::White);
+
+    // Word-wrap the description
+    String desc = currentEntry.short_description;
+    int maxWidth = canvas->width() - 16;
+    int lineStart = 0;
+    int lineY = yPos;
+
+    for (int i = 0; i <= desc.length(); i++) {
+        if (i == desc.length() || desc[i] == '\n' || desc[i] == ' ') {
+            String word = desc.substring(lineStart, i);
+            int16_t x1, y1;
+            uint16_t w, h;
+            canvas->getTextBounds(word.c_str(), 0, 0, &x1, &y1, &w, &h);
+
+            if (w > maxWidth || desc[i] == '\n') {
+                lineY += 12;
+                if (lineY > canvas->height() - 30) break;
+                canvas->setCursor(8, lineY);
+            }
+            canvas->print(word);
+            if (desc[i] == ' ') canvas->print(" ");
+            lineStart = i + 1;
+        }
+    }
+
+    // Draw file info at bottom
+    if (!currentEntry.executionfile.location.isEmpty()) {
+        canvas->setCursor(8, canvas->height() - 20);
+        canvas->setTextColor(lilka::colors::Cyan);
+        canvas->print(K_S_LILCATALOG_ENTRY_DESCRIPTION_FILE);
+        canvas->println(currentEntry.executionfile.location);
+    }
+
+    queueDraw();
+
+    // Wait for button press
+    while (true) {
+        lilka::State state = lilka::controller.getState();
+        if (state.a.justPressed || state.b.justPressed) {
+            break;
+        }
+        delay(10);
+    }
+
     state = LILCATALOG_ENTRY;
 }
 
@@ -897,13 +985,148 @@ void LilCatalogApp::loadPrevPage() {
     }
 }
 
-void LilCatalogApp::clearIconCache() {
-    for (uint16_t* icon : iconCache) {
-        if (icon != nullptr) {
-            free(icon);
+// ================================
+// Icon Cache Methods
+// ================================
+
+String LilCatalogApp::getIconCachePath(const String& entryId) {
+    return String(CATALOG_ICON_CACHE_FOLDER) + "/" + entryId + ".bin";
+}
+
+bool LilCatalogApp::loadIconFromCache(const String& entryId) {
+    String cachePath = getIconCachePath(entryId);
+
+    if (!SD.exists(cachePath.c_str())) {
+        return false;
+    }
+
+    fs::File file = SD.open(cachePath.c_str(), FILE_READ);
+    if (!file) {
+        return false;
+    }
+
+    size_t bytesRead = file.read((uint8_t*)iconBuffer, CATALOG_ICON_MIN_SIZE);
+    file.close();
+
+    if (bytesRead == CATALOG_ICON_MIN_SIZE) {
+        iconBufferValid = true;
+        lilka::serial.log("Icon loaded from cache: %s", entryId.c_str());
+        return true;
+    }
+
+    return false;
+}
+
+bool LilCatalogApp::saveIconToCache(const String& entryId) {
+    if (!iconBufferValid) {
+        return false;
+    }
+
+    // Create cache folder if needed
+    if (!SD.exists(CATALOG_ICON_CACHE_FOLDER)) {
+        lilka::fileutils.makePath(&SD, CATALOG_ICON_CACHE_FOLDER);
+    }
+
+    String cachePath = getIconCachePath(entryId);
+    fs::File file = SD.open(cachePath.c_str(), FILE_WRITE);
+    if (!file) {
+        lilka::serial.err("Failed to create icon cache file: %s", cachePath.c_str());
+        return false;
+    }
+
+    size_t written = file.write((uint8_t*)iconBuffer, CATALOG_ICON_MIN_SIZE);
+    file.close();
+
+    lilka::serial.log("Icon saved to cache: %s (%d bytes)", entryId.c_str(), written);
+    return written == CATALOG_ICON_MIN_SIZE;
+}
+
+bool LilCatalogApp::loadIconForEntry(int entryIndex) {
+    if (entryIndex < 0 || entryIndex >= (int)entries.size()) {
+        return false;
+    }
+
+    const catalog_entry& entry = entries[entryIndex];
+
+    // Already loaded for this entry?
+    if (currentIconIndex == entryIndex && iconBufferValid) {
+        return true;
+    }
+
+    iconBufferValid = false;
+    currentIconIndex = entryIndex;
+
+    // Try to load from SD cache first
+    if (loadIconFromCache(entry.id)) {
+        return true;
+    }
+
+    // Need to fetch from network - get icon_min name from full manifest if we don't have it
+    String iconMinName = entry.icon_min;
+    if (iconMinName.isEmpty()) {
+        // Construct default name based on entry id
+        iconMinName = entry.id + "_min.bin";
+
+        // Try common patterns
+        char url[256];
+        if (currentType == CATALOG_TYPE_APPS) {
+            // First try fetching full manifest to get icon_min name
+            snprintf(url, sizeof(url), CATALOG_APP_MANIFEST_URL, entry.id.c_str());
+        } else {
+            snprintf(url, sizeof(url), CATALOG_MOD_MANIFEST_URL, entry.id.c_str());
+        }
+
+        String json = httpGet(url);
+        if (json.length() > 0) {
+            JsonDocument doc(&spiRamAllocator);
+            if (!deserializeJson(doc, json)) {
+                if (doc.containsKey("icon_min")) {
+                    iconMinName = doc["icon_min"].as<String>();
+                }
+            }
         }
     }
-    iconCache.clear();
+
+    if (iconMinName.isEmpty()) {
+        return false;
+    }
+
+    // Fetch from network
+    if (fetchMiniIcon(entry.id, iconMinName, iconBuffer)) {
+        iconBufferValid = true;
+        // Save to cache for next time
+        saveIconToCache(entry.id);
+        return true;
+    }
+
+    return false;
+}
+
+void LilCatalogApp::clearIconCache() {
+    iconBufferValid = false;
+    currentIconIndex = -1;
+}
+
+void LilCatalogApp::clearAllIconCache() {
+    clearIconCache();
+
+    // Remove all cached icon files from SD
+    if (SD.exists(CATALOG_ICON_CACHE_FOLDER)) {
+        fs::File dir = SD.open(CATALOG_ICON_CACHE_FOLDER);
+        if (dir && dir.isDirectory()) {
+            fs::File entry = dir.openNextFile();
+            while (entry) {
+                String path = String(CATALOG_ICON_CACHE_FOLDER) + "/" + entry.name();
+                entry.close();
+                SD.remove(path.c_str());
+                entry = dir.openNextFile();
+            }
+            dir.close();
+        }
+        SD.rmdir(CATALOG_ICON_CACHE_FOLDER);
+    }
+
+    lilka::serial.log("Icon cache cleared");
 }
 
 void LilCatalogApp::showAlert(const String& message) {
