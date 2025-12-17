@@ -218,10 +218,10 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // apps/lilcatalog/lilcatalog.cpp /////////////////////////////////////////////////////////////////////
-#define K_S_LILCATALOG_LANGUAGE                      "uk"
 #define K_S_LILCATALOG_APP                           "ЛілКаталог"
 
-#define K_S_LILCATALOG_FETCH_CATALOG                 "Оновити каталог"
+#define K_S_LILCATALOG_APPS                          "Додатки"
+#define K_S_LILCATALOG_MODS                          "Моди"
 #define K_S_LILCATALOG_STOP                          "Вихід"
 #define K_S_LILCATALOG_BACK                          "Назад"
 #define K_S_LILCATALOG_EMPTY                         ""
@@ -230,24 +230,29 @@
 #define K_S_LILCATALOG_INSTALL                       "Встановити"
 #define K_S_LILCATALOG_REMOVE                        "Видалити"
 #define K_S_LILCATALOG_UPDATE                        "Оновити"
+#define K_S_LILCATALOG_SOURCE                        "Джерело"
 #define K_S_LILCATALOG_ENTRY_DESCRIPTION             "Опис"
 #define K_S_LILCATALOG_LOADING                       "Завантаження"
+#define K_S_LILCATALOG_LOADING_CATALOG               "Завантаження каталогу..."
 #define K_S_LILCATALOG_STARTING                      "Починаємо..."
 #define K_S_LILCATALOG_ENTRY_DESCRIPTION_NAME        "Назва: "
 #define K_S_LILCATALOG_ENTRY_DESCRIPTION_AUTHOR      "Автор: "
 #define K_S_LILCATALOG_ENTRY_DESCRIPTION_DESCRIPTION "Опис: "
-#define K_S_LILCATALOG_ENTRY_DESCRIPTION_FILES       "Файли: "
+#define K_S_LILCATALOG_ENTRY_DESCRIPTION_FILE        "Файл: "
 
-#define K_S_LILCATALOG_CATEGORY_POSTFIX              " елементів"
+#define K_S_LILCATALOG_NEXT_PAGE                     ">> Наступна сторінка"
+#define K_S_LILCATALOG_PREV_PAGE                     "<< Попередня сторінка"
 #define K_S_LILCATALOG_SIZE                          "Розмір:"
 #define K_S_LILCATALOG_FILE_LOADING                  "Завантаження файлу..."
-#define K_S_LILCATALOG_FILE_LOADING_COMPLETE         "Файл завантажено, та збережено"
+#define K_S_LILCATALOG_FILE_LOADING_COMPLETE         "Файл завантажено та збережено"
+
+#define K_S_LILCATALOG_ARCHIVE_NOTICE                "Архіви потрібно розпакувати вручну"
+#define K_S_LILCATALOG_UNSUPPORTED_TYPE              "Непідтримуваний тип файлу"
 
 #define K_S_LILCATALOG_ERROR_CREATE_FOLDER           "Помилка створення каталогу"
-#define K_S_LILCATALOG_ERROR_NO_CATALOG              "Каталог не знайдено. Завантажте його з інтернету"
 #define K_S_LILCATALOG_ERROR_LOAD_CATALOG            "Помилка завантаження каталогу"
 #define K_S_LILCATALOG_ERROR_FILE_OPEN               "Помилка відкриття файлу"
-#define K_S_LILCATALOG_ERROR_CONNECTION              "Помилка підключення:"
+#define K_S_LILCATALOG_ERROR_CONNECTION              "Помилка підключення: "
 #define K_S_LILCATALOG_ERROR_DIRETORY_CREATE         "Помилка створення директорії"
 #define K_S_LILCATALOG_ERROR_STAGE1                  "Етап: 1\nКод: "
 #define K_S_LILCATALOG_ERROR_STAGE2                  "Етап: 2\nКод: "

@@ -221,10 +221,10 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // apps/lilcatalog/lilcatalog.cpp /////////////////////////////////////////////////////////////////////
-#define K_S_LILCATALOG_LANGUAGE                      "uk"
 #define K_S_LILCATALOG_APP                           "LilCatalogue"
 
-#define K_S_LILCATALOG_FETCH_CATALOG                 "Update catalogue"
+#define K_S_LILCATALOG_APPS                          "Apps"
+#define K_S_LILCATALOG_MODS                          "Mods"
 #define K_S_LILCATALOG_STOP                          "Exit"
 #define K_S_LILCATALOG_BACK                          "Back"
 #define K_S_LILCATALOG_EMPTY                         ""
@@ -233,29 +233,34 @@
 #define K_S_LILCATALOG_INSTALL                       "Install"
 #define K_S_LILCATALOG_REMOVE                        "Delete"
 #define K_S_LILCATALOG_UPDATE                        "Update"
+#define K_S_LILCATALOG_SOURCE                        "Source"
 #define K_S_LILCATALOG_ENTRY_DESCRIPTION             "Description"
-#define K_S_LILCATALOG_LOADING                       "Downloading" // ?
+#define K_S_LILCATALOG_LOADING                       "Downloading"
+#define K_S_LILCATALOG_LOADING_CATALOG               "Loading catalog..."
 #define K_S_LILCATALOG_STARTING                      "Starting..."
 #define K_S_LILCATALOG_ENTRY_DESCRIPTION_NAME        "Name: "
 #define K_S_LILCATALOG_ENTRY_DESCRIPTION_AUTHOR      "Author: "
 #define K_S_LILCATALOG_ENTRY_DESCRIPTION_DESCRIPTION "Description: "
-#define K_S_LILCATALOG_ENTRY_DESCRIPTION_FILES       "Files: "
+#define K_S_LILCATALOG_ENTRY_DESCRIPTION_FILE        "File: "
 
-#define K_S_LILCATALOG_CATEGORY_POSTFIX              " elements" // 4 elements? :D
+#define K_S_LILCATALOG_NEXT_PAGE                     ">> Next page"
+#define K_S_LILCATALOG_PREV_PAGE                     "<< Previous page"
 #define K_S_LILCATALOG_SIZE                          "Size:"
 #define K_S_LILCATALOG_FILE_LOADING                  "Downloading file..."
-#define K_S_LILCATALOG_FILE_LOADING_COMPLETE         "File downloaded and saved" // simplify this bullshit
+#define K_S_LILCATALOG_FILE_LOADING_COMPLETE         "File downloaded and saved"
 
-#define K_S_LILCATALOG_ERROR_CREATE_FOLDER           "Помилка створення каталогу"
-#define K_S_LILCATALOG_ERROR_NO_CATALOG              "Каталог не знайдено. Завантажте його з інтернету"
-#define K_S_LILCATALOG_ERROR_LOAD_CATALOG            "Помилка завантаження каталогу"
-#define K_S_LILCATALOG_ERROR_FILE_OPEN               "Помилка відкриття файлу"
-#define K_S_LILCATALOG_ERROR_CONNECTION              "Помилка підключення:"
-#define K_S_LILCATALOG_ERROR_DIRETORY_CREATE         "Помилка створення директорії"
-#define K_S_LILCATALOG_ERROR_STAGE1                  "Етап: 1\nКод: "
-#define K_S_LILCATALOG_ERROR_STAGE2                  "Етап: 2\nКод: "
-#define K_S_LILCATALOG_ERROR_STAGE3                  "Етап: 3\nКод: "
-#define K_S_LILCATALOG_SD_NOTFOUND                   "SD карта не знайдена. Неможливо продовжити"
+#define K_S_LILCATALOG_ARCHIVE_NOTICE                "Archives need to be extracted manually"
+#define K_S_LILCATALOG_UNSUPPORTED_TYPE              "Unsupported file type"
+
+#define K_S_LILCATALOG_ERROR_CREATE_FOLDER           "Error creating folder"
+#define K_S_LILCATALOG_ERROR_LOAD_CATALOG            "Error loading catalog"
+#define K_S_LILCATALOG_ERROR_FILE_OPEN               "Error opening file"
+#define K_S_LILCATALOG_ERROR_CONNECTION              "Connection error: "
+#define K_S_LILCATALOG_ERROR_DIRETORY_CREATE         "Error creating directory"
+#define K_S_LILCATALOG_ERROR_STAGE1                  "Stage: 1\nCode: "
+#define K_S_LILCATALOG_ERROR_STAGE2                  "Stage: 2\nCode: "
+#define K_S_LILCATALOG_ERROR_STAGE3                  "Stage: 3\nCode: "
+#define K_S_LILCATALOG_SD_NOTFOUND                   "SD card not found. Cannot continue"
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // apps/demos/letris.cpp //////////////////////////////////////////////////////////////////////////////
