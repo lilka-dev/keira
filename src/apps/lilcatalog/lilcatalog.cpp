@@ -1102,10 +1102,13 @@ void LilCatalogApp::drawAppView() {
     int bottomBarY = canvas->height() - 18;
     canvas->fillRect(0, bottomBarY, canvas->width(), 18, lilka::colors::Black);
 
-    // Draw item counter
+    // Draw item counter and page counter
     canvas->setTextColor(lilka::colors::Graygrey);
     String counterStr = String(currentIndex + 1) + "/" + String(entries.size());
-    canvas->setCursor(canvas->width() / 2 - 20, canvas->height() - 6);
+    if (totalPages > 1) {
+        counterStr += " [" + String(currentPage + 1) + "/" + String(totalPages) + "]";
+    }
+    canvas->setCursor(canvas->width() / 2 - 40, canvas->height() - 6);
     canvas->print(counterStr);
 
     // Draw hint
