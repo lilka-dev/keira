@@ -116,7 +116,6 @@ bool LilCatalogApp::httpGetBinary(const String& url, uint8_t* buffer, size_t buf
                 *bytesRead += actualRead;
                 remaining -= actualRead;
             }
-            
         }
 
         http.end();
@@ -162,7 +161,6 @@ bool LilCatalogApp::downloadFile(const String& url, const String& targetPath) {
                 file.write(downloadBuffer, actualRead);
                 written += actualRead;
             }
-            
         }
 
         file.close();
@@ -220,7 +218,6 @@ bool LilCatalogApp::downloadFileWithProgress(const String& url, const String& ta
                 dialog.draw(canvas);
                 queueDraw();
             }
-            
         }
 
         file.close();
@@ -272,9 +269,9 @@ bool LilCatalogApp::parseIndex(const String& json) {
     JsonArray manifests = doc["manifests"].as<JsonArray>();
     int total = manifests.size();
     int loaded = 0;
-    
+
     lilka::ProgressDialog progress(K_S_LILCATALOG_APP, K_S_LILCATALOG_LOADING_CATALOG);
-    
+
     for (JsonVariant v : manifests) {
         String entryId = v.as<String>();
         catalog_entry entry;
@@ -283,7 +280,7 @@ bool LilCatalogApp::parseIndex(const String& json) {
         if (fetchEntryShortManifest(entryId, entry)) {
             entries.push_back(entry);
         }
-        
+
         loaded++;
         progress.setProgress(loaded * 100 / total);
         progress.draw(canvas);
@@ -297,18 +294,18 @@ bool LilCatalogApp::parseIndex(const String& json) {
 bool LilCatalogApp::fetchEntryShortManifest(const String& entryId, catalog_entry& entry) {
     // Try cache first
     String json = loadShortManifestFromCache(entryId);
-    
+
     // If not cached, fetch from network with shorter timeout
     if (json.length() == 0) {
         String url = String(CATALOG_BASE_URL) + "/apps/" + entryId + "/index_short.json";
         json = httpGet(url, CATALOG_HTTP_TIMEOUT_SHORT);
-        
+
         // Cache for next time
         if (json.length() > 0) {
             saveShortManifestToCache(entryId, json);
         }
     }
-    
+
     if (json.length() == 0) {
         return false;
     }
@@ -326,7 +323,7 @@ bool LilCatalogApp::parseShortManifest(const String& json, catalog_entry& entry)
 
     entry.name = doc["name"].as<String>();
     entry.short_description = doc["short_description"].as<String>();
-    
+
     // Also cache icon_min if available
     if (doc.containsKey("icon_min")) {
         entry.icon_min = doc["icon_min"].as<String>();
@@ -502,13 +499,13 @@ void LilCatalogApp::drawLoadingAnimation() {
     // Draw loading animation in icon area
     int iconX = (canvas->width() - CATALOG_ICON_WIDTH) / 2;
     int iconY = 28;
-    
+
     canvas->drawRect(iconX, iconY, CATALOG_ICON_WIDTH, CATALOG_ICON_HEIGHT, lilka::colors::Graygrey);
-    
+
     int centerX = iconX + CATALOG_ICON_WIDTH / 2;
     int centerY = iconY + CATALOG_ICON_HEIGHT / 2;
     int radius = 12;
-    
+
     for (int i = 0; i < 8; i++) {
         float angle = (i * 45 + loadingFrame * 45) * 3.14159f / 180.0f;
         int dotX = centerX + cos(angle) * radius;
@@ -1023,11 +1020,11 @@ void LilCatalogApp::drawAppView() {
     } else {
         // Draw loading animation (spinning dots)
         canvas->drawRect(iconX, iconY, CATALOG_ICON_WIDTH, CATALOG_ICON_HEIGHT, lilka::colors::Graygrey);
-        
+
         int centerX = iconX + CATALOG_ICON_WIDTH / 2;
         int centerY = iconY + CATALOG_ICON_HEIGHT / 2;
         int radius = 12;
-        
+
         for (int i = 0; i < 8; i++) {
             float angle = (i * 45 + loadingFrame * 45) * 3.14159f / 180.0f;
             int dotX = centerX + cos(angle) * radius;

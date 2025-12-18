@@ -21,13 +21,13 @@
 #define CATALOG_ICON_SIZE   (CATALOG_ICON_WIDTH * CATALOG_ICON_HEIGHT * 2) // 8192 bytes
 
 // Cache paths
-#define CATALOG_ICON_CACHE_FOLDER          "/lilcatalog/icons"
-#define CATALOG_MANIFEST_CACHE_FOLDER      "/lilcatalog/manifests"
+#define CATALOG_ICON_CACHE_FOLDER           "/lilcatalog/icons"
+#define CATALOG_MANIFEST_CACHE_FOLDER       "/lilcatalog/manifests"
 #define CATALOG_SHORT_MANIFEST_CACHE_FOLDER "/lilcatalog/short_manifests"
 
 // HTTP timeout in milliseconds
 #define CATALOG_HTTP_TIMEOUT       10000
-#define CATALOG_HTTP_TIMEOUT_SHORT 5000  // For small files like short manifests
+#define CATALOG_HTTP_TIMEOUT_SHORT 5000 // For small files like short manifests
 
 // Download buffer size
 #define CATALOG_DOWNLOAD_BUFFER_SIZE 2048
