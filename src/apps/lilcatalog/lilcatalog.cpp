@@ -879,7 +879,7 @@ void LilCatalogApp::drawAppView() {
 
     // Draw 64x64 icon centered
     int iconX = (canvas->width() - CATALOG_ICON_WIDTH) / 2;
-    int iconY = 30;
+    int iconY = 28;
 
     if (iconLoaded && loadedIconIndex == currentIndex) {
         canvas->draw16bitRGBBitmapWithTranColor(
@@ -912,22 +912,12 @@ void LilCatalogApp::drawAppView() {
         );
     }
 
-    // Draw app name - use smaller font and shorter truncation to avoid wrapping
+    // Draw app name
     canvas->setFont(FONT_6x13);
     int nameY = iconY + CATALOG_ICON_HEIGHT + 12;
     canvas->setTextColor(lilka::colors::White);
-
-    // Truncate name to fit (approx 26 chars at 6px width = 156px, screen ~240px)
-    char nameBuf[28];
-    strncpy(nameBuf, entry.name.c_str(), 24);
-    nameBuf[24] = '\0';
-    if (entry.name.length() > 24) {
-        nameBuf[21] = '.';
-        nameBuf[22] = '.';
-        nameBuf[23] = '.';
-    }
     canvas->setCursor(10, nameY);
-    canvas->print(nameBuf);
+    canvas->print(entry.name);
 
     // Draw type badge
     const char* typeStr = nullptr;
@@ -951,29 +941,29 @@ void LilCatalogApp::drawAppView() {
         canvas->print(typeStr);
     }
 
-    // Draw description - single line only, shorter to prevent wrapping
+    // Draw description with text wrap
     int descY = nameY + 22;
+    int descHeight = canvas->height() - descY - 20; // Leave space for bottom bar
     canvas->setTextColor(lilka::colors::Light_gray);
-
-    char descBuf[36];
-    strncpy(descBuf, entry.short_description.c_str(), 32);
-    descBuf[32] = '\0';
-    if (entry.short_description.length() > 32) {
-        descBuf[29] = '.';
-        descBuf[30] = '.';
-        descBuf[31] = '.';
-    }
+    canvas->setTextBound(10, descY - 10, canvas->width() - 20, descHeight);
+    canvas->setTextWrap(true);
     canvas->setCursor(10, descY);
-    canvas->print(descBuf);
+    canvas->print(entry.short_description);
+    canvas->setTextWrap(false);
+    canvas->setTextBound(0, 0, canvas->width(), canvas->height());
+
+    // Cover any overflow with black bar at bottom
+    int bottomBarY = canvas->height() - 18;
+    canvas->fillRect(0, bottomBarY, canvas->width(), 18, lilka::colors::Black);
 
     // Draw item counter
     canvas->setTextColor(lilka::colors::Graygrey);
     String counterStr = String(currentIndex + 1) + "/" + String(entries.size());
-    canvas->setCursor(canvas->width() / 2 - 20, canvas->height() - 10);
+    canvas->setCursor(canvas->width() / 2 - 20, canvas->height() - 6);
     canvas->print(counterStr);
 
     // Draw hint
-    canvas->setCursor(10, canvas->height() - 10);
+    canvas->setCursor(10, canvas->height() - 6);
     canvas->setTextColor(lilka::colors::Cyan);
     canvas->print("A");
     canvas->setTextColor(lilka::colors::Graygrey);
