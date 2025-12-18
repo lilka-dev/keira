@@ -21,11 +21,13 @@
 #define CATALOG_ICON_SIZE   (CATALOG_ICON_WIDTH * CATALOG_ICON_HEIGHT * 2) // 8192 bytes
 
 // Cache paths
-#define CATALOG_ICON_CACHE_FOLDER     "/lilcatalog/icons"
-#define CATALOG_MANIFEST_CACHE_FOLDER "/lilcatalog/manifests"
+#define CATALOG_ICON_CACHE_FOLDER          "/lilcatalog/icons"
+#define CATALOG_MANIFEST_CACHE_FOLDER      "/lilcatalog/manifests"
+#define CATALOG_SHORT_MANIFEST_CACHE_FOLDER "/lilcatalog/short_manifests"
 
 // HTTP timeout in milliseconds
-#define CATALOG_HTTP_TIMEOUT 10000
+#define CATALOG_HTTP_TIMEOUT       10000
+#define CATALOG_HTTP_TIMEOUT_SHORT 5000  // For small files like short manifests
 
 // Download buffer size
 #define CATALOG_DOWNLOAD_BUFFER_SIZE 2048
@@ -93,6 +95,9 @@ private:
     uint16_t iconBuffer[CATALOG_ICON_WIDTH * CATALOG_ICON_HEIGHT];
     bool iconLoaded = false;
 
+    // Loading animation state
+    uint8_t loadingFrame = 0;
+
     // Download buffer (reused across all download operations)
     uint8_t downloadBuffer[CATALOG_DOWNLOAD_BUFFER_SIZE];
 
@@ -101,7 +106,7 @@ private:
     lilka::Menu entryMenu;
 
     // Network methods
-    String httpGet(const String& url);
+    String httpGet(const String& url, int timeout = CATALOG_HTTP_TIMEOUT);
     bool httpGetBinary(const String& url, uint8_t* buffer, size_t bufferSize, size_t* bytesRead);
     bool downloadFile(const String& url, const String& targetPath);
     bool downloadFileWithProgress(const String& url, const String& targetPath, const String& displayName);
@@ -111,6 +116,12 @@ private:
     bool fetchEntryManifest(const String& entryId);
     bool fetchEntryShortManifest(const String& entryId, catalog_entry& entry);
     bool fetchIcon(const String& entryId, const String& iconMinName);
+
+    // Short manifest cache methods
+    String getShortManifestCachePath(const String& entryId);
+    bool saveShortManifestToCache(const String& entryId, const String& json);
+    String loadShortManifestFromCache(const String& entryId);
+    void clearShortManifestCache();
 
     // Icon cache methods
     String getIconCachePath(const String& entryId);
@@ -145,6 +156,7 @@ private:
     // UI methods
     void showMainMenu();
     void drawAppView();
+    void drawLoadingAnimation();
     void handleInput();
     void showEntry();
     void showDescription();
