@@ -5,7 +5,7 @@
 
 #include "utils/json.h"
 
-LilCatalogApp::LilCatalogApp() : App(K_S_LILCATALOG_APP), iconBuffer{}, downloadBuffer{} {
+LilCatalogApp::LilCatalogApp() : App(K_S_LILCATALOG_APP), currentEntry{}, iconBuffer{}, downloadBuffer{} {
     setStackSize(16384);
     path_catalog_folder = "/lilcatalog";
 }
