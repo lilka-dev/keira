@@ -255,6 +255,8 @@
 #define K_S_LILCATALOG_CACHE_CLEARED                 "Cache cleared"
 #define K_S_LILCATALOG_INSTALLED                     "Installed"
 #define K_S_LILCATALOG_NO_INSTALLED                  "No installed apps"
+#define K_S_LILCATALOG_NO_BINARY                     "This app has no downloadable files"
+#define K_S_LILCATALOG_VIEW_SOURCE                   "View source"
 
 #define K_S_LILCATALOG_ERROR_CREATE_FOLDER           "Error creating folder"
 #define K_S_LILCATALOG_ERROR_LOAD_CATALOG            "Error loading catalog"

@@ -5,7 +5,7 @@
 
 #include "utils/json.h"
 
-LilCatalogApp::LilCatalogApp() : App(K_S_LILCATALOG_APP) {
+LilCatalogApp::LilCatalogApp() : App(K_S_LILCATALOG_APP), iconBuffer{}, downloadBuffer{} {
     setStackSize(16384);
     path_catalog_folder = "/lilcatalog";
 }
@@ -242,8 +242,7 @@ bool LilCatalogApp::fetchIndex(int page) {
     alert.draw(canvas);
     queueDraw();
 
-    char url[256];
-    snprintf(url, sizeof(url), CATALOG_APPS_INDEX_URL, page);
+    String url = String(CATALOG_BASE_URL) + "/apps/index_" + String(page) + ".json";
 
     String json = httpGet(url);
 
@@ -286,8 +285,7 @@ bool LilCatalogApp::parseIndex(const String& json) {
 }
 
 bool LilCatalogApp::fetchEntryShortManifest(const String& entryId, catalog_entry& entry) {
-    char url[256];
-    snprintf(url, sizeof(url), CATALOG_APP_SHORT_MANIFEST_URL, entryId.c_str());
+    String url = String(CATALOG_BASE_URL) + "/apps/" + entryId + "/manifest_short.json";
 
     String json = httpGet(url);
     if (json.length() == 0) {
@@ -326,8 +324,7 @@ bool LilCatalogApp::fetchEntryManifest(const String& entryId) {
         alert.draw(canvas);
         queueDraw();
 
-        char url[256];
-        snprintf(url, sizeof(url), CATALOG_APP_MANIFEST_URL, entryId.c_str());
+        String url = String(CATALOG_BASE_URL) + "/apps/" + entryId + "/manifest.json";
 
         json = httpGet(url);
     }
@@ -386,11 +383,10 @@ bool LilCatalogApp::parseManifest(const String& json, catalog_entry& entry) {
 }
 
 bool LilCatalogApp::fetchIcon(const String& entryId, const String& iconMinName) {
-    char url[256];
-    snprintf(url, sizeof(url), CATALOG_APP_STATIC_URL, entryId.c_str(), iconMinName.c_str());
+    String url = String(CATALOG_BASE_URL) + "/apps/" + entryId + "/" + iconMinName;
 
     size_t bytesRead = 0;
-    if (httpGetBinary(url, (uint8_t*)iconBuffer, CATALOG_ICON_SIZE, &bytesRead)) {
+    if (httpGetBinary(url, reinterpret_cast<uint8_t*>(iconBuffer), CATALOG_ICON_SIZE, &bytesRead)) {
         return bytesRead == CATALOG_ICON_SIZE;
     }
     return false;
@@ -435,7 +431,7 @@ bool LilCatalogApp::loadIconFromCache(const String& entryId) {
         return false;
     }
 
-    size_t bytesRead = file.read((uint8_t*)iconBuffer, CATALOG_ICON_SIZE);
+    size_t bytesRead = file.read(reinterpret_cast<uint8_t*>(iconBuffer), CATALOG_ICON_SIZE);
     file.close();
 
     return bytesRead == CATALOG_ICON_SIZE;
@@ -456,7 +452,7 @@ bool LilCatalogApp::saveIconToCache(const String& entryId) {
         return false;
     }
 
-    size_t written = file.write((uint8_t*)iconBuffer, CATALOG_ICON_SIZE);
+    size_t written = file.write(reinterpret_cast<uint8_t*>(iconBuffer), CATALOG_ICON_SIZE);
     file.close();
 
     return written == CATALOG_ICON_SIZE;
@@ -486,8 +482,7 @@ void LilCatalogApp::loadCurrentIcon() {
     // Need to get icon_min name - fetch full manifest
     String iconMinName = entry.icon_min;
     if (iconMinName.isEmpty()) {
-        char url[256];
-        snprintf(url, sizeof(url), CATALOG_APP_MANIFEST_URL, entry.id.c_str());
+        String url = String(CATALOG_BASE_URL) + "/apps/" + entry.id + "/manifest.json";
         String json = httpGet(url);
         if (json.length() > 0) {
             JsonDocument doc(&spiRamAllocator);
@@ -660,6 +655,12 @@ bool LilCatalogApp::validateEntry() {
 }
 
 void LilCatalogApp::fetchEntry() {
+    // Check if app has downloadable files
+    if (currentEntry.entryfile.location.isEmpty()) {
+        showAlert(K_S_LILCATALOG_NO_BINARY);
+        return;
+    }
+
     String targetDir = getEntryTargetPath();
 
     if (!lilka::fileutils.makePath(&SD, targetDir)) {
@@ -668,10 +669,7 @@ void LilCatalogApp::fetchEntry() {
     }
 
     // Download entryfile (main file)
-    char url[512];
-    snprintf(
-        url, sizeof(url), CATALOG_APP_STATIC_URL, currentEntry.id.c_str(), currentEntry.entryfile.location.c_str()
-    );
+    String url = String(CATALOG_BASE_URL) + "/apps/" + currentEntry.id + "/" + currentEntry.entryfile.location;
 
     String targetPath = getEntryExecutablePath();
 
@@ -681,7 +679,7 @@ void LilCatalogApp::fetchEntry() {
 
     // Download additional files
     for (const auto& file : currentEntry.files) {
-        snprintf(url, sizeof(url), CATALOG_APP_STATIC_URL, currentEntry.id.c_str(), file.location.c_str());
+        url = String(CATALOG_BASE_URL) + "/apps/" + currentEntry.id + "/" + file.location;
 
         String filePath = getEntryTargetPath() + "/" + file.location;
 
@@ -692,8 +690,7 @@ void LilCatalogApp::fetchEntry() {
     }
 
     // Save manifest to cache for offline use
-    char manifestUrl[256];
-    snprintf(manifestUrl, sizeof(manifestUrl), CATALOG_APP_MANIFEST_URL, currentEntry.id.c_str());
+    String manifestUrl = String(CATALOG_BASE_URL) + "/apps/" + currentEntry.id + "/manifest.json";
     String manifestJson = httpGet(manifestUrl);
     if (manifestJson.length() > 0) {
         saveManifestToCache(currentEntry.id, manifestJson);
@@ -971,8 +968,7 @@ void LilCatalogApp::drawAppView() {
 
     // Draw item counter
     canvas->setTextColor(lilka::colors::Graygrey);
-    char counterStr[16];
-    snprintf(counterStr, sizeof(counterStr), "%d/%d", currentIndex + 1, (int)entries.size());
+    String counterStr = String(currentIndex + 1) + "/" + String(entries.size());
     canvas->setCursor(canvas->width() / 2 - 20, canvas->height() - 10);
     canvas->print(counterStr);
 
@@ -1070,17 +1066,33 @@ void LilCatalogApp::showEntry() {
             this
         );
     } else {
-        entryMenu.addItem(
-            K_S_LILCATALOG_INSTALL,
-            nullptr,
-            lilka::colors::Green,
-            K_S_LILCATALOG_EMPTY,
-            [](void* ctx) {
-                LilCatalogApp* app = static_cast<LilCatalogApp*>(ctx);
-                app->fetchEntry();
-            },
-            this
-        );
+        // Check if app has downloadable files
+        if (currentEntry.entryfile.location.isEmpty()) {
+            // No binary available - show info message
+            entryMenu.addItem(
+                K_S_LILCATALOG_NO_BINARY,
+                nullptr,
+                lilka::colors::Graygrey,
+                K_S_LILCATALOG_EMPTY,
+                [](void* ctx) {
+                    LilCatalogApp* app = static_cast<LilCatalogApp*>(ctx);
+                    app->showAlert(K_S_LILCATALOG_NO_BINARY);
+                },
+                this
+            );
+        } else {
+            entryMenu.addItem(
+                K_S_LILCATALOG_INSTALL,
+                nullptr,
+                lilka::colors::Green,
+                K_S_LILCATALOG_EMPTY,
+                [](void* ctx) {
+                    LilCatalogApp* app = static_cast<LilCatalogApp*>(ctx);
+                    app->fetchEntry();
+                },
+                this
+            );
+        }
     }
 
     entryMenu.addItem(

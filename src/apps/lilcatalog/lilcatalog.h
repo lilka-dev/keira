@@ -13,11 +13,7 @@
 #include "../fmanager/fmanager.h"
 
 // Base URL for catalog API (apps only)
-#define CATALOG_BASE_URL               "https://catalog.lilka.dev"
-#define CATALOG_APPS_INDEX_URL         CATALOG_BASE_URL "/apps/index_%d.json"
-#define CATALOG_APP_MANIFEST_URL       CATALOG_BASE_URL "/apps/%s/index.json"
-#define CATALOG_APP_SHORT_MANIFEST_URL CATALOG_BASE_URL "/apps/%s/index_short.json"
-#define CATALOG_APP_STATIC_URL         CATALOG_BASE_URL "/apps/%s/static/%s"
+#define CATALOG_BASE_URL "https://catalog.lilka.dev"
 
 // Icon size for mini icons (icon_min.bin is RGB565 raw format, 64x64 px)
 #define CATALOG_ICON_WIDTH  64
