@@ -365,4 +365,18 @@
 #define K_S_WEATHER_CANCEL                        "Скасувати"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// apps/usbdrive/usbdrive.cpp /////////////////////////////////////////////////////////////////////////
+#define K_S_USB_DRIVE_TITLE                       "USB-накопичувач"
+#define K_S_USB_DRIVE_INITIALIZING                "Ініціалізація USB..."
+#define K_S_USB_DRIVE_INIT_ERROR                  "Помилка ініціалізації!"
+#define K_S_USB_DRIVE_CHECK_SD                    "Перевірте SD-карту"
+#define K_S_USB_DRIVE_CONNECTED                   "Підключено до ПК"
+#define K_S_USB_DRIVE_PC_INSTRUCTION              "SD-карта доступна на ПК"
+#define K_S_USB_DRIVE_SAFE_EJECT                  "Безпечно вийміть перед виходом"
+#define K_S_USB_DRIVE_PRESS_A_TO_EXIT             "[A] - вихід"
+#define K_S_USB_DRIVE_DISCONNECTING               "Від'єднання..."
+#define K_S_USB_DRIVE_REBOOT_REQUIRED             "Пристрій перезавантажиться..."
+#define K_S_LAUNCHER_USB_DRIVE                    "USB-накопичувач"
+///////////////////////////////////////////////////////////////////////////////////////////////////////
 // clang-format on

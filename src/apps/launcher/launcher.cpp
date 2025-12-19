@@ -34,6 +34,7 @@
 #include "apps/liltracker/liltracker.h"
 #include "apps/fmanager/fmanager.h"
 #include "apps/pastebin/pastebinApp.h"
+#include "apps/usbdrive/usbdrive.h"
 
 #include "apps/soundsettings/sound.h"
 
@@ -112,6 +113,12 @@ void LauncherApp::run() {
                 [this]() { this->runApp<FileManagerApp>(LILKA_SD_ROOT); },
                 &sdcard_img,
                 lilka::colors::Arylide_yellow
+            ),
+            ITEM::APP(
+                K_S_LAUNCHER_USB_DRIVE,
+                [this]() { this->runApp<USBDriveApp>(); },
+                &sdcard_img,
+                lilka::colors::Mint
             ),
             ITEM::APP(
                 K_S_LAUNCHER_SPIFFS_BROWSER,
