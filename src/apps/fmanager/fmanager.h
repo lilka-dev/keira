@@ -62,12 +62,9 @@
 // MISC SETTINGS:  ////////////////////////////////////////////////////////////////////////////////////
 #define PROGRESS_FRAME_TIME              30
 #define PROGRESS_FILE_LIST_NO_DRAW_COUNT 10
-// There's a big chance, that task won't be suspended immediately, which could cause a bug
-// If ui hangs up after trying to open file, increase this value. TODO: implent this in AppManager
-#define SUSPEND_AWAIT_TIME         100
-#define FM_CHUNK_SIZE              256
-#define FM_MKDIR_MODE              0777
-#define FM_DEFAULT_NEW_FOLDER_NAME "New Folder"
+#define FM_CHUNK_SIZE                    256
+#define FM_MKDIR_MODE                    0777
+#define FM_DEFAULT_NEW_FOLDER_NAME       "New Folder"
 
 // STATUS BAR SETTINGS:  //////////////////////////////////////////////////////////////////////////////
 #define STATUS_BAR_HEIGHT        30
