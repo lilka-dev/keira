@@ -378,8 +378,9 @@
                                                   "[START] - continue\n" \
                                                   "[A] - cancel"
 #define K_S_USB_DRIVE_INITIALIZING                "Initializing USB..."
-#define K_S_USB_DRIVE_INIT_ERROR                  "Initialization error!"
-#define K_S_USB_DRIVE_CHECK_SD                    "Check SD card"
+#define K_S_USB_DRIVE_INIT_ERROR                  "USB initialization error"
+#define K_S_USB_DRIVE_NO_SD                       "SD card not available"
+#define K_S_USB_DRIVE_CONNECT_USB                 "Connect USB cable to PC"
 #define K_S_USB_DRIVE_CONNECTED                   "Connected to PC"
 #define K_S_USB_DRIVE_EJECTED                     "Safely ejected"
 #define K_S_USB_DRIVE_PC_INSTRUCTION              "SD card is available on PC"

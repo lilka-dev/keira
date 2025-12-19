@@ -375,8 +375,9 @@
                                                   "[START] - продовжити\n" \
                                                   "[A] - скасувати"
 #define K_S_USB_DRIVE_INITIALIZING                "Ініціалізація USB..."
-#define K_S_USB_DRIVE_INIT_ERROR                  "Помилка ініціалізації!"
-#define K_S_USB_DRIVE_CHECK_SD                    "Перевірте SD-карту"
+#define K_S_USB_DRIVE_INIT_ERROR                  "Помилка ініціалізації USB"
+#define K_S_USB_DRIVE_NO_SD                       "SD-карта недоступна"
+#define K_S_USB_DRIVE_CONNECT_USB                 "Підключіть USB-кабель до ПК"
 #define K_S_USB_DRIVE_CONNECTED                   "Підключено до ПК"
 #define K_S_USB_DRIVE_EJECTED                     "Безпечно вилучено"
 #define K_S_USB_DRIVE_PC_INSTRUCTION              "SD-карта доступна на ПК"

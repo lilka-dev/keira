@@ -189,25 +189,50 @@ void USBDriveApp::run() {
         return; // User cancelled
     }
 
+    // Check SD card first
+    if (!lilka::fileutils.isSDAvailable()) {
+        canvas->fillScreen(lilka::colors::Black);
+        canvas->setTextColor(lilka::colors::Red);
+        canvas->setFont(FONT_9x15);
+        canvas->setCursor(16, 40);
+        canvas->print(K_S_USB_DRIVE_NO_SD);
+        canvas->setTextColor(lilka::colors::White);
+        canvas->setCursor(16, 120);
+        canvas->print(K_S_USB_DRIVE_PRESS_A_TO_EXIT);
+        queueDraw();
+
+        // Wait for button press
+        while (true) {
+            lilka::State state = lilka::controller.getState();
+            if (state.a.justPressed || state.b.justPressed) {
+                return;
+            }
+            vTaskDelay(50 / portTICK_PERIOD_MS);
+        }
+    }
+
     canvas->fillScreen(lilka::colors::Black);
     canvas->setTextColor(lilka::colors::White);
     canvas->setFont(FONT_9x15);
     canvas->setCursor(16, 40);
     canvas->print(K_S_USB_DRIVE_INITIALIZING);
+    canvas->setTextColor(lilka::colors::Light_gray);
+    canvas->setFont(FONT_6x13);
+    canvas->setCursor(16, 70);
+    canvas->print(K_S_USB_DRIVE_CONNECT_USB);
     queueDraw();
 
     // Try to initialize USB MSC
     mscInitialized = initUSBMSC();
 
     if (!mscInitialized) {
-        // Show error
+        // Show error - SD card is OK but USB init failed
         canvas->fillScreen(lilka::colors::Black);
         canvas->setTextColor(lilka::colors::Red);
+        canvas->setFont(FONT_9x15);
         canvas->setCursor(16, 40);
         canvas->print(K_S_USB_DRIVE_INIT_ERROR);
         canvas->setTextColor(lilka::colors::White);
-        canvas->setCursor(16, 80);
-        canvas->print(K_S_USB_DRIVE_CHECK_SD);
         canvas->setCursor(16, 120);
         canvas->print(K_S_USB_DRIVE_PRESS_A_TO_EXIT);
         queueDraw();
