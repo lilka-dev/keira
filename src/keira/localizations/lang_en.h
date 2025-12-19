@@ -371,12 +371,10 @@
 
 // apps/usbdrive/usbdrive.cpp /////////////////////////////////////////////////////////////////////////
 #define K_S_USB_DRIVE_TITLE                       "USB Drive"
-#define K_S_USB_DRIVE_EXPERIMENTAL_TITLE          "Experimental Feature"
-#define K_S_USB_DRIVE_EXPERIMENTAL_WARNING        "This feature is experimental.\n\n" \
-                                                  "Serial port will be\n" \
-                                                  "unavailable.\n\n" \
-                                                  "[START] - continue\n" \
-                                                  "[A] - cancel"
+#define K_S_USB_DRIVE_EXPERIMENTAL_TITLE          "Warning"
+#define K_S_USB_DRIVE_EXPERIMENTAL_WARNING        "Experimental feature.\n" \
+                                                  "Serial will be disabled.\n\n" \
+                                                  "[START] - OK  [A] - Cancel"
 #define K_S_USB_DRIVE_INITIALIZING                "Initializing USB..."
 #define K_S_USB_DRIVE_INIT_ERROR                  "USB initialization error"
 #define K_S_USB_DRIVE_NO_SD                       "SD card not available"

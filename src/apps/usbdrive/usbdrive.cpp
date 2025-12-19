@@ -281,17 +281,18 @@ void USBDriveApp::run() {
         canvas->setCursor(16, 170);
         canvas->print(K_S_USB_DRIVE_PC_INSTRUCTION);
 
-        canvas->setCursor(16, 190);
+        canvas->setCursor(16, 185);
         canvas->print(K_S_USB_DRIVE_SAFE_EJECT);
 
         // Exit instruction
         canvas->setTextColor(lilka::colors::Arylide_yellow);
-        canvas->setCursor(16, 220);
+        canvas->setCursor(16, 205);
         canvas->print(K_S_USB_DRIVE_PRESS_A_TO_EXIT);
 
         queueDraw();
 
-        // Check for exit button
+        // Check for exit button with delay to prevent flickering
+        vTaskDelay(50 / portTICK_PERIOD_MS);
         lilka::State state = lilka::controller.getState();
         if (state.a.justPressed) {
             // Warn if not safely ejected
@@ -313,19 +314,20 @@ void USBDriveApp::run() {
                 queueDraw();
 
                 // Wait for confirmation
+                bool cancelled = false;
                 while (true) {
                     lilka::State confirmState = lilka::controller.getState();
                     if (confirmState.start.justPressed) {
                         break; // Continue with exit
                     }
                     if (confirmState.b.justPressed) {
-                        break; // Cancel - go back to main loop (will redraw)
+                        cancelled = true;
+                        break; // Cancel - go back to main loop
                     }
                     vTaskDelay(50 / portTICK_PERIOD_MS);
                 }
 
-                lilka::State confirmState = lilka::controller.getState();
-                if (confirmState.b.justPressed) {
+                if (cancelled) {
                     continue; // Cancel - go back to main screen
                 }
             }
