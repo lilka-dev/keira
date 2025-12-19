@@ -375,11 +375,16 @@
 #define K_S_USB_DRIVE_INIT_ERROR                  "Initialization error!"
 #define K_S_USB_DRIVE_CHECK_SD                    "Check SD card"
 #define K_S_USB_DRIVE_CONNECTED                   "Connected to PC"
+#define K_S_USB_DRIVE_EJECTED                     "Safely ejected"
 #define K_S_USB_DRIVE_PC_INSTRUCTION              "SD card is available on PC"
 #define K_S_USB_DRIVE_SAFE_EJECT                  "Safely eject before exit"
 #define K_S_USB_DRIVE_PRESS_A_TO_EXIT             "[A] - exit"
 #define K_S_USB_DRIVE_DISCONNECTING               "Disconnecting..."
 #define K_S_USB_DRIVE_REBOOT_REQUIRED             "Device will reboot..."
+#define K_S_USB_DRIVE_NOT_EJECTED                 "Not safely ejected!"
+#define K_S_USB_DRIVE_EJECT_WARNING               "Data may be corrupted"
+#define K_S_USB_DRIVE_PRESS_START_CONTINUE        "[START] - continue"
+#define K_S_USB_DRIVE_PRESS_B_CANCEL              "[B] - cancel"
 #define K_S_LAUNCHER_USB_DRIVE                    "USB Drive"
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // clang-format on

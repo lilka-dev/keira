@@ -372,11 +372,16 @@
 #define K_S_USB_DRIVE_INIT_ERROR                  "Помилка ініціалізації!"
 #define K_S_USB_DRIVE_CHECK_SD                    "Перевірте SD-карту"
 #define K_S_USB_DRIVE_CONNECTED                   "Підключено до ПК"
+#define K_S_USB_DRIVE_EJECTED                     "Безпечно вилучено"
 #define K_S_USB_DRIVE_PC_INSTRUCTION              "SD-карта доступна на ПК"
 #define K_S_USB_DRIVE_SAFE_EJECT                  "Безпечно вийміть перед виходом"
 #define K_S_USB_DRIVE_PRESS_A_TO_EXIT             "[A] - вихід"
 #define K_S_USB_DRIVE_DISCONNECTING               "Від'єднання..."
 #define K_S_USB_DRIVE_REBOOT_REQUIRED             "Пристрій перезавантажиться..."
+#define K_S_USB_DRIVE_NOT_EJECTED                 "Не вилучено безпечно!"
+#define K_S_USB_DRIVE_EJECT_WARNING               "Дані можуть бути пошкоджені"
+#define K_S_USB_DRIVE_PRESS_START_CONTINUE        "[START] - продовжити"
+#define K_S_USB_DRIVE_PRESS_B_CANCEL              "[B] - скасувати"
 #define K_S_LAUNCHER_USB_DRIVE                    "USB-накопичувач"
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // clang-format on
