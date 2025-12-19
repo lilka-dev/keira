@@ -26,5 +26,4 @@ inline float modulate_frequency(float frequency, float semitoneCount) {
     return frequency * pow2table[index];
 }
 
-#define NOTE_ZERO \
-    { 0, 0 }
+#define NOTE_ZERO {0, 0}

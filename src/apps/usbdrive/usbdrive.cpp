@@ -1,4 +1,5 @@
 #include "usbdrive.h"
+#include "keira/keira.h"
 #include "keira/keira_lang.h"
 
 #include <lilka.h>
@@ -22,12 +23,12 @@ static int32_t onMSCRead(uint32_t lba, uint32_t offset, void* buffer, uint32_t b
     if (!sdCardReady) return -1;
 
     uint32_t bytesToRead = bufsize;
-    uint8_t* buf = (uint8_t*)buffer;
+    uint8_t* buf = static_cast<uint8_t*>(buffer);
 
     // Read sectors
     uint32_t sectorsToRead = (bytesToRead + sdCardSectorSize - 1) / sdCardSectorSize;
     for (uint32_t i = 0; i < sectorsToRead; i++) {
-        if (!SD.readRAW((uint8_t*)(buf + i * sdCardSectorSize), lba + i)) {
+        if (!SD.readRAW(buf + i * sdCardSectorSize, lba + i)) {
             return -1;
         }
     }
@@ -43,7 +44,7 @@ static int32_t onMSCWrite(uint32_t lba, uint32_t offset, uint8_t* buffer, uint32
     // Write sectors
     uint32_t sectorsToWrite = (bytesToWrite + sdCardSectorSize - 1) / sdCardSectorSize;
     for (uint32_t i = 0; i < sectorsToWrite; i++) {
-        if (!SD.writeRAW((uint8_t*)(buffer + i * sdCardSectorSize), lba + i)) {
+        if (!SD.writeRAW(buffer + i * sdCardSectorSize, lba + i)) {
             return -1;
         }
     }
