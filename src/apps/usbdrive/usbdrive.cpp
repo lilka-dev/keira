@@ -13,7 +13,7 @@
 // Global pointers for MSC callbacks
 static USBMSC* mscDevice = nullptr;
 static bool sdCardReady = false;
-static bool driveEjected = false;  // Track if host safely ejected the drive
+static bool driveEjected = false; // Track if host safely ejected the drive
 static uint32_t sdCardSectors = 0;
 static uint16_t sdCardSectorSize = 512;
 
@@ -54,7 +54,7 @@ static int32_t onMSCWrite(uint32_t lba, uint32_t offset, uint8_t* buffer, uint32
 // Called when host wants to eject the drive
 static bool onMSCStartStop(uint8_t power_condition, bool start, bool load_eject) {
     lilka::serial.log("USB MSC: StartStop power=%d start=%d eject=%d", power_condition, start, load_eject);
-    
+
     if (load_eject) {
         if (!start) {
             // Host is ejecting the drive - mark as safely ejected
@@ -68,7 +68,7 @@ static bool onMSCStartStop(uint8_t power_condition, bool start, bool load_eject)
             lilka::serial.log("USB MSC: Drive mounted by host");
         }
     }
-    
+
     return true;
 }
 
@@ -100,10 +100,21 @@ bool USBDriveApp::initUSBMSC() {
         return false;
     }
 
+    // Get sector size from SD card (typically 512 bytes, but can vary)
+    // SD cards use 512-byte sectors at the physical level
+    sdCardSectorSize = SD.sectorSize();
+    if (sdCardSectorSize == 0) {
+        // Fallback to standard sector size if not available
+        sdCardSectorSize = 512;
+        lilka::serial.log("USB MSC: Using default sector size: %d", sdCardSectorSize);
+    }
+
     sdCardSectors = cardSize / sdCardSectorSize;
     sdCardReady = true;
 
-    lilka::serial.log("USB MSC: Card size: %llu bytes, sectors: %lu", cardSize, sdCardSectors);
+    lilka::serial.log(
+        "USB MSC: Card size: %llu bytes, sector size: %d, sectors: %lu", cardSize, sdCardSectorSize, sdCardSectors
+    );
 
     // Create MSC device
     mscDevice = new USBMSC();
@@ -136,7 +147,7 @@ bool USBDriveApp::initUSBMSC() {
     // We just need to ensure USB is started - it will enumerate as composite device
     USB.productName("Lilka");
     USB.manufacturerName("Lilka Team");
-    
+
     if (!USB) {
         USB.begin();
     }
@@ -261,25 +272,25 @@ void USBDriveApp::run() {
                 canvas->setCursor(16, 160);
                 canvas->print(K_S_USB_DRIVE_PRESS_B_CANCEL);
                 queueDraw();
-                
+
                 // Wait for confirmation
                 while (true) {
                     lilka::State confirmState = lilka::controller.getState();
                     if (confirmState.start.justPressed) {
-                        break;  // Continue with exit
+                        break; // Continue with exit
                     }
                     if (confirmState.b.justPressed) {
-                        break;  // Cancel - go back to main loop (will redraw)
+                        break; // Cancel - go back to main loop (will redraw)
                     }
                     vTaskDelay(50 / portTICK_PERIOD_MS);
                 }
-                
+
                 lilka::State confirmState = lilka::controller.getState();
                 if (confirmState.b.justPressed) {
-                    continue;  // Cancel - go back to main screen
+                    continue; // Cancel - go back to main screen
                 }
             }
-            
+
             // Show reboot message - USB stack changes require reboot
             canvas->fillScreen(lilka::colors::Black);
             canvas->setTextColor(lilka::colors::Arylide_yellow);
