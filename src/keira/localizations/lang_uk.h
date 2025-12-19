@@ -368,6 +368,12 @@
 
 // apps/usbdrive/usbdrive.cpp /////////////////////////////////////////////////////////////////////////
 #define K_S_USB_DRIVE_TITLE                       "USB-накопичувач"
+#define K_S_USB_DRIVE_EXPERIMENTAL_TITLE          "Експериментальна функція"
+#define K_S_USB_DRIVE_EXPERIMENTAL_WARNING        "Ця функція є експериментальною.\n\n" \
+                                                  "Послідовний порт (Serial)\n" \
+                                                  "буде недоступний.\n\n" \
+                                                  "[START] - продовжити\n" \
+                                                  "[A] - скасувати"
 #define K_S_USB_DRIVE_INITIALIZING                "Ініціалізація USB..."
 #define K_S_USB_DRIVE_INIT_ERROR                  "Помилка ініціалізації!"
 #define K_S_USB_DRIVE_CHECK_SD                    "Перевірте SD-карту"
