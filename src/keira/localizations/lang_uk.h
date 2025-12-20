@@ -188,6 +188,7 @@
 #define K_S_FMANAGER_ARE_YOU_SURE_ALERT                   "Ви впевнені?"
 #define K_S_FMANAGER_THIS_OP_WOULD_DELETE_FILE_FMT        "Ця операція видалить файл %s\nПродовжити: START\nВихід: B"
 #define K_S_FMANAGER_THIS_OP_WOULD_DELETE_COUNT_FILES_FMT "Ця операція видалить %d файлів\nПродовжити: START\nВихід: B"
+#define K_S_FMANAGER_SELECTED_ENTRIES_EXIT_FMT "Вибрано %d файлів\nПідтвердити вихід: START\nПовернутися: B"
 #define K_S_FMANAGER_ABOUT_DIR_FMT \
     "Тип: директорія\n"            \
     "Шлях: %s"

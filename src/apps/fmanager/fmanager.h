@@ -265,7 +265,7 @@ private:
     // Alerts:
     void fileInfoShowAlert();
     void alert(const String& title, const String& message);
-
+    bool confirmExit(const String& sWhy);
     // Callbacks [any]:
     void onAnyMenuBack();
 
