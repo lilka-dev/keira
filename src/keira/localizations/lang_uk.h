@@ -365,4 +365,28 @@
 #define K_S_WEATHER_CANCEL                        "Скасувати"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// apps/usbdrive/usbdrive.cpp /////////////////////////////////////////////////////////////////////////
+#define K_S_USB_DRIVE_TITLE                       "USB-накопичувач"
+#define K_S_USB_DRIVE_EXPERIMENTAL_TITLE          "Увага"
+#define K_S_USB_DRIVE_EXPERIMENTAL_WARNING        "Експериментальна функція.\n" \
+                                                  "Serial буде вимкнено.\n\n" \
+                                                  "[START] - OK  [A] - Скасувати"
+#define K_S_USB_DRIVE_INITIALIZING                "Ініціалізація USB..."
+#define K_S_USB_DRIVE_INIT_ERROR                  "Помилка ініціалізації USB"
+#define K_S_USB_DRIVE_NO_SD                       "SD-карта недоступна"
+#define K_S_USB_DRIVE_CONNECT_USB                 "Підключіть USB-кабель до ПК"
+#define K_S_USB_DRIVE_CONNECTED                   "Підключено до ПК"
+#define K_S_USB_DRIVE_EJECTED                     "Безпечно вилучено"
+#define K_S_USB_DRIVE_PC_INSTRUCTION              "SD доступна на ПК"
+#define K_S_USB_DRIVE_SAFE_EJECT                  "Вийміть диск перед виходом"
+#define K_S_USB_DRIVE_PRESS_A_TO_EXIT             "[A] - вихід"
+#define K_S_USB_DRIVE_DISCONNECTING               "Від'єднання..."
+#define K_S_USB_DRIVE_REBOOT_REQUIRED             "Пристрій перезавантажиться..."
+#define K_S_USB_DRIVE_NOT_EJECTED                 "Не вилучено безпечно!"
+#define K_S_USB_DRIVE_EJECT_WARNING               "Дані можуть бути пошкоджені"
+#define K_S_USB_DRIVE_PRESS_START_CONTINUE        "[START] - продовжити"
+#define K_S_USB_DRIVE_PRESS_B_CANCEL              "[B] - скасувати"
+#define K_S_LAUNCHER_USB_DRIVE                    "USB-накопичувач"
+///////////////////////////////////////////////////////////////////////////////////////////////////////
 // clang-format on
