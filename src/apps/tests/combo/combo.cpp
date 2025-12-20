@@ -1,9 +1,9 @@
 #include "combo.h"
-#include "utils/combo/core/aggregator.h"
-#include "utils/combo/one_button.h"
-#include "utils/combo/one_hold_down_button.h"
-#include "utils/combo/sequence_buttons.h"
-#include "utils/combo/concurrent_buttons.h"
+#include "core/aggregator.h"
+#include "one_button.h"
+#include "one_hold_down_button.h"
+#include "sequence_buttons.h"
+#include "concurrent_buttons.h"
 
 #define SECONDS_FOR_EXIT 3
 
