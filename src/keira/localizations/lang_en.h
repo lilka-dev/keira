@@ -191,6 +191,7 @@
 #define K_S_FMANAGER_THIS_OP_WOULD_DELETE_FILE_FMT "This operation would delete file\n %s\nProceed: START\nExit: B"
 #define K_S_FMANAGER_THIS_OP_WOULD_DELETE_COUNT_FILES_FMT \
     "This operation would delete %d file(s)\nProceed: START\nExit: B"
+#define K_S_FMANAGER_SELECTED_ENTRIES_EXIT_FMT "Selected %d files\nConfirm exit: START\nReturn: B"
 #define K_S_FMANAGER_ABOUT_DIR_FMT \
     "Type: directory\n"            \
     "Path: %s"

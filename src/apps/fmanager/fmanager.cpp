@@ -14,6 +14,23 @@ void FileManagerApp::alertNotImplemented() {
     alert(K_S_ERROR, K_S_FEATURE_IN_DEVELOPMENT);
 }
 
+bool FileManagerApp::confirmExit(const String& sWhy) {
+    lilka::Alert confirmExitAlert(K_S_FMANAGER_ARE_YOU_SURE_ALERT, sWhy);
+
+    confirmExitAlert.addActivationButton(FM_CONFIRM_BUTTON);
+    confirmExitAlert.addActivationButton(FM_EXIT_BUTTON);
+
+    while (!confirmExitAlert.isFinished()) {
+        confirmExitAlert.update();
+        confirmExitAlert.draw(canvas);
+        queueDraw();
+    }
+
+    if (confirmExitAlert.getButton() == FM_CONFIRM_BUTTON) return true;
+
+    return false;
+}
+
 FileManagerApp::FileManagerApp(const String& path) :
     App("FileManager"),
     copyProgress(K_S_FMANAGER_COPYING, ""),
@@ -947,6 +964,9 @@ void FileManagerApp::onFileListMenuItem() {
             fileListMenu.isFinished();
             changeMode(FM_MODE_RELOAD);
             return;
+        } else if (mode == FM_MODE_SELECT) {
+            if (confirmExit(StringFormat(K_S_FMANAGER_SELECTED_ENTRIES_EXIT_FMT, selectedDirEntries.size()))) return;
+            fileListMenu.isFinished();
         } else return;
     }
 
@@ -970,6 +990,10 @@ void FileManagerApp::onFileListMenuItem() {
             if (currentPath != initalPath) {
                 currentPath = lilka::fileutils.getParentDirectory(currentPath);
                 changeMode(FM_MODE_RELOAD);
+                fileListMenu.isFinished();
+            } else if (mode == FM_MODE_SELECT) {
+                if (confirmExit(StringFormat(K_S_FMANAGER_SELECTED_ENTRIES_EXIT_FMT, selectedDirEntries.size())))
+                    return;
                 fileListMenu.isFinished();
             }
 
