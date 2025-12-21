@@ -62,7 +62,6 @@ private:
     void run() override;
 
     void showMenu(const char* title, ITEM_LIST& menu, bool back = true);
-    void alert(String title, String message);
     template <typename T, typename... Args>
     void runApp(Args&&... args);
     void setWiFiTxPower();

@@ -313,13 +313,7 @@ void LuaFileRunnerApp::run() {
 
     if (retCode) {
         const char* err = lua_tostring(L, -1);
-        // lilka::ui_alert(canvas, "Lua", String("Помилка: ") + err);
-        lilka::Alert alert("Lua", String("Помилка: ") + err);
-        alert.draw(canvas);
-        queueDraw();
-        while (!alert.isFinished()) {
-            alert.update();
-        }
+        alert("Lua", String("Помилка: ") + err);
     }
 
     // Check if state table exists and save it to file if so
@@ -455,13 +449,7 @@ void LuaLiveRunnerApp::execSource(String source) {
 
     if (retCode) {
         const char* err = lua_tostring(L, -1);
-        // lilka::ui_alert(canvas, "Lua", String("Помилка: ") + err);
-        lilka::Alert alert("Lua", String("Помилка: ") + err);
-        alert.draw(canvas);
-        queueDraw();
-        while (!alert.isFinished()) {
-            alert.update();
-        }
+        alert("Lua", String("Помилка: ") + err);
     }
 
     luaTeardown();

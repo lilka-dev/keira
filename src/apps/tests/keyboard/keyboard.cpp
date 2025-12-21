@@ -15,13 +15,5 @@ void KeyboardApp::run() {
         }
     }
 
-    lilka::Alert alert("Ви ввели:", dialog.getValue());
-    alert.draw(canvas);
-    queueDraw();
-    while (true) {
-        alert.update();
-        if (alert.isFinished()) {
-            break;
-        }
-    }
+    alert("Ви ввели:", dialog.getValue());
 }

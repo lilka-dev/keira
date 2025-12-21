@@ -61,21 +61,11 @@ void pastebinApp::uiLoop() {
                 if (res == FR_NO_FILE) {
                     res = f_mkdir(path_pastebin_folder.c_str());
                     if (res != FR_OK) {
-                        lilka::Alert alert("pastebin", "Помилка створення директорії");
-                        alert.draw(canvas);
-                        queueDraw();
-                        while (!alert.isFinished()) {
-                            alert.update();
-                        }
+                        alert("pastebin", "Помилка створення директорії");
                         printf("Помилка створення директорії %d\n", res);
                     }
                 } else if (res != FR_OK) {
-                    lilka::Alert alert("pastebin", "Помилка створення директорії");
-                    alert.draw(canvas);
-                    queueDraw();
-                    while (!alert.isFinished()) {
-                        alert.update();
-                    }
+                    alert("pastebin", "Помилка створення директорії");
                 } else {
                     String url = pastebin_url + link_code;
                     String fullPath = path_pastebin_folder + "/" + filename;
@@ -88,12 +78,7 @@ void pastebinApp::uiLoop() {
                         // Open file for writing
                         FILE* file = fopen((lilka::fileutils.getSDRoot() + fullPath).c_str(), FILE_WRITE);
                         if (!file) {
-                            lilka::Alert alert("pastebin", "Помилка відкривання файлу");
-                            alert.draw(canvas);
-                            queueDraw();
-                            while (!alert.isFinished()) {
-                                alert.update();
-                            }
+                            alert("pastebin", "Помилка відкривання файлу");
                             printf("Помилка відкривання файлу");
                             break;
                         }
@@ -103,22 +88,12 @@ void pastebinApp::uiLoop() {
 
                         delay(10);
 
-                        lilka::Alert alert("pastebin", "Файл завантажено, та збережено");
-                        alert.draw(canvas);
-                        queueDraw();
-                        while (!alert.isFinished()) {
-                            alert.update();
-                        }
+                        alert("pastebin", "Файл завантажено, та збережено");
 
                         printf("Файл завантажено, та збережено");
                         break;
                     } else {
-                        lilka::Alert alert("pastebin", "HTTP GET failed, error: " + http.errorToString(httpCode));
-                        alert.draw(canvas);
-                        queueDraw();
-                        while (!alert.isFinished()) {
-                            alert.update();
-                        }
+                        alert("pastebin", "HTTP GET failed, error: " + http.errorToString(httpCode));
 
                         printf("HTTP GET failed, error: %s\n", http.errorToString(httpCode).c_str());
                     }

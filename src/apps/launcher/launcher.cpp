@@ -284,15 +284,6 @@ void LauncherApp::showMenu(const char* title, ITEM_LIST& list, bool back) {
         }
     }
 }
-void LauncherApp::alert(String title, String message) {
-    lilka::Alert alert(title, message);
-    alert.draw(canvas);
-    queueDraw();
-    while (!alert.isFinished()) {
-        alert.update();
-        taskYIELD();
-    }
-}
 template <typename T, typename... Args>
 void LauncherApp::runApp(Args&&... args) {
     AppManager::getInstance()->runApp(new T(std::forward<Args>(args)...));
@@ -431,17 +422,7 @@ void LauncherApp::partitions() {
     showMenu(K_S_PARTITION_TABLE, partitionsMenu);
 }
 void LauncherApp::formatSD() {
-    lilka::Alert confirm(K_S_LAUNCHER_FORMAT, K_S_LAUNCHER_FORMAT_DISCLAIMER_ALERT);
-    confirm.addActivationButton(K_BTN_CONFIRM);
-    confirm.draw(canvas);
-    queueDraw();
-    while (!confirm.isFinished()) {
-        confirm.update();
-        taskYIELD();
-    }
-    if (confirm.getButton() != K_BTN_CONFIRM) {
-        return;
-    }
+    if (!confirm(K_S_LAUNCHER_FORMAT, K_S_LAUNCHER_FORMAT_DISCLAIMER_ALERT)) return;
 
     lilka::ProgressDialog dialog(K_S_LAUNCHER_FORMAT, K_S_LAUNCHER_PLEASE_STANDBY);
     dialog.draw(canvas);

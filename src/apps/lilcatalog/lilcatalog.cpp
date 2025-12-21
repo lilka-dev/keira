@@ -1374,10 +1374,5 @@ void LilCatalogApp::loadPrevPage() {
 }
 
 void LilCatalogApp::showAlert(const String& message) {
-    lilka::Alert alert(K_S_LILCATALOG_APP, message);
-    alert.draw(canvas);
-    queueDraw();
-    while (!alert.isFinished()) {
-        alert.update();
-    }
+    alert(K_S_LILCATALOG_APP, message);
 }

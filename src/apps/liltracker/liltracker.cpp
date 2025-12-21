@@ -828,26 +828,6 @@ int LilTrackerApp::drawElement(
 //     }
 // }
 
-void LilTrackerApp::alert(String title, String message) {
-    lilka::Alert alertDialog(title, message);
-    alertDialog.draw(canvas);
-    queueDraw();
-    while (!alertDialog.isFinished()) {
-        alertDialog.update();
-    }
-}
-
-bool LilTrackerApp::confirm(String title, String message) {
-    lilka::Alert confirmDialog(title, message + "\n\n[START] - Так\n[A] - Ні");
-    confirmDialog.addActivationButton(K_BTN_CONFIRM);
-    confirmDialog.draw(canvas);
-    queueDraw();
-    while (!confirmDialog.isFinished()) {
-        confirmDialog.update();
-    }
-    return confirmDialog.getButton() == K_BTN_CONFIRM;
-}
-
 String LilTrackerApp::filePicker(String ext, bool isSave) {
     // isSave determines whether we are writing to file or opening an existing one
 

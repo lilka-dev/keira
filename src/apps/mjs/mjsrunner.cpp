@@ -15,12 +15,7 @@ void MJSApp::run() {
     if (err != MJS_OK) {
         const char* error = mjs_strerror(mjs, err);
         (void)error;
-        lilka::Alert alert("mJS", String("Помилка: ") + err);
-        alert.draw(canvas);
-        queueDraw();
-        while (!alert.isFinished()) {
-            alert.update();
-        }
+        alert("mJS", String("Помилка: ") + err);
     }
 }
 
