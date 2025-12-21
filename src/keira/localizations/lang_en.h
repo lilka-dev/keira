@@ -191,6 +191,7 @@
 #define K_S_FMANAGER_THIS_OP_WOULD_DELETE_FILE_FMT "This operation would delete file\n %s\nProceed: START\nExit: B"
 #define K_S_FMANAGER_THIS_OP_WOULD_DELETE_COUNT_FILES_FMT \
     "This operation would delete %d file(s)\nProceed: START\nExit: B"
+#define K_S_FMANAGER_SELECTED_ENTRIES_EXIT_FMT "Selected %d files\nConfirm exit: START\nReturn: B"
 #define K_S_FMANAGER_ABOUT_DIR_FMT \
     "Type: directory\n"            \
     "Path: %s"
@@ -367,5 +368,29 @@
 #define K_S_WEATHER_SAVE                          "Save"
 #define K_S_WEATHER_CANCEL                        "Cancel"
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// apps/usbdrive/usbdrive.cpp /////////////////////////////////////////////////////////////////////////
+#define K_S_USB_DRIVE_TITLE                       "USB Drive"
+#define K_S_USB_DRIVE_EXPERIMENTAL_TITLE          "Warning"
+#define K_S_USB_DRIVE_EXPERIMENTAL_WARNING        "Experimental feature.\n" \
+                                                  "Serial will be disabled.\n\n" \
+                                                  "[START] - OK  [A] - Cancel"
+#define K_S_USB_DRIVE_INITIALIZING                "Initializing USB..."
+#define K_S_USB_DRIVE_INIT_ERROR                  "USB initialization error"
+#define K_S_USB_DRIVE_NO_SD                       "SD card not available"
+#define K_S_USB_DRIVE_CONNECT_USB                 "Connect USB cable to PC"
+#define K_S_USB_DRIVE_CONNECTED                   "Connected to PC"
+#define K_S_USB_DRIVE_EJECTED                     "Safely ejected"
+#define K_S_USB_DRIVE_PC_INSTRUCTION              "SD card is available on PC"
+#define K_S_USB_DRIVE_SAFE_EJECT                  "Safely eject before exit"
+#define K_S_USB_DRIVE_PRESS_A_TO_EXIT             "[A] - exit"
+#define K_S_USB_DRIVE_DISCONNECTING               "Disconnecting..."
+#define K_S_USB_DRIVE_REBOOT_REQUIRED             "Device will reboot..."
+#define K_S_USB_DRIVE_NOT_EJECTED                 "Not safely ejected!"
+#define K_S_USB_DRIVE_EJECT_WARNING               "Data may be corrupted"
+#define K_S_USB_DRIVE_PRESS_START_CONTINUE        "[START] - continue"
+#define K_S_USB_DRIVE_PRESS_B_CANCEL              "[B] - cancel"
+#define K_S_LAUNCHER_USB_DRIVE                    "USB Drive"
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // clang-format on
