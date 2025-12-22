@@ -213,9 +213,6 @@ private:
     bool copyPath(const String& source, const String& destination);
     bool movePath(const String& source, const String destination);
 
-    // allert to not fall off on non-implemented features
-    void alertNotImplemented();
-
     // Main loop:
     void run() override;
 
@@ -264,8 +261,6 @@ private:
 
     // Alerts:
     void fileInfoShowAlert();
-    void alert(const String& title, const String& message);
-    bool confirmExit(const String& sWhy);
     // Callbacks [any]:
     void onAnyMenuBack();
 

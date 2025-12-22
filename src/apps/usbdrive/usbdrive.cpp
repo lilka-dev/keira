@@ -177,17 +177,7 @@ void USBDriveApp::deinitUSBMSC() {
 
 void USBDriveApp::run() {
     // Show experimental feature disclaimer
-    lilka::Alert confirm(K_S_USB_DRIVE_EXPERIMENTAL_TITLE, K_S_USB_DRIVE_EXPERIMENTAL_WARNING);
-    confirm.addActivationButton(K_BTN_CONFIRM);
-    confirm.draw(canvas);
-    queueDraw();
-    while (!confirm.isFinished()) {
-        confirm.update();
-        taskYIELD();
-    }
-    if (confirm.getButton() != K_BTN_CONFIRM) {
-        return; // User cancelled
-    }
+    if (!confirm(K_S_USB_DRIVE_EXPERIMENTAL_TITLE, K_S_USB_DRIVE_EXPERIMENTAL_WARNING)) return; // User cancelled
 
     // Check SD card first
     if (!lilka::fileutils.isSDAvailable()) {
