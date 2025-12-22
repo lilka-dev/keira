@@ -15,7 +15,7 @@ void MJSApp::run() {
     if (err != MJS_OK) {
         const char* error = mjs_strerror(mjs, err);
         (void)error;
-        alert("mJS", String("Помилка: ") + err);
+        alert("mJS", String(K_S_MJS_ERROR) + err);
     }
 }
 
