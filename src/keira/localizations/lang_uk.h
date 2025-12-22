@@ -390,4 +390,16 @@
 #define K_S_USB_DRIVE_PRESS_B_CANCEL              "[B] - скасувати"
 #define K_S_LAUNCHER_USB_DRIVE                    "USB-накопичувач"
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// apps/pastebin/pastebinApp.cpp //////////////////////////////////////////////////////////////////////
+#define K_S_PASTEBIN_CODE                         "Код"
+#define K_S_PASTEBIN_NAME                         "Назва"
+#define K_S_PASTEBIN_DOWNLOAD                     "Завантажити"
+#define K_S_PASTEBIN_ENTER_CODE                   "Введіть код"
+#define K_S_PASTEBIN_ENTER_NAME                   "Введіть назву"
+#define K_S_PASTEBIN_ERROR_CREATE_DIR             "Помилка створення директорії"
+#define K_S_PASTEBIN_ERROR_OPEN_FILE              "Помилка відкриття файлу"
+#define K_S_PASTEBIN_FILE_DOWNLOADED_FMT          "Файл завантажено в \n%s"
+#define K_S_PASTEBIN_REQUEST_FAIL_FMT             "Помилка HTTP\n%s"
+///////////////////////////////////////////////////////////////////////////////////////////////////////
 // clang-format on

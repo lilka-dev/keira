@@ -393,4 +393,16 @@
 #define K_S_USB_DRIVE_PRESS_B_CANCEL              "[B] - cancel"
 #define K_S_LAUNCHER_USB_DRIVE                    "USB Drive"
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// apps/pastebin/pastebinApp.cpp //////////////////////////////////////////////////////////////////////
+#define K_S_PASTEBIN_CODE                         "Code"
+#define K_S_PASTEBIN_NAME                         "Name"
+#define K_S_PASTEBIN_DOWNLOAD                     "Download"
+#define K_S_PASTEBIN_ENTER_CODE                   "Enter code"
+#define K_S_PASTEBIN_ENTER_NAME                   "Enter name"
+#define K_S_PASTEBIN_ERROR_CREATE_DIR             "Error while creating directory occured"
+#define K_S_PASTEBIN_ERROR_OPEN_FILE              "Error while opening file occured"
+#define K_S_PASTEBIN_FILE_DOWNLOADED_FMT          "File downloaded to \n%s"
+#define K_S_PASTEBIN_REQUEST_FAIL_FMT             "HTTP Error \n%s"
+///////////////////////////////////////////////////////////////////////////////////////////////////////
 // clang-format on
