@@ -3,7 +3,7 @@
 #include <lua.hpp>
 #include "clib/u8g2.h"
 #include <lilka.h>
-
+#include "keira/keira.h"
 #include "luarunner.h"
 #include "lualilka_display.h"
 #include "lualilka_console.h"

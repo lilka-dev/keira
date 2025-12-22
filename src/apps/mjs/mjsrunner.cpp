@@ -1,7 +1,7 @@
 #include "mjsrunner.h"
 #include "lilka.h"
 #include "mjs.h"
-
+#include "keira/keira.h"
 MJSApp::MJSApp(String path) : App("mJS", 0, 0, lilka::display.width(), lilka::display.height()), path(path) {
 }
 
