@@ -74,9 +74,9 @@ void pastebinApp::uiLoop() {
                     int httpCode = http.GET();
 
                     if (httpCode == HTTP_CODE_OK) {
-                        String filename = lilka::fileutils.joinPath(LILKA_SD_ROOT, fullPath);
+                        String dlFilename = lilka::fileutils.joinPath(LILKA_SD_ROOT, fullPath);
                         // Open file for writing
-                        FILE* file = fopen(filename.c_str(), FILE_WRITE);
+                        FILE* file = fopen(dlFilename.c_str(), FILE_WRITE);
                         if (!file) {
                             alert("pastebin", K_S_PASTEBIN_ERROR_OPEN_FILE);
                             break;
@@ -87,7 +87,7 @@ void pastebinApp::uiLoop() {
 
                         delay(10);
 
-                        alert("pastebin", StringFormat(K_S_PASTEBIN_FILE_DOWNLOADED_FMT, filename.c_str()));
+                        alert("pastebin", StringFormat(K_S_PASTEBIN_FILE_DOWNLOADED_FMT, dlFilename.c_str()));
 
                         break;
                     } else {
