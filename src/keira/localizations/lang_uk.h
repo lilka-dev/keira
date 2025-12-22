@@ -20,7 +20,6 @@
 #define K_S_CANT_CREATE_DIR_FMT         "Не вдалося створити директорію %s"
 #define K_S_CANT_REMOVE_FILE_FMT        "Не вдалося видалити файл %s"
 #define K_S_DIR_EMPTY_FMT               "Директорія %s порожня"
-
 #define K_S_MENU_BACK                   "<< Назад"
 
 #define K_S_PASSWORD                    "Пароль"
@@ -216,7 +215,10 @@
 #define K_S_LILTRACKER_CREATE_NEW_TRACK       "++ Створити новий"
 #define K_S_LILTRACKER_ENTER_FILENAME         "Введіть назву файлу"
 #define K_S_LILTRACKER_FILENAME_CANT_BE_EMPTY "Назва файлу не може бути порожньою"
-
+#define K_S_LILTRACKER_CLEAR_TRACK_DATA       "Очистити всі дані\nкомпозиції?\n[START]Так\n[B]Ні"
+#define K_S_LILTRACKER_OPEN                   "Відкрити"
+#define K_S_LILTRACKER_SAVE                   "Зберегти"
+#define K_S_LILTRACKER_RESET                  "Скинути"
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // apps/lilcatalog/lilcatalog.cpp /////////////////////////////////////////////////////////////////////

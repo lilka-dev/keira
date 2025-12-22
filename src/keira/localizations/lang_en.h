@@ -219,6 +219,10 @@
 #define K_S_LILTRACKER_CREATE_NEW_TRACK       "++ Create new"
 #define K_S_LILTRACKER_ENTER_FILENAME         "Enter filename"
 #define K_S_LILTRACKER_FILENAME_CANT_BE_EMPTY "Filename can't be empty"
+#define K_S_LILTRACKER_CLEAR_TRACK_DATA       "Clear all track data?\n[START]Yes\n[B]No"
+#define K_S_LILTRACKER_OPEN                   "Open"
+#define K_S_LILTRACKER_SAVE                   "Save"
+#define K_S_LILTRACKER_RESET                  "Reset"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
