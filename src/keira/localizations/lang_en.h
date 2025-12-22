@@ -414,4 +414,11 @@
 #define K_S_MJS_ERROR                             "Error: "
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// apps/mjs/luarunner.cpp /////////////////////////////////////////////////////////////////////////////
+#define K_S_LUA_ERROR                             "Error: "
+#define K_S_LUA_AWAIT_CODE_FROM_UART              "Awaiting code\nfrom UART...\n\nPress [A]\nto exit."
+#define K_S_LUA_DOWNLOAD                          "Downloading..."
+#define K_S_LUA_AWAIT_CODE_FROM_UART              "REPL:\nAwaiting code\nfrom UART...\n\nPress [A]\nto exit."
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
 // clang-format on
