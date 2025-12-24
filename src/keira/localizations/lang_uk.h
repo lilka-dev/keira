@@ -413,7 +413,12 @@
 #define K_S_LUA_ERROR                             "Помилка: "
 #define K_S_LUA_AWAIT_CODE_FROM_UART              "Очікування коду\nз  UART...\n\nНатисність [A]\nдля виходу."
 #define K_S_LUA_DOWNLOAD                          "Завантаження..."
-#define K_S_LUA_REPL_AWAIT_CODE_FROM_UART              "REPL:\nОчікування коду\nз  UART...\n\nНатисність [A]\nдля виходу."
+#define K_S_LUA_REPL_AWAIT_CODE_FROM_UART         "REPL:\nОчікування коду\nз  UART...\n\nНатисність [A]\nдля виходу."
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// apps/tests/keyboard/keyboard.cpp //////////////////////////////////////////////////////////////////
+#define K_S_KEYBOARD_ENTER_TEXT                    "Введіть текст: "
+#define K_S_KEYBOARD_YOU_ENTERED                   "Ви ввели:"
+//////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // clang-format on

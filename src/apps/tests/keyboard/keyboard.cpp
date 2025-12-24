@@ -1,10 +1,10 @@
 #include "keyboard.h"
-
+#include "keira/keira.h"
 KeyboardApp::KeyboardApp() : App("Keyboard") {
 }
 
 void KeyboardApp::run() {
-    lilka::InputDialog dialog("Введіть текст:");
+    lilka::InputDialog dialog(K_S_KEYBOARD_ENTER_TEXT);
 
     while (true) {
         dialog.update();
@@ -15,5 +15,5 @@ void KeyboardApp::run() {
         }
     }
 
-    alert("Ви ввели:", dialog.getValue());
+    alert(K_S_KEYBOARD_YOU_ENTERED, dialog.getValue());
 }
