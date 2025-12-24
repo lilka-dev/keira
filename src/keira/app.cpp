@@ -145,6 +145,33 @@ eTaskState App::getState() {
     return eTaskGetState(taskHandle);
 }
 
+void App::alert(const String& title, const String& description) {
+    lilka::Alert alertDialog(title, description);
+
+    alertDialog.addActivationButton(K_BTN_BACK);
+
+    while (!alertDialog.isFinished()) {
+        alertDialog.update();
+        alertDialog.draw(canvas);
+        queueDraw();
+    }
+}
+
+bool App::confirm(const String& title, const String& description) {
+    lilka::Alert confirmDialog(title, description);
+
+    confirmDialog.addActivationButton(K_BTN_BACK);
+    confirmDialog.addActivationButton(K_BTN_CONFIRM);
+
+    while (!confirmDialog.isFinished()) {
+        confirmDialog.update();
+        confirmDialog.draw(canvas);
+        queueDraw();
+    }
+
+    return confirmDialog.getButton() == K_BTN_CONFIRM;
+}
+
 void App::setStackSize(uint32_t stackSize) {
     this->stackSize = stackSize;
 }

@@ -20,7 +20,6 @@
 #define K_S_CANT_CREATE_DIR_FMT         "Не вдалося створити директорію %s"
 #define K_S_CANT_REMOVE_FILE_FMT        "Не вдалося видалити файл %s"
 #define K_S_DIR_EMPTY_FMT               "Директорія %s порожня"
-
 #define K_S_MENU_BACK                   "<< Назад"
 
 #define K_S_PASSWORD                    "Пароль"
@@ -216,7 +215,10 @@
 #define K_S_LILTRACKER_CREATE_NEW_TRACK       "++ Створити новий"
 #define K_S_LILTRACKER_ENTER_FILENAME         "Введіть назву файлу"
 #define K_S_LILTRACKER_FILENAME_CANT_BE_EMPTY "Назва файлу не може бути порожньою"
-
+#define K_S_LILTRACKER_CLEAR_TRACK_DATA       "Очистити всі дані\nкомпозиції?\n[START]Так\n[B]Ні"
+#define K_S_LILTRACKER_OPEN                   "Відкрити"
+#define K_S_LILTRACKER_SAVE                   "Зберегти"
+#define K_S_LILTRACKER_RESET                  "Скинути"
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // apps/lilcatalog/lilcatalog.cpp /////////////////////////////////////////////////////////////////////
@@ -390,4 +392,33 @@
 #define K_S_USB_DRIVE_PRESS_B_CANCEL              "[B] - скасувати"
 #define K_S_LAUNCHER_USB_DRIVE                    "USB-накопичувач"
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// apps/pastebin/pastebinApp.cpp //////////////////////////////////////////////////////////////////////
+#define K_S_PASTEBIN_CODE                         "Код"
+#define K_S_PASTEBIN_NAME                         "Назва"
+#define K_S_PASTEBIN_DOWNLOAD                     "Завантажити"
+#define K_S_PASTEBIN_ENTER_CODE                   "Введіть код"
+#define K_S_PASTEBIN_ENTER_NAME                   "Введіть назву"
+#define K_S_PASTEBIN_ERROR_CREATE_DIR             "Помилка створення директорії"
+#define K_S_PASTEBIN_ERROR_OPEN_FILE              "Помилка відкриття файлу"
+#define K_S_PASTEBIN_FILE_DOWNLOADED_FMT          "Файл завантажено в \n%s"
+#define K_S_PASTEBIN_REQUEST_FAIL_FMT             "Помилка HTTP\n%s"
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// apps/mjs/mjsrunner.cpp /////////////////////////////////////////////////////////////////////////////
+#define K_S_MJS_ERROR                             "Помилка: "
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// apps/mjs/luarunner.cpp /////////////////////////////////////////////////////////////////////////////
+#define K_S_LUA_ERROR                             "Помилка: "
+#define K_S_LUA_AWAIT_CODE_FROM_UART              "Очікування коду\nз  UART...\n\nНатисність [A]\nдля виходу."
+#define K_S_LUA_DOWNLOAD                          "Завантаження..."
+#define K_S_LUA_REPL_AWAIT_CODE_FROM_UART         "REPL:\nОчікування коду\nз  UART...\n\nНатисність [A]\nдля виходу."
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// apps/tests/keyboard/keyboard.cpp //////////////////////////////////////////////////////////////////
+#define K_S_KEYBOARD_ENTER_TEXT                    "Введіть текст: "
+#define K_S_KEYBOARD_YOU_ENTERED                   "Ви ввели:"
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+
 // clang-format on

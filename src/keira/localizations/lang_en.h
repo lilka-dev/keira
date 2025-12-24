@@ -219,6 +219,10 @@
 #define K_S_LILTRACKER_CREATE_NEW_TRACK       "++ Create new"
 #define K_S_LILTRACKER_ENTER_FILENAME         "Enter filename"
 #define K_S_LILTRACKER_FILENAME_CANT_BE_EMPTY "Filename can't be empty"
+#define K_S_LILTRACKER_CLEAR_TRACK_DATA       "Clear all track data?\n[START]Yes\n[B]No"
+#define K_S_LILTRACKER_OPEN                   "Open"
+#define K_S_LILTRACKER_SAVE                   "Save"
+#define K_S_LILTRACKER_RESET                  "Reset"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -393,4 +397,32 @@
 #define K_S_USB_DRIVE_PRESS_B_CANCEL              "[B] - cancel"
 #define K_S_LAUNCHER_USB_DRIVE                    "USB Drive"
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// apps/pastebin/pastebinApp.cpp //////////////////////////////////////////////////////////////////////
+#define K_S_PASTEBIN_CODE                         "Code"
+#define K_S_PASTEBIN_NAME                         "Name"
+#define K_S_PASTEBIN_DOWNLOAD                     "Download"
+#define K_S_PASTEBIN_ENTER_CODE                   "Enter code"
+#define K_S_PASTEBIN_ENTER_NAME                   "Enter name"
+#define K_S_PASTEBIN_ERROR_CREATE_DIR             "Error while creating directory occured"
+#define K_S_PASTEBIN_ERROR_OPEN_FILE              "Error while opening file occured"
+#define K_S_PASTEBIN_FILE_DOWNLOADED_FMT          "File downloaded to \n%s"
+#define K_S_PASTEBIN_REQUEST_FAIL_FMT             "HTTP Error \n%s"
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// apps/mjs/mjsrunner.cpp /////////////////////////////////////////////////////////////////////////////
+#define K_S_MJS_ERROR                             "Error: "
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// apps/mjs/luarunner.cpp /////////////////////////////////////////////////////////////////////////////
+#define K_S_LUA_ERROR                             "Error: "
+#define K_S_LUA_AWAIT_CODE_FROM_UART              "Awaiting code\nfrom UART...\n\nPress [A]\nto exit."
+#define K_S_LUA_DOWNLOAD                          "Downloading..."
+#define K_S_LUA_AWAIT_CODE_FROM_UART              "REPL:\nAwaiting code\nfrom UART...\n\nPress [A]\nto exit."
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// apps/tests/keyboard/keyboard.cpp //////////////////////////////////////////////////////////////////
+#define K_S_KEYBOARD_ENTER_TEXT                    "Enter text: "
+#define K_S_KEYBOARD_YOU_ENTERED                   "You entered:"
+//////////////////////////////////////////////////////////////////////////////////////////////////////
 // clang-format on

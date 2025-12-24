@@ -3,7 +3,7 @@
 #include <lua.hpp>
 #include "clib/u8g2.h"
 #include <lilka.h>
-
+#include "keira/keira.h"
 #include "luarunner.h"
 #include "lualilka_display.h"
 #include "lualilka_console.h"
@@ -313,13 +313,7 @@ void LuaFileRunnerApp::run() {
 
     if (retCode) {
         const char* err = lua_tostring(L, -1);
-        // lilka::ui_alert(canvas, "Lua", String("Помилка: ") + err);
-        lilka::Alert alert("Lua", String("Помилка: ") + err);
-        alert.draw(canvas);
-        queueDraw();
-        while (!alert.isFinished()) {
-            alert.update();
-        }
+        alert("Lua", String(K_S_LUA_ERROR) + err);
     }
 
     // Check if state table exists and save it to file if so
@@ -360,9 +354,7 @@ void LuaLiveRunnerApp::run() {
         canvas->setCursor(8, 48);
         canvas->fillScreen(lilka::colors::Black);
         canvas->setTextBound(8, 0, canvas->width() - 16, canvas->height());
-        canvas->print("Очікування коду\nз UART...\n\n");
-        canvas->print("Натисніть [A]\n");
-        canvas->print("для виходу.");
+        canvas->print(K_S_LUA_AWAIT_CODE_FROM_UART);
         queueDraw();
 
         // Read serial data
@@ -430,7 +422,7 @@ void LuaLiveRunnerApp::run() {
         canvas->fillScreen(lilka::colors::Green);
         canvas->fillScreen(canvas->color565(128, 128, 0));
         canvas->setCursor(8, 180);
-        canvas->print("Завантаження...");
+        canvas->print(K_S_LUA_DOWNLOAD);
         queueDraw();
 
         LUA_DBG lilka::serial.log("Read %d bytes of code", code.length());
@@ -455,13 +447,7 @@ void LuaLiveRunnerApp::execSource(String source) {
 
     if (retCode) {
         const char* err = lua_tostring(L, -1);
-        // lilka::ui_alert(canvas, "Lua", String("Помилка: ") + err);
-        lilka::Alert alert("Lua", String("Помилка: ") + err);
-        alert.draw(canvas);
-        queueDraw();
-        while (!alert.isFinished()) {
-            alert.update();
-        }
+        alert("Lua", String(K_S_LUA_ERROR) + err);
     }
 
     luaTeardown();
@@ -480,7 +466,7 @@ void LuaReplApp::run() {
     canvas->fillScreen(lilka::colors::Black);
     canvas->setTextBound(8, 0, canvas->width() - 16, canvas->height());
     canvas->print("Lua REPL\n\n");
-    canvas->print("Під'єднайтесь до\nЛілки через серійний\nтермінал та починайте\nвводити команди!");
+    canvas->print(K_S_LUA_REPL_AWAIT_CODE_FROM_UART);
     queueDraw();
 
     lilka::serial.log("lua: start REPL");
