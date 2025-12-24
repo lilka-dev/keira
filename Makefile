@@ -57,8 +57,8 @@ cppcheck: ## Run cppcheck check
 
 .PHONY: unused-macros
 unused-macros: ## Find unused #define macros
-	@echo "Collecting macros..."
-	@macros=$$(find . \
+	@echo "Collecting source files..."
+	@files=$$(find . \
 		-not \( -name .ccls-cache -prune \) \
 		-not \( -name .pio -prune \) \
 		-not \( -name doomgeneric -prune \) \
@@ -66,28 +66,21 @@ unused-macros: ## Find unused #define macros
 		-not \( -name mJS -prune \) \
 		-not \( -name SimpleFTPServer -prune \) \
 		-not \( -name LodePNG -prune \) \
-		\( -iname "*.h" -o -iname "*.cpp" -o -iname "*.c" -o -iname "*.hpp" \) \
-		-exec grep -h "^[[:space:]]*#define[[:space:]]\+[A-Za-z_][A-Za-z0-9_]*" {} \; 2>/dev/null \
+		\( -iname "*.h" -o -iname "*.cpp" -o -iname "*.c" -o -iname "*.hpp" \) 2>/dev/null); \
+	echo "Extracting macros..."; \
+	macros=$$(echo "$$files" | xargs grep -h "^[[:space:]]*#define[[:space:]]\+[A-Za-z_][A-Za-z0-9_]*" 2>/dev/null \
 		| sed -n 's/^[[:space:]]*#define[[:space:]]\+\([A-Za-z_][A-Za-z0-9_]*\).*/\1/p' \
 		| sort -u); \
 	total=$$(echo "$$macros" | wc -l); \
-	current=0; \
-	echo "Found $$total macros. Scanning for usage..."; \
+	echo "Found $$total macros. Building search pattern..."; \
+	pattern=$$(echo "$$macros" | tr '\n' '|' | sed 's/|$$//'); \
+	echo "Counting all occurrences (single pass)..."; \
+	counts=$$(echo "$$files" | xargs grep -ohE "\b($$pattern)\b" 2>/dev/null | sort | uniq -c | sort -rn); \
+	echo "Analyzing results..."; \
 	echo "$$macros" | while read macro; do \
-		current=$$((current + 1)); \
-		printf "\r[%d/%d] Checking: %-40s" "$$current" "$$total" "$$macro"; \
-		count=$$(find . \
-			-not \( -name .ccls-cache -prune \) \
-			-not \( -name .pio -prune \) \
-			-not \( -name doomgeneric -prune \) \
-			-not \( -name bak -prune \) \
-			-not \( -name mJS -prune \) \
-			-not \( -name SimpleFTPServer -prune \) \
-			-not \( -name LodePNG -prune \) \
-			\( -iname "*.h" -o -iname "*.cpp" -o -iname "*.c" -o -iname "*.hpp" \) \
-			-exec grep -oh "\b$$macro\b" {} \; 2>/dev/null | wc -l); \
-		if [ "$$count" -le 1 ]; then \
-			printf "\n\033[33mPotentially unused: %s\033[0m\n" "$$macro"; \
+		cnt=$$(echo "$$counts" | grep -E "^[[:space:]]*[0-9]+[[:space:]]+$$macro$$" | awk '{print $$1}'); \
+		if [ -z "$$cnt" ] || [ "$$cnt" -le 1 ]; then \
+			printf "\033[33mPotentially unused: %s\033[0m\n" "$$macro"; \
 		fi; \
 	done; \
-	printf "\r%-60s\n" "Done!"
+	echo "Done!"
