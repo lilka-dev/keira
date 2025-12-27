@@ -1,0 +1,10 @@
+#pragma once
+#ifndef KEIRA_VERSION_AUTO_GEN_H
+#    define KEIRA_VERSION_AUTO_GEN_H
+
+#    define KEIRA_VERSION_MAJOR 0
+#    define KEIRA_VERSION_MINOR 0
+#    define KEIRA_VERSION_PATCH 0
+#    define KEIRA_VERSION_TYPE  KEIRA_VERSION_TYPE_DEV
+
+#endif // VERSION_AUTO_GEN_H
