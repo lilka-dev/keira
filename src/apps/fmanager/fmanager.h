@@ -1,5 +1,6 @@
 #pragma once
 #include "keira/keira.h"
+#include "keira/keira_allocators.h"
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // [^_^]==\~ File manager for Keira OS header file                                                   //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -52,27 +53,18 @@
 #define FM_SELECTED_FOLDER_ICON &selectedfolder_img
 #define FM_SELECTED_FILE_ICON   &selectedfile_img
 // FILE HANDLERS:  ////////////////////////////////////////////////////////////////////////////////////
-#define FM_DEFAULT_FT_NES_HANDLER(X)     K_FT_NES_HANDLER(X)
-#define FM_DEFAULT_FT_BIN_HANDLER(X)     fileLoadAsRom(X);
-#define FM_DEFAULT_LUA_SCRIPT_HANDLER(X) K_FT_LUA_SCRIPT_HANDLER(X)
-#define FT_DEFAULT_JS_SCRIPT_HANDLER(X)  K_FT_JS_SCRIPT_HANDLER(X)
-#define FT_DEFAULT_MOD_HANDLER(X)        K_FT_MOD_HANDLER(X)
-#define FT_DEFAULT_LT_HANDLER(X)         K_FT_LT_HANDLER(X)
-#define FT_DEFAULT_DIR_HANDLER           currentPath = path;
-#define FT_DEFAULT_OTHER_HANDLER         fileInfoShowAlert();
+// Note:: look keira/keira.h for default K_FT_X_HANDLER s
+#define FM_DEFAULT_FT_BIN_HANDLER(X) fileLoadAsRom(X);
+#define FT_DEFAULT_DIR_HANDLER       currentPath = path;
+#define FT_DEFAULT_OTHER_HANDLER     fileInfoShowAlert();
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // MISC SETTINGS:  ////////////////////////////////////////////////////////////////////////////////////
 #define PROGRESS_FRAME_TIME              30
 #define PROGRESS_FILE_LIST_NO_DRAW_COUNT 10
-// There's a big chance, that task won't be suspended immediately, which could cause a bug
-// If ui hangs up after trying to open file, increase this value. TODO: implent this in AppManager
-#define SUSPEND_AWAIT_TIME         100
-#define FM_CHUNK_SIZE              256
-#define FM_MKDIR_MODE              0777
-#define FM_STACK_SIZE              8192
-#define FM_STACK_MIN_FREE_SIZE     100
-#define FM_DEFAULT_NEW_FOLDER_NAME "New Folder"
+#define FM_CHUNK_SIZE                    256
+#define FM_MKDIR_MODE                    0777
+#define FM_DEFAULT_NEW_FOLDER_NAME       "New Folder"
 
 // STATUS BAR SETTINGS:  //////////////////////////////////////////////////////////////////////////////
 #define STATUS_BAR_HEIGHT        30
@@ -89,18 +81,19 @@
 #define FM_CALLBACK_PTHIS     reinterpret_cast<void*>(this)
 
 // DEPS:
-#include "appmanager.h"
+#include "keira/appmanager.h"
 #include <mbedtls/md5.h>
 #include "esp_log.h"
 #include "esp_err.h"
 #include <errno.h>
-#include "app.h"
+#include "keira/app.h"
 #include <dirent.h>
 #include <vector>
 #include <sys/stat.h>
 #include <stdint.h>
 #include <SD.h>
 #include <SPIFFS.h>
+#include <ff.h>
 
 // ICONS:
 #include "../icons/normalfile.h"
@@ -173,12 +166,19 @@ typedef enum {
 // 5. Check file type by mime-type instead of extension
 //////////////////////////////////////////////////////////////
 
+// determine size we need to reserve for path/name
+#if FF_USE_LFN
+#    define MAX_PATH FF_MAX_LFN + 1
+#else
+#    define MAX_PATH 12
+#endif
+
 typedef struct {
     FileType type;
     const menu_icon_t* icon;
     uint16_t color;
-    String name;
-    String path; // dir
+    char name[MAX_PATH];
+    char path[MAX_PATH]; // dir
     __off_t st_size;
     __mode_t st_mode;
     bool selected = false;
@@ -212,11 +212,6 @@ private:
     // actual copying
     bool copyPath(const String& source, const String& destination);
     bool movePath(const String& source, const String destination);
-
-    // allert to not fall off on non-implemented features
-    void alertNotImplemented();
-    // ensure we've at least STACK_MIN_FREE_SIZE bytes free
-    bool stackSizeCheck();
 
     // Main loop:
     void run() override;
@@ -266,8 +261,6 @@ private:
 
     // Alerts:
     void fileInfoShowAlert();
-    void alert(const String& title, const String& message);
-
     // Callbacks [any]:
     void onAnyMenuBack();
 
@@ -286,7 +279,6 @@ private:
     void onFileOptionsMenuInfo();
 
     // Callbacks [fileOpenWithMenu]:
-    void onFileOpenWithFileManager();
     void onFileOpenWithNESEmulator();
     void onFileOpenWithMultiBootLoader();
     void onFileOpenWithLua();
@@ -306,11 +298,11 @@ private:
 
     // Search:
     // Returns ENTRY_NOT_FOUND_INDEX if not found
-    static uint16_t getDirEntryIndex(const std::vector<FMEntry>& vec, const FMEntry& entry);
+    static uint16_t getDirEntryIndex(const std::vector<FMEntry, SPIRamAllocator<FMEntry>>& vec, const FMEntry& entry);
 
     // Storage:
-    std::vector<FMEntry> currentDirEntries;
-    std::vector<FMEntry> selectedDirEntries;
+    std::vector<FMEntry, SPIRamAllocator<FMEntry>> currentDirEntries;
+    std::vector<FMEntry, SPIRamAllocator<FMEntry>> selectedDirEntries;
 
     // Status bar stuff
     int errnoTime = 0;

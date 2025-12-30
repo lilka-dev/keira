@@ -3,8 +3,8 @@
 #include <lilka/config.h>
 
 #include "Preferences.h"
-#include "servicemanager.h"
-#include "services/clock.h"
+#include "keira/servicemanager.h"
+#include "services/clock/clock.h"
 #include "utils/json.h"
 #include "weather.h"
 #include "icons/weather_icons.h"
@@ -151,6 +151,7 @@ const char* urlTemplate = "https://api.open-meteo.com/v1/forecast"
                           "&current=temperature_2m,wind_speed_10m,weather_code";
 
 WeatherApp::WeatherApp() : App("Weather") {
+    setStackSize(8192);
 }
 
 void WeatherApp::run() {
@@ -276,17 +277,17 @@ bool WeatherApp::runSettings() {
     bool exitSettings = false;
     while (!saveSettings && !exitSettings) {
         lilka::Menu settingsMenu(K_S_SETTINGS);
-        settingsMenu.addActivationButton(lilka::Button::B);
-        settingsMenu.addItem(K_S_WEATHER_LATITUDE, 0, 0, String(settings.lat));
-        settingsMenu.addItem(K_S_WEATHER_LONGITUDE, 0, 0, String(settings.lon));
-        settingsMenu.addItem(K_S_WEATHER_SAVE, 0, 0, "");
-        settingsMenu.addItem(K_S_WEATHER_CANCEL, 0, 0, "");
+        settingsMenu.addActivationButton(K_BTN_BACK);
+        settingsMenu.addItem(K_S_WEATHER_LATITUDE, 0, lilka::colors::White, String(settings.lat));
+        settingsMenu.addItem(K_S_WEATHER_LONGITUDE, 0, lilka::colors::White, String(settings.lon));
+        settingsMenu.addItem(K_S_WEATHER_SAVE, 0, lilka::colors::White, "");
+        settingsMenu.addItem(K_S_WEATHER_CANCEL, 0, lilka::colors::White, "");
         while (!settingsMenu.isFinished()) {
             settingsMenu.update();
             settingsMenu.draw(canvas);
             queueDraw();
         }
-        if (settingsMenu.getButton() == lilka::Button::B) {
+        if (settingsMenu.getButton() == K_BTN_BACK) {
             exitSettings = true;
         } else {
             if (settingsMenu.getCursor() == 0 || settingsMenu.getCursor() == 1) {

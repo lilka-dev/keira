@@ -44,7 +44,7 @@ Keira написана на C++, і вона містить ряд вбудов�
     :caption: myapp.h
 
     #include <lilka.h>
-    #include "app.h"
+    #include "keira/app.h"
 
     class MyApp : public App {
     public:

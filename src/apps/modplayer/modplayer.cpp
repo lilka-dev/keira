@@ -12,6 +12,8 @@
 #include <AudioFileSourcePROGMEM.h>
 
 #include "modplayer.h"
+#include "keira/servicemanager.h"
+#include "services/watchdog/watchdog.h"
 
 ModPlayerApp::ModPlayerApp(String path) :
     App("MODPlayer", 0, 0, lilka::display.width(), lilka::display.height()),
@@ -30,6 +32,10 @@ void ModPlayerApp::run() {
     // Start the player task on core 0
     xTaskCreatePinnedToCore(
         [](void* arg) {
+#ifdef KEIRA_WATCHDOG
+            auto wd = ServiceManager::getInstance()->getService<WatchdogService>("watchdog");
+            if (wd != NULL) wd->addCurrentTask(WATCHDOG_TASK_MISC);
+#endif
             ModPlayerApp* app = static_cast<ModPlayerApp*>(arg);
             app->playTask();
         },

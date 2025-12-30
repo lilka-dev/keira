@@ -33,7 +33,8 @@
 
 #define K_S_SERVICES                    "Services"
 #define K_S_FTP                         "FTP"
-
+#define K_S_TELNET                      "Telnet"
+#define K_S_CHANGE_ON_NEXT_BOOT         "Changes would apply on next boot"
 #define K_S_OS_NAME                     "Keira OS"
 #define K_S_OS_DESCRIPTION              "by Андерсон & friends"
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -75,10 +76,12 @@
 #define K_S_LAUNCHER_WIFI_ADAPTER      "WiFi"
 #define K_S_LAUNCHER_WIFI_NETWORKS     "WiFi Networks"
 #define K_S_LAUNCHER_WIFI_TX_POWER     "WiFi Power"
+#define K_S_LAUNCHER_SPI_SD_SPEED      "SD card frequency"
 #define K_S_LAUNCHER_SOUND             "Sound"
 #define K_S_LAUNCHER_SERVICES          K_S_SERVICES
 #define K_S_LAUNCHER_FTP               K_S_FTP
 #define K_S_LAUNCHER_FTP_STATUS        K_S_STATUS
+#define K_S_LAUNCHER_TELNET            K_S_TELNET
 #define K_S_LAUNCHER_FTP_USER          K_S_USER
 #define K_S_LAUNCHER_FTP_PASSWORD      K_S_PASSWORD
 
@@ -188,6 +191,7 @@
 #define K_S_FMANAGER_THIS_OP_WOULD_DELETE_FILE_FMT "This operation would delete file\n %s\nProceed: START\nExit: B"
 #define K_S_FMANAGER_THIS_OP_WOULD_DELETE_COUNT_FILES_FMT \
     "This operation would delete %d file(s)\nProceed: START\nExit: B"
+#define K_S_FMANAGER_SELECTED_ENTRIES_EXIT_FMT "Selected %d files\nConfirm exit: START\nReturn: B"
 #define K_S_FMANAGER_ABOUT_DIR_FMT \
     "Type: directory\n"            \
     "Path: %s"
@@ -215,14 +219,18 @@
 #define K_S_LILTRACKER_CREATE_NEW_TRACK       "++ Create new"
 #define K_S_LILTRACKER_ENTER_FILENAME         "Enter filename"
 #define K_S_LILTRACKER_FILENAME_CANT_BE_EMPTY "Filename can't be empty"
+#define K_S_LILTRACKER_CLEAR_TRACK_DATA       "Clear all track data?\n[START]Yes\n[B]No"
+#define K_S_LILTRACKER_OPEN                   "Open"
+#define K_S_LILTRACKER_SAVE                   "Save"
+#define K_S_LILTRACKER_RESET                  "Reset"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // apps/lilcatalog/lilcatalog.cpp /////////////////////////////////////////////////////////////////////
-#define K_S_LILCATALOG_LANGUAGE                      "uk"
 #define K_S_LILCATALOG_APP                           "LilCatalogue"
 
-#define K_S_LILCATALOG_FETCH_CATALOG                 "Update catalogue"
+#define K_S_LILCATALOG_APPS                          "Apps"
+#define K_S_LILCATALOG_MODS                          "Mods"
 #define K_S_LILCATALOG_STOP                          "Exit"
 #define K_S_LILCATALOG_BACK                          "Back"
 #define K_S_LILCATALOG_EMPTY                         ""
@@ -231,29 +239,40 @@
 #define K_S_LILCATALOG_INSTALL                       "Install"
 #define K_S_LILCATALOG_REMOVE                        "Delete"
 #define K_S_LILCATALOG_UPDATE                        "Update"
+#define K_S_LILCATALOG_SOURCE                        "Source"
 #define K_S_LILCATALOG_ENTRY_DESCRIPTION             "Description"
-#define K_S_LILCATALOG_LOADING                       "Downloading" // ?
+#define K_S_LILCATALOG_LOADING                       "Downloading"
+#define K_S_LILCATALOG_LOADING_CATALOG               "Loading catalog..."
 #define K_S_LILCATALOG_STARTING                      "Starting..."
 #define K_S_LILCATALOG_ENTRY_DESCRIPTION_NAME        "Name: "
 #define K_S_LILCATALOG_ENTRY_DESCRIPTION_AUTHOR      "Author: "
 #define K_S_LILCATALOG_ENTRY_DESCRIPTION_DESCRIPTION "Description: "
-#define K_S_LILCATALOG_ENTRY_DESCRIPTION_FILES       "Files: "
+#define K_S_LILCATALOG_ENTRY_DESCRIPTION_FILE        "File: "
 
-#define K_S_LILCATALOG_CATEGORY_POSTFIX              " elements" // 4 elements? :D
+#define K_S_LILCATALOG_NEXT_PAGE                     ">> Next page"
+#define K_S_LILCATALOG_PREV_PAGE                     "<< Previous page"
 #define K_S_LILCATALOG_SIZE                          "Size:"
 #define K_S_LILCATALOG_FILE_LOADING                  "Downloading file..."
-#define K_S_LILCATALOG_FILE_LOADING_COMPLETE         "File downloaded and saved" // simplify this bullshit
+#define K_S_LILCATALOG_FILE_LOADING_COMPLETE         "File downloaded and saved"
 
-#define K_S_LILCATALOG_ERROR_CREATE_FOLDER           "Помилка створення каталогу"
-#define K_S_LILCATALOG_ERROR_NO_CATALOG              "Каталог не знайдено. Завантажте його з інтернету"
-#define K_S_LILCATALOG_ERROR_LOAD_CATALOG            "Помилка завантаження каталогу"
-#define K_S_LILCATALOG_ERROR_FILE_OPEN               "Помилка відкриття файлу"
-#define K_S_LILCATALOG_ERROR_CONNECTION              "Помилка підключення:"
-#define K_S_LILCATALOG_ERROR_DIRETORY_CREATE         "Помилка створення директорії"
-#define K_S_LILCATALOG_ERROR_STAGE1                  "Етап: 1\nКод: "
-#define K_S_LILCATALOG_ERROR_STAGE2                  "Етап: 2\nКод: "
-#define K_S_LILCATALOG_ERROR_STAGE3                  "Етап: 3\nКод: "
-#define K_S_LILCATALOG_SD_NOTFOUND                   "SD карта не знайдена. Неможливо продовжити"
+#define K_S_LILCATALOG_ARCHIVE_NOTICE                "Archives need to be extracted manually"
+#define K_S_LILCATALOG_UNSUPPORTED_TYPE              "Unsupported file type"
+#define K_S_LILCATALOG_CLEAR_CACHE                   "Clear cache"
+#define K_S_LILCATALOG_CACHE_CLEARED                 "Cache cleared"
+#define K_S_LILCATALOG_INSTALLED                     "Installed"
+#define K_S_LILCATALOG_NO_INSTALLED                  "No installed apps"
+#define K_S_LILCATALOG_NO_BINARY                     "This app has no downloadable files"
+#define K_S_LILCATALOG_VIEW_SOURCE                   "View source"
+
+#define K_S_LILCATALOG_ERROR_CREATE_FOLDER           "Error creating folder"
+#define K_S_LILCATALOG_ERROR_LOAD_CATALOG            "Error loading catalog"
+#define K_S_LILCATALOG_ERROR_FILE_OPEN               "Error opening file"
+#define K_S_LILCATALOG_ERROR_CONNECTION              "Connection error: "
+#define K_S_LILCATALOG_ERROR_DIRETORY_CREATE         "Error creating directory"
+#define K_S_LILCATALOG_ERROR_STAGE1                  "Stage: 1\nCode: "
+#define K_S_LILCATALOG_ERROR_STAGE2                  "Stage: 2\nCode: "
+#define K_S_LILCATALOG_ERROR_STAGE3                  "Stage: 3\nCode: "
+#define K_S_LILCATALOG_SD_NOTFOUND                   "SD card not found. Cannot continue"
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // apps/demos/letris.cpp //////////////////////////////////////////////////////////////////////////////
@@ -354,4 +373,56 @@
 #define K_S_WEATHER_CANCEL                        "Cancel"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// apps/usbdrive/usbdrive.cpp /////////////////////////////////////////////////////////////////////////
+#define K_S_USB_DRIVE_TITLE                       "USB Drive"
+#define K_S_USB_DRIVE_EXPERIMENTAL_TITLE          "Warning"
+#define K_S_USB_DRIVE_EXPERIMENTAL_WARNING        "Experimental feature.\n" \
+                                                  "Serial will be disabled.\n\n" \
+                                                  "[START] - OK  [A] - Cancel"
+#define K_S_USB_DRIVE_INITIALIZING                "Initializing USB..."
+#define K_S_USB_DRIVE_INIT_ERROR                  "USB initialization error"
+#define K_S_USB_DRIVE_NO_SD                       "SD card not available"
+#define K_S_USB_DRIVE_CONNECT_USB                 "Connect USB cable to PC"
+#define K_S_USB_DRIVE_CONNECTED                   "Connected to PC"
+#define K_S_USB_DRIVE_EJECTED                     "Safely ejected"
+#define K_S_USB_DRIVE_PC_INSTRUCTION              "SD card is available on PC"
+#define K_S_USB_DRIVE_SAFE_EJECT                  "Safely eject before exit"
+#define K_S_USB_DRIVE_PRESS_A_TO_EXIT             "[A] - exit"
+#define K_S_USB_DRIVE_DISCONNECTING               "Disconnecting..."
+#define K_S_USB_DRIVE_REBOOT_REQUIRED             "Device will reboot..."
+#define K_S_USB_DRIVE_NOT_EJECTED                 "Not safely ejected!"
+#define K_S_USB_DRIVE_EJECT_WARNING               "Data may be corrupted"
+#define K_S_USB_DRIVE_PRESS_START_CONTINUE        "[START] - continue"
+#define K_S_USB_DRIVE_PRESS_B_CANCEL              "[B] - cancel"
+#define K_S_LAUNCHER_USB_DRIVE                    "USB Drive"
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// apps/pastebin/pastebinApp.cpp //////////////////////////////////////////////////////////////////////
+#define K_S_PASTEBIN_CODE                         "Code"
+#define K_S_PASTEBIN_NAME                         "Name"
+#define K_S_PASTEBIN_DOWNLOAD                     "Download"
+#define K_S_PASTEBIN_ENTER_CODE                   "Enter code"
+#define K_S_PASTEBIN_ENTER_NAME                   "Enter name"
+#define K_S_PASTEBIN_ERROR_CREATE_DIR             "Error while creating directory occured"
+#define K_S_PASTEBIN_ERROR_OPEN_FILE              "Error while opening file occured"
+#define K_S_PASTEBIN_FILE_DOWNLOADED_FMT          "File downloaded to \n%s"
+#define K_S_PASTEBIN_REQUEST_FAIL_FMT             "HTTP Error \n%s"
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// apps/mjs/mjsrunner.cpp /////////////////////////////////////////////////////////////////////////////
+#define K_S_MJS_ERROR                             "Error: "
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// apps/mjs/luarunner.cpp /////////////////////////////////////////////////////////////////////////////
+#define K_S_LUA_ERROR                             "Error: "
+#define K_S_LUA_AWAIT_CODE_FROM_UART              "Awaiting code\nfrom UART...\n\nPress [A]\nto exit."
+#define K_S_LUA_DOWNLOAD                          "Downloading..."
+#define K_S_LUA_AWAIT_CODE_FROM_UART              "REPL:\nAwaiting code\nfrom UART...\n\nPress [A]\nto exit."
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// apps/tests/keyboard/keyboard.cpp //////////////////////////////////////////////////////////////////
+#define K_S_KEYBOARD_ENTER_TEXT                    "Enter text: "
+#define K_S_KEYBOARD_YOU_ENTERED                   "You entered:"
+//////////////////////////////////////////////////////////////////////////////////////////////////////
 // clang-format on
