@@ -1,5 +1,6 @@
 #include "web.h"
 #include "esp_http_server.h"
+#include <keira/servicemanager.h>
 
 static const char html[] = R"(
 <!DOCTYPE html>
@@ -304,15 +305,30 @@ static void startWebServer() {
 }
 
 WebService::WebService()
-    : Service("Web Service") {
+    : Service("Web Service")
+{
+    networkService = ServiceManager::getInstance()->getService<NetworkService>("network");
 }
 
 WebService::~WebService() {
 }
 
 void WebService::run() {
-    startWebServer();
-    for(;;) {
-        vTaskDelay(100 / portTICK_PERIOD_MS);
+    bool wasOnline = false;
+
+    while(true) {
+        if (!networkService) {
+            vTaskDelay(1000 / portTICK_PERIOD_MS);
+            continue;
+        }
+
+        bool isOnline = networkService->getNetworkState() == NetworkState::NETWORK_STATE_ONLINE;
+
+        if (isOnline && !wasOnline) {
+            startWebServer();
+            wasOnline = true;
+        }
+
+        taskYIELD();
     }
 }

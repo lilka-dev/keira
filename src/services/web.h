@@ -1,6 +1,7 @@
 #pragma once
 
-#include "service.h"
+#include "keira/service.h"
+#include "network/network.h"
 
 class WebService : public Service {
 public:
@@ -9,4 +10,5 @@ public:
 
 private:
     void run() override;
+    NetworkService* networkService;
 };
