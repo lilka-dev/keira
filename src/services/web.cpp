@@ -21,17 +21,7 @@ static const char html[] = R"(
 </html>)";
 
 static const char htmlListBegin[] = R"(<!DOCTYPE html><html><meta charset="UTF-8"><body><ul style="list-style: none;">)";
-static const char htmlListEnd[] = "</ul>";
-static const char htmlListPageEnd[] = "</body></html>";
-
-static const char htmlListUploadFormP1[] = R"(
-    <form action="/upload" method="post" enctype="multipart/form-data">
-      <input type="file" name="file">
-      <input type="hidden" name="path" value=")";
-
-static const char htmlListUploadFormP2[] = R"(">
-      <button type="submit">Upload</button>
-    </form>)";
+static const char htmlListPageEnd[] = "</ul></body></html>";
 
 httpd_handle_t stream_httpd = NULL;
 static const char* contentLengthHeader = "Content-Length";
@@ -127,14 +117,6 @@ static esp_err_t replyWithDirectory(httpd_req_t *req, DIR* dir, const String& qu
             itemHtml += "</a></li>";
             httpd_resp_sendstr_chunk(req, itemHtml.c_str());
         }
-        httpd_resp_sendstr_chunk(req, htmlListEnd);
-        httpd_resp_sendstr_chunk(req, htmlListUploadFormP1);
-        if (query.length() > 0) {
-            httpd_resp_sendstr_chunk(req, query.c_str());
-        } else {
-            httpd_resp_sendstr_chunk(req, "/");
-        }
-        httpd_resp_sendstr_chunk(req, htmlListUploadFormP2);
         httpd_resp_sendstr_chunk(req, htmlListPageEnd);
         httpd_resp_send_chunk(req, 0, 0);
     }
@@ -144,7 +126,7 @@ static esp_err_t replyWithDirectory(httpd_req_t *req, DIR* dir, const String& qu
 
 static esp_err_t replyWithFile(httpd_req_t *req, const String& path) {
     esp_err_t err = ESP_OK;
-    //lilka::serial.log("Download %s", query);
+    String fileNameHeader;
 
     auto file = fopen(path.c_str(), "r");
     if (file == NULL) {
@@ -155,7 +137,7 @@ static esp_err_t replyWithFile(httpd_req_t *req, const String& path) {
     for(auto scanForName = path.end(); scanForName > path.begin(); scanForName--) {
         if (*scanForName == '/' || *scanForName == '\\') {
             scanForName++; // skip separator
-            String fileNameHeader = "attachment; filename=\"";
+            fileNameHeader = "attachment; filename=\"";
             fileNameHeader += scanForName;
             fileNameHeader += "\"";
             err = httpd_resp_set_hdr(req, "Content-Disposition", fileNameHeader.c_str());
@@ -209,59 +191,11 @@ static esp_err_t download_handler(httpd_req_t *req) {
             err = replyWithDirectory(req, dir, query, sdCardSelected);
             closedir(dir);
         }
-    } else {
+    } else { 
         err = replyWithFile(req, path);
     }
 
     return err;
-}
-
-static esp_err_t upload_fs_handler(httpd_req_t *req) {
-    esp_err_t res = httpd_resp_set_type(req, "text/html");
-
-    if (res != ESP_OK) {
-        return res;
-    }
-
-    int contentLength = getContentLength(req);
-    lilka::serial.log("WebUpload binary size %d", contentLength);
-
-    const int bufSize = 4096;
-    char* buf = (char*)malloc(bufSize);
-    bool seekBinary = true;
-
-    FILE *file;
-    String path;
-
-    int len = 0;
-    do {
-        len = httpd_req_recv(req, buf, bufSize);
-        if (len < 0) {
-            lilka::serial.log("Recv error %d", len);
-            break;
-        }
-
-        char* towrite = buf;
-        if (seekBinary) {
-            auto beforeBinary = strnstr(buf, fileHeaderDivider, len);
-            towrite = beforeBinary + 4;
-            len -= towrite - buf;
-            seekBinary = false;
-
-            file = fopen(path.c_str(), "w");
-        }
-
-        if (len > 0) {
-            auto w = fwrite(towrite, len, 1, file);
-
-        }
-
-    } while(len > 0);
-
-    fclose(file);
-    free(buf);
-
-    return res;
 }
 
 static esp_err_t upload_handler(httpd_req_t *req) {
@@ -274,24 +208,24 @@ static esp_err_t upload_handler(httpd_req_t *req) {
 
     int contentLength = getContentLength(req);
 
-    lilka::serial.log("WebUpload binary size %d", contentLength);
+    lilka::serial.log("FW upload binary size %d", contentLength);
 
     auto current_partition = esp_ota_get_running_partition();
     auto ota_partition = esp_ota_get_next_update_partition(current_partition);
     
     esp_err_t err = esp_ota_begin(ota_partition, contentLength, &ota_handle);
-    lilka::serial.log("esp_ota_begin end");
+
     if (err == ESP_OK) {
         const int bufSize = 4096;
         char* buf = (char*)malloc(bufSize);
         bool seekBinary = true;
-        lilka::serial.log("Recv begin");
+        lilka::serial.log("FW upload begin");
 
         int len = 0;
         do {
             len = httpd_req_recv(req, buf, bufSize);
             if (len < 0) {
-                lilka::serial.log("Recv error %d", len);
+                lilka::serial.log("FW upload error %d", len);
                 break;
             }
 
@@ -321,13 +255,12 @@ static esp_err_t upload_handler(httpd_req_t *req) {
         free(buf);
     }
 
-    lilka::serial.log("Upload error %d", (int)err);
-
     if (err == ESP_OK) {
         // reply & restart
         res = httpd_resp_sendstr(req, html);
         startRestartTask(); // deffered restart
     } else {
+        lilka::serial.log("FW upload failed err=%d", (int)err);
         // abort OTA
         esp_ota_abort(ota_handle);
         // reply with error page
@@ -355,13 +288,6 @@ static void startWebServer() {
         .user_ctx  = NULL
     };
 
-    httpd_uri_t upload_uri = {
-        .uri       = "/upload",
-        .method    = HTTP_POST,
-        .handler   = upload_fs_handler,
-        .user_ctx  = NULL
-    };
-
     httpd_uri_t download_uri = {
         .uri       = "/download",
         .method    = HTTP_GET,
@@ -372,7 +298,6 @@ static void startWebServer() {
     lilka::serial.log("Start Web Loader on %d", config.server_port);
     if (httpd_start(&stream_httpd, &config) == ESP_OK) {
         httpd_register_uri_handler(stream_httpd, &index_uri);
-        httpd_register_uri_handler(stream_httpd, &upload_uri);
         httpd_register_uri_handler(stream_httpd, &upload_fw);
         httpd_register_uri_handler(stream_httpd, &download_uri);
     }
@@ -389,6 +314,7 @@ WebService::~WebService() {
 
 void WebService::run() {
     bool wasOnline = false;
+    setStackSize(8192);
 
     while(true) {
         if (!networkService) {
