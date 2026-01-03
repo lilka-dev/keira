@@ -23,9 +23,11 @@ static const char html[] = R"(
 static const char htmlListBegin[] = R"(<!DOCTYPE html><html><meta charset="UTF-8"><body><ul style="list-style: none;">)";
 static const char htmlListPageEnd[] = "</ul></body></html>";
 
-httpd_handle_t stream_httpd = NULL;
+static httpd_handle_t stream_httpd = NULL;
 static const char* contentLengthHeader = "Content-Length";
 static const char* fileHeaderDivider = "\r\n\r\n";
+
+const int fileBufSize = 4096;
 
 static void restartTask(void* parameter) {
     vTaskDelay(pdMS_TO_TICKS(5000));  // Delay for 5 seconds
@@ -146,7 +148,7 @@ static esp_err_t replyWithFile(httpd_req_t *req, const String& path) {
     }
 
     if (err == ESP_OK) {
-        const int fileBufSize = 4096;
+
         char* fileBuf = (char*)malloc(fileBufSize);
 
         err = httpd_resp_set_type(req, "application/octet-stream");
@@ -216,14 +218,13 @@ static esp_err_t upload_handler(httpd_req_t *req) {
     esp_err_t err = esp_ota_begin(ota_partition, contentLength, &ota_handle);
 
     if (err == ESP_OK) {
-        const int bufSize = 4096;
-        char* buf = (char*)malloc(bufSize);
+        char* buf = (char*)malloc(fileBufSize);
         bool seekBinary = true;
         lilka::serial.log("FW upload begin");
 
         int len = 0;
         do {
-            len = httpd_req_recv(req, buf, bufSize);
+            len = httpd_req_recv(req, buf, fileBufSize);
             if (len < 0) {
                 lilka::serial.log("FW upload error %d", len);
                 break;
@@ -295,7 +296,7 @@ static void startWebServer() {
         .user_ctx  = NULL
     };
 
-    lilka::serial.log("Start Web Loader on %d", config.server_port);
+    lilka::serial.log("Start web service on %d", config.server_port);
     if (httpd_start(&stream_httpd, &config) == ESP_OK) {
         httpd_register_uri_handler(stream_httpd, &index_uri);
         httpd_register_uri_handler(stream_httpd, &upload_fw);
@@ -304,7 +305,7 @@ static void startWebServer() {
 }
 
 WebService::WebService()
-    : Service("Web Service")
+    : Service("Web")
 {
     networkService = ServiceManager::getInstance()->getService<NetworkService>("network");
 }
