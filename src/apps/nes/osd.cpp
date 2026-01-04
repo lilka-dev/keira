@@ -198,6 +198,7 @@ void osd_stopsound() {
 void do_audio_frame() {
     // Reference: https://github.com/moononournation/arduino-nofrendo/blob/c5ba6d39c1fff0ceed314b76f6da5145d0d99bcc/examples/esp32-nofrendo/sound.c#L72
     int left = HW_AUDIO_SAMPLERATE / NES_REFRESH_RATE;
+    auto volume = lilka::audio.getVolume();
     while (left) {
         int n = DEFAULT_FRAGSIZE;
         if (n > left) n = left;
@@ -217,7 +218,7 @@ void do_audio_frame() {
 
         size_t i2s_bytes_write;
         // adjust volume
-        lilka::audio.adjustVolume(audio_frame, 4 * n, 16);
+        lilka::audio.adjustVolume(audio_frame, 4 * n, 16, volume);
         i2s_write(esp_i2s::I2S_NUM_0, static_cast<int16_t*>(audio_frame), 4 * n, &i2s_bytes_write, portMAX_DELAY);
         left -= i2s_bytes_write / 4;
     }
