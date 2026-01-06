@@ -9,6 +9,9 @@
 // clang-format off
 
 // Multi purpose strings  /////////////////////////////////////////////////////////////////////////////
+#define K_S_CURRENT_LANGUAGE_SHORT      "uk"
+#define K_S_CURRENT_LANGUAGE_FULL       "Українська"
+
 #define K_S_ERROR                       "Помилка"
 #define K_S_ATTENTION                   "Увага"
 #define K_S_SUCCESS                     "Успіх"
