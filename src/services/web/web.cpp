@@ -170,7 +170,8 @@ static esp_err_t replyWithFile(httpd_req_t* req, const String& path) {
 static esp_err_t download_handler(httpd_req_t* req) {
     bool sdCardSelected;
     esp_err_t err = ESP_OK;
-    struct stat statbuf { .st_mode = _IFDIR };
+    struct stat statbuf;
+    statbuf.st_mode = _IFDIR;
 
     String query = getQueryPath(req, &sdCardSelected);
     auto root = sdCardSelected ? lilka::fileutils.getSDRoot() : lilka::fileutils.getSPIFFSRoot();
@@ -275,9 +276,7 @@ static void startWebServer() {
     config.server_port = 80;
 
     httpd_uri_t index_uri = {.uri = "/", .method = HTTP_GET, .handler = index_handler, .user_ctx = NULL};
-
     httpd_uri_t upload_fw = {.uri = "/firmware", .method = HTTP_POST, .handler = upload_handler, .user_ctx = NULL};
-
     httpd_uri_t download_uri = {.uri = "/download", .method = HTTP_GET, .handler = download_handler, .user_ctx = NULL};
 
     lilka::serial.log("Start web service on %d", config.server_port);
