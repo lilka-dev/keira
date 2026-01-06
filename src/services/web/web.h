@@ -1,7 +1,7 @@
 #pragma once
 
 #include "keira/service.h"
-#include "network/network.h"
+#include "services/network/network.h"
 
 class WebService : public Service {
 public:

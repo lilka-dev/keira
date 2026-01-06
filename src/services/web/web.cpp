@@ -271,6 +271,12 @@ static esp_err_t upload_handler(httpd_req_t *req) {
     return res;
 }
 
+static void stopWebServer() {
+    lilka::serial.log("Stopping web service");
+    httpd_stop(stream_httpd);
+    // ignore errors
+}
+
 static void startWebServer() {
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
     config.server_port = 80;
@@ -305,7 +311,7 @@ static void startWebServer() {
 }
 
 WebService::WebService()
-    : Service("Web")
+    : Service("web")
 {
     networkService = ServiceManager::getInstance()->getService<NetworkService>("network");
 }
@@ -325,11 +331,14 @@ void WebService::run() {
 
         bool isOnline = networkService->getNetworkState() == NetworkState::NETWORK_STATE_ONLINE;
 
-        if (isOnline && !wasOnline) {
+        if (getEnabled() && isOnline && !wasOnline) {
             startWebServer();
             wasOnline = true;
+        } else if ((!getEnabled() || !isOnline) && wasOnline) {
+            wasOnline = false;
+            stopWebServer();
         }
 
-        taskYIELD();
+        vTaskDelay(500 / portTICK_PERIOD_MS);
     }
 }

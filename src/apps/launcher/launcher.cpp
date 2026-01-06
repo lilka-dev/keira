@@ -9,6 +9,7 @@
 #include "services/network/network.h"
 #include "services/ftp/ftp.h"
 #include "services/telnet/telnet.h"
+#include "services/web/web.h"
 // Demos:
 #include "apps/demos/lines/lines.h"
 #include "apps/demos/disk/disk.h"
@@ -156,6 +157,26 @@ void LauncherApp::run() {
                     ITEM::MENU(K_S_LAUNCHER_SPI_SD_SPEED, [this]() { this->setSpiSDSpeed(); }),
                     ITEM::MENU(K_S_LAUNCHER_SOUND, [this]() { this->runApp<SoundConfigApp>(); }),
                     ITEM::SUBMENU(K_S_LAUNCHER_SERVICES, {
+                        ITEM::SUBMENU(K_S_LAUNCHER_WEB, {
+                            ITEM::MENU(
+                                K_S_STATUS,
+                                [this]() {
+                                            WebService* webService = static_cast<WebService*>(
+                                                ServiceManager::getInstance()->getService<WebService>("web")
+                                            );
+                                            webService->setEnabled(!webService->getEnabled());
+                                },
+                                nullptr,
+                                lilka::colors::White,
+                                [this](void* item) {
+                                            lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
+                                            WebService* webService = static_cast<WebService*>(
+                                                ServiceManager::getInstance()->getService<WebService>("web")
+                                            );
+                                            menuItem->postfix = webService->getEnabled() ? K_S_ON : K_S_OFF;
+                                }
+                            ),
+                        }),
                         ITEM::SUBMENU(K_S_LAUNCHER_TELNET, {
                             ITEM::MENU(
                                 K_S_STATUS,
@@ -175,7 +196,7 @@ void LauncherApp::run() {
                                             menuItem->postfix = telnetService->getEnabled() ? K_S_ON : K_S_OFF;
                                 }
                             ),
-                    }),
+                        }),
                         ITEM::SUBMENU(K_S_LAUNCHER_FTP, {
                             ITEM::MENU(
                                 K_S_STATUS,

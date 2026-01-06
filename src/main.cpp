@@ -11,7 +11,7 @@
 #include "services/screenshot/screenshot.h"
 #include "services/telnet/telnet.h"
 #include "services/ftp/ftp.h"
-#include "services/web.h"
+#include "services/web/web.h"
 #include "apps/statusbar/statusbar.h"
 #include "apps/launcher/launcher.h"
 
