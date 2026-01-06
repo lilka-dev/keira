@@ -170,7 +170,7 @@ static esp_err_t replyWithFile(httpd_req_t* req, const String& path) {
 static esp_err_t download_handler(httpd_req_t* req) {
     bool sdCardSelected;
     esp_err_t err = ESP_OK;
-    struct stat statbuf{.st_mode = _IFDIR};
+    struct stat statbuf { .st_mode = _IFDIR };
 
     String query = getQueryPath(req, &sdCardSelected);
     auto root = sdCardSelected ? lilka::fileutils.getSDRoot() : lilka::fileutils.getSPIFFSRoot();
