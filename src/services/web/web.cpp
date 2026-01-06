@@ -237,15 +237,13 @@ static esp_err_t upload_handler(httpd_req_t* req) {
                 if (err != ESP_OK) {
                     lastError = "Failed to set a new boot partition";
                 }
-            }
-            else {
+            } else {
                 lastError = "Failed to finalize OTA partition";
             }
         }
 
         free(buf);
-    }
-    else {
+    } else {
         lastError = "Failed to get ota partition";
     }
 
@@ -260,8 +258,10 @@ static esp_err_t upload_handler(httpd_req_t* req) {
         esp_ota_abort(ota_handle);
         // reply with error info
         res = httpd_resp_set_status(req, HTTPD_500);
-        lastError += fileHeaderDivider;
-        res = httpd_resp_send(req, lastError.c_str(), lastError.length());
+        if (res == ESP_OK) {
+            lastError += fileHeaderDivider;
+            res = httpd_resp_send(req, lastError.c_str(), lastError.length());
+        }
     }
 
     return res;
@@ -301,7 +301,6 @@ void WebService::run() {
     setStackSize(8192);
 
     while (true) {
-
         if (pendingRestart) {
             vTaskDelay(pdMS_TO_TICKS(2000)); // Delay for 2 seconds
             esp_restart(); // Restart the ESP32
