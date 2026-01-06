@@ -20,7 +20,8 @@ static const char html[] = R"(
 </body>
 </html>)";
 
-static const char htmlListBegin[] = R"(<!DOCTYPE html><html><meta charset="UTF-8"><body><ul style="list-style: none;">)";
+static const char htmlListBegin[] =
+    R"(<!DOCTYPE html><html><meta charset="UTF-8"><body><ul style="list-style: none;">)";
 static const char htmlListPageEnd[] = "</ul></body></html>";
 
 static httpd_handle_t stream_httpd = NULL;
@@ -30,27 +31,27 @@ static const char* fileHeaderDivider = "\r\n\r\n";
 const int fileBufSize = 4096;
 
 static void restartTask(void* parameter) {
-    vTaskDelay(pdMS_TO_TICKS(5000));  // Delay for 5 seconds
-    esp_restart();                    // Restart the ESP32
+    vTaskDelay(pdMS_TO_TICKS(5000)); // Delay for 5 seconds
+    esp_restart(); // Restart the ESP32
 }
 
 static void startRestartTask() {
     xTaskCreate(
-        restartTask,   // Task function
-        "r",           // Task name
-        2048,          // Stack size
-        NULL,          // Task input parameter
-        1,             // Priority
-        NULL           // Task handle
+        restartTask, // Task function
+        "r", // Task name
+        2048, // Stack size
+        NULL, // Task input parameter
+        1, // Priority
+        NULL // Task handle
     );
 };
 
-static esp_err_t index_handler(httpd_req_t *req) {
+static esp_err_t index_handler(httpd_req_t* req) {
     auto res = httpd_resp_sendstr(req, html);
     return res;
 }
 
-static int getContentLength(httpd_req_t *req) {
+static int getContentLength(httpd_req_t* req) {
     char contentLength[64];
     auto contentLenLen = httpd_req_get_hdr_value_len(req, contentLengthHeader);
 
@@ -59,13 +60,13 @@ static int getContentLength(httpd_req_t *req) {
         return -1;
     }
 
-    char *endptr;
+    char* endptr;
     int contentLengthValue = strtol(contentLength, &endptr, 10);
 
     return contentLengthValue;
 }
 
-String getQueryPath(httpd_req_t *req, bool* sdCardSelected) {
+String getQueryPath(httpd_req_t* req, bool* sdCardSelected) {
     const int queryStringSize = 512;
     char queryString[queryStringSize];
 
@@ -81,24 +82,22 @@ String getQueryPath(httpd_req_t *req, bool* sdCardSelected) {
         }
 
         sdCardSelected[0] = strnstr(queryString, "sd=true", queryStringSize) != NULL;
-    }
-    else
-    {
+    } else {
         sdCardSelected[0] = false;
     }
 
     return result;
 }
 
-static esp_err_t replyWithDirectory(httpd_req_t *req, DIR* dir, const String& query, bool sdCardSelected) {
+static esp_err_t replyWithDirectory(httpd_req_t* req, DIR* dir, const String& query, bool sdCardSelected) {
     // directory listing
     lilka::serial.log("List dir %s", query);
 
     esp_err_t err = httpd_resp_set_type(req, "text/html; charset=UTF-8");
     if (err == ESP_OK) {
-        const struct dirent *direntry = NULL;
+        const struct dirent* direntry = NULL;
         httpd_resp_sendstr_chunk(req, htmlListBegin);
-        while((direntry = readdir(dir)) != NULL) {
+        while ((direntry = readdir(dir)) != NULL) {
             String itemHtml("<li><a href='/download");
             auto absolutePath = lilka::fileutils.joinPath(query, direntry->d_name);
 
@@ -126,7 +125,7 @@ static esp_err_t replyWithDirectory(httpd_req_t *req, DIR* dir, const String& qu
     return err;
 }
 
-static esp_err_t replyWithFile(httpd_req_t *req, const String& path) {
+static esp_err_t replyWithFile(httpd_req_t* req, const String& path) {
     esp_err_t err = ESP_OK;
     String fileNameHeader;
 
@@ -136,7 +135,7 @@ static esp_err_t replyWithFile(httpd_req_t *req, const String& path) {
         return ESP_OK;
     }
 
-    for(auto scanForName = path.end(); scanForName > path.begin(); scanForName--) {
+    for (auto scanForName = path.end(); scanForName > path.begin(); scanForName--) {
         if (*scanForName == '/' || *scanForName == '\\') {
             scanForName++; // skip separator
             fileNameHeader = "attachment; filename=\"";
@@ -148,39 +147,33 @@ static esp_err_t replyWithFile(httpd_req_t *req, const String& path) {
     }
 
     if (err == ESP_OK) {
-
-        char* fileBuf = (char*)malloc(fileBufSize);
+        char* fileBuf = static_cast<char*>(malloc(fileBufSize));
 
         err = httpd_resp_set_type(req, "application/octet-stream");
         if (err == ESP_OK) {
             do {
                 auto read = fread(fileBuf, 1, fileBufSize, file);
-                if (read >= 0) {
-                    err = httpd_resp_send_chunk(req, fileBuf, read);
-                    if (err != ESP_OK) {
-                        break;
-                    }
+                err = httpd_resp_send_chunk(req, fileBuf, read);
+                if (err != ESP_OK) {
+                    break;
                 }
-            } while(read > 0);
+            } while (read > 0);
         }
 
         free(fileBuf);
     }
-    
+
     fclose(file);
     return err;
 }
 
-static esp_err_t download_handler(httpd_req_t *req) {
-
+static esp_err_t download_handler(httpd_req_t* req) {
     bool sdCardSelected;
     esp_err_t err = ESP_OK;
-    struct stat statbuf{ .st_mode = _IFDIR };
+    struct stat statbuf{.st_mode = _IFDIR};
 
     String query = getQueryPath(req, &sdCardSelected);
-    auto root = sdCardSelected
-                ? lilka::fileutils.getSDRoot()
-                : lilka::fileutils.getSPIFFSRoot();
+    auto root = sdCardSelected ? lilka::fileutils.getSDRoot() : lilka::fileutils.getSPIFFSRoot();
     auto path = lilka::fileutils.joinPath(root, query);
 
     if (stat(path.c_str(), &statbuf) != 0) {
@@ -193,14 +186,14 @@ static esp_err_t download_handler(httpd_req_t *req) {
             err = replyWithDirectory(req, dir, query, sdCardSelected);
             closedir(dir);
         }
-    } else { 
+    } else {
         err = replyWithFile(req, path);
     }
 
     return err;
 }
 
-static esp_err_t upload_handler(httpd_req_t *req) {
+static esp_err_t upload_handler(httpd_req_t* req) {
     esp_ota_handle_t ota_handle;
     esp_err_t res = httpd_resp_set_type(req, "text/html");
 
@@ -214,11 +207,11 @@ static esp_err_t upload_handler(httpd_req_t *req) {
 
     auto current_partition = esp_ota_get_running_partition();
     auto ota_partition = esp_ota_get_next_update_partition(current_partition);
-    
+
     esp_err_t err = esp_ota_begin(ota_partition, contentLength, &ota_handle);
 
     if (err == ESP_OK) {
-        char* buf = (char*)malloc(fileBufSize);
+        char* buf = static_cast<char*>(malloc(fileBufSize));
         bool seekBinary = true;
         lilka::serial.log("FW upload begin");
 
@@ -244,8 +237,8 @@ static esp_err_t upload_handler(httpd_req_t *req) {
                     break;
                 }
             }
-        } while(len > 0);
-        
+        } while (len > 0);
+
         if (err == ESP_OK) {
             err = esp_ota_end(ota_handle);
             if (err == ESP_OK) {
@@ -267,7 +260,7 @@ static esp_err_t upload_handler(httpd_req_t *req) {
         // reply with error page
         res = httpd_resp_send_500(req);
     }
-    
+
     return res;
 }
 
@@ -281,26 +274,11 @@ static void startWebServer() {
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
     config.server_port = 80;
 
-    httpd_uri_t index_uri = {
-        .uri       = "/",
-        .method    = HTTP_GET,
-        .handler   = index_handler,
-        .user_ctx  = NULL
-    };
+    httpd_uri_t index_uri = {.uri = "/", .method = HTTP_GET, .handler = index_handler, .user_ctx = NULL};
 
-    httpd_uri_t upload_fw = {
-        .uri       = "/firmware",
-        .method    = HTTP_POST,
-        .handler   = upload_handler,
-        .user_ctx  = NULL
-    };
+    httpd_uri_t upload_fw = {.uri = "/firmware", .method = HTTP_POST, .handler = upload_handler, .user_ctx = NULL};
 
-    httpd_uri_t download_uri = {
-        .uri       = "/download",
-        .method    = HTTP_GET,
-        .handler   = download_handler,
-        .user_ctx  = NULL
-    };
+    httpd_uri_t download_uri = {.uri = "/download", .method = HTTP_GET, .handler = download_handler, .user_ctx = NULL};
 
     lilka::serial.log("Start web service on %d", config.server_port);
     if (httpd_start(&stream_httpd, &config) == ESP_OK) {
@@ -310,9 +288,7 @@ static void startWebServer() {
     }
 }
 
-WebService::WebService()
-    : Service("web")
-{
+WebService::WebService() : Service("web") {
     networkService = ServiceManager::getInstance()->getService<NetworkService>("network");
 }
 
@@ -323,7 +299,7 @@ void WebService::run() {
     bool wasOnline = false;
     setStackSize(8192);
 
-    while(true) {
+    while (true) {
         if (!networkService) {
             vTaskDelay(1000 / portTICK_PERIOD_MS);
             continue;
