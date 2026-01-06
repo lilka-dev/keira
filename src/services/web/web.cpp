@@ -195,10 +195,12 @@ static esp_err_t download_handler(httpd_req_t* req) {
 }
 
 static esp_err_t upload_handler(httpd_req_t* req) {
+    String lastError = "No error";
     esp_ota_handle_t ota_handle;
     esp_err_t res = httpd_resp_set_type(req, "text/html");
 
     if (res != ESP_OK) {
+        lastError = "Failed to set response type";
         return res;
     }
 
@@ -221,6 +223,7 @@ static esp_err_t upload_handler(httpd_req_t* req) {
             len = httpd_req_recv(req, buf, fileBufSize);
             if (len < 0) {
                 lilka::serial.log("FW upload error %d", len);
+                lastError = "Failed to receive firmware file";
                 break;
             }
 
@@ -235,6 +238,7 @@ static esp_err_t upload_handler(httpd_req_t* req) {
             if (len > 0) {
                 err = esp_ota_write(ota_handle, towrite, len);
                 if (err != ESP_OK) {
+                    lastError = "Failed to write OTA partition";
                     break;
                 }
             }
@@ -244,22 +248,34 @@ static esp_err_t upload_handler(httpd_req_t* req) {
             err = esp_ota_end(ota_handle);
             if (err == ESP_OK) {
                 err = esp_ota_set_boot_partition(ota_partition);
+                if (err != ESP_OK) {
+                    lastError = "Failed to set a new boot partition";
+                }
+            }
+            else {
+                lastError = "Failed to finalize OTA partition";
             }
         }
 
         free(buf);
     }
+    else {
+        lastError = "Failed to get ota partition";
+    }
 
     if (err == ESP_OK) {
         // reply & restart
         res = httpd_resp_sendstr(req, html);
+        lilka::serial.log("FW upload done. Restart scheduled");
         startRestartTask(); // deffered restart
     } else {
-        lilka::serial.log("FW upload failed err=%d", (int)err);
+        lilka::serial.log("FW upload failed. Error %d", (int)err);
         // abort OTA
         esp_ota_abort(ota_handle);
-        // reply with error page
-        res = httpd_resp_send_500(req);
+        // reply with error info
+        res = httpd_resp_set_status(req, HTTPD_500);
+        lastError += fileHeaderDivider;
+        res = httpd_resp_send(req, lastError.c_str(), lastError.length());
     }
 
     return res;
