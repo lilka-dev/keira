@@ -27,24 +27,10 @@ static const char htmlListPageEnd[] = "</ul></body></html>";
 static httpd_handle_t stream_httpd = NULL;
 static const char* contentLengthHeader = "Content-Length";
 static const char* fileHeaderDivider = "\r\n\r\n";
+static volatile bool pendingRestart = false;
 
-const int fileBufSize = 4096;
-
-static void restartTask(void* parameter) {
-    vTaskDelay(pdMS_TO_TICKS(5000)); // Delay for 5 seconds
-    esp_restart(); // Restart the ESP32
-}
-
-static void startRestartTask() {
-    xTaskCreate(
-        restartTask, // Task function
-        "r", // Task name
-        2048, // Stack size
-        NULL, // Task input parameter
-        1, // Priority
-        NULL // Task handle
-    );
-};
+const int firmwareOperationBufferSize = 4096;
+const int fileSystemOperationBufferSize = 4096;
 
 static esp_err_t index_handler(httpd_req_t* req) {
     auto res = httpd_resp_sendstr(req, html);
@@ -147,12 +133,12 @@ static esp_err_t replyWithFile(httpd_req_t* req, const String& path) {
     }
 
     if (err == ESP_OK) {
-        char* fileBuf = static_cast<char*>(malloc(fileBufSize));
+        char* fileBuf = static_cast<char*>(malloc(fileSystemOperationBufferSize));
 
         err = httpd_resp_set_type(req, "application/octet-stream");
         if (err == ESP_OK) {
             do {
-                auto read = fread(fileBuf, 1, fileBufSize, file);
+                auto read = fread(fileBuf, 1, fileSystemOperationBufferSize, file);
                 err = httpd_resp_send_chunk(req, fileBuf, read);
                 if (err != ESP_OK) {
                     break;
@@ -214,13 +200,13 @@ static esp_err_t upload_handler(httpd_req_t* req) {
     esp_err_t err = esp_ota_begin(ota_partition, contentLength, &ota_handle);
 
     if (err == ESP_OK) {
-        char* buf = static_cast<char*>(malloc(fileBufSize));
+        char* buf = static_cast<char*>(malloc(firmwareOperationBufferSize));
         bool seekBinary = true;
         lilka::serial.log("FW upload begin");
 
         int len = 0;
         do {
-            len = httpd_req_recv(req, buf, fileBufSize);
+            len = httpd_req_recv(req, buf, firmwareOperationBufferSize);
             if (len < 0) {
                 lilka::serial.log("FW upload error %d", len);
                 lastError = "Failed to receive firmware file";
@@ -267,7 +253,7 @@ static esp_err_t upload_handler(httpd_req_t* req) {
         // reply & restart
         res = httpd_resp_sendstr(req, html);
         lilka::serial.log("FW upload done. Restart scheduled");
-        startRestartTask(); // deffered restart
+        pendingRestart = true; // deffered restart
     } else {
         lilka::serial.log("FW upload failed. Error %d", (int)err);
         // abort OTA
@@ -315,6 +301,12 @@ void WebService::run() {
     setStackSize(8192);
 
     while (true) {
+
+        if (pendingRestart) {
+            vTaskDelay(pdMS_TO_TICKS(2000)); // Delay for 2 seconds
+            esp_restart(); // Restart the ESP32
+        }
+
         if (!networkService) {
             vTaskDelay(1000 / portTICK_PERIOD_MS);
             continue;
