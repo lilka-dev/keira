@@ -1033,7 +1033,7 @@ static esp_err_t sd_upload_handler(httpd_req_t* req) {
 
             auto beforeBinary = strnstr(buf, fileHeaderDivider, len);
             if (beforeBinary) {
-                char* towrite = beforeBinary + 4;
+                const char* towrite = beforeBinary + 4;
                 len -= (towrite - buf);
                 if (len > 0) fwrite(towrite, 1, len, file);
             }
@@ -1099,7 +1099,7 @@ static esp_err_t multiboot_upload_handler(httpd_req_t* req) {
 
             auto beforeBinary = strnstr(buf, fileHeaderDivider, len);
             if (beforeBinary) {
-                char* towrite = beforeBinary + 4;
+                const char* towrite = beforeBinary + 4;
                 len -= (towrite - buf);
                 if (len > 0) fwrite(towrite, 1, len, file);
             }
@@ -1189,7 +1189,7 @@ static esp_err_t preview_handler(httpd_req_t* req) {
         FILE* file = fopen(filePath.c_str(), "r");
         if (file) {
             httpd_resp_sendstr_chunk(req, "<pre>");
-            char* buf = (char*)malloc(256);
+            char* buf = static_cast<char*>(malloc(256));
             if (buf) {
                 size_t totalRead = 0;
                 const size_t maxPreview = 32 * 1024;
