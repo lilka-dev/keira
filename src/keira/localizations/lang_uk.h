@@ -35,6 +35,7 @@
 
 #define K_S_SERVICES                    "Сервіси"
 #define K_S_FTP                         "FTP"
+#define K_S_WEB                         "Web"
 #define K_S_TELNET                      "Telnet"
 #define K_S_CHANGE_ON_NEXT_BOOT         "Зміни вступлять в силу при наступному завантаженні"
 #define K_S_OS_NAME                     "Keira OS"
@@ -82,6 +83,7 @@
 #define K_S_LAUNCHER_SOUND             "Звук"
 #define K_S_LAUNCHER_SERVICES          K_S_SERVICES
 #define K_S_LAUNCHER_FTP               K_S_FTP
+#define K_S_LAUNCHER_WEB               K_S_WEB
 #define K_S_LAUNCHER_TELNET            K_S_TELNET
 #define K_S_LAUNCHER_FTP_USER          K_S_USER
 #define K_S_LAUNCHER_FTP_PASSWORD      K_S_PASSWORD

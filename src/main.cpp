@@ -11,6 +11,7 @@
 #include "services/screenshot/screenshot.h"
 #include "services/telnet/telnet.h"
 #include "services/ftp/ftp.h"
+#include "services/web/web.h"
 #include "apps/statusbar/statusbar.h"
 #include "apps/launcher/launcher.h"
 #include "keira/keira_version.h"
@@ -58,6 +59,7 @@ void setup() {
     serviceManager->addService(new ScreenshotService());
     serviceManager->addService(new TelnetService());
     serviceManager->addService(new FTPService());
+    serviceManager->addService(new WebService());
     appManager->setPanel(new StatusBarApp());
     appManager->runApp(new LauncherApp());
 }
