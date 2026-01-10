@@ -158,9 +158,9 @@ static const char htmlBody[] = R"rawliteral(
     }
 
     function setupDropZone(dropId, inputId, nameId) {
-      var drop = document.getElementById(dropId);
-      var input = document.getElementById(inputId);
-      var nameEl = document.getElementById(nameId);
+      const drop = document.getElementById(dropId);
+      const input = document.getElementById(inputId);
+      const nameEl = document.getElementById(nameId);
 
       ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(function(evt) {
         drop.addEventListener(evt, function(e) { e.preventDefault(); e.stopPropagation(); });
@@ -173,8 +173,8 @@ static const char htmlBody[] = R"rawliteral(
       });
 
       drop.addEventListener('drop', function(e) {
-        var files = e.dataTransfer.files;
-        if (files.length > 0) {
+        const files = e.dataTransfer.files;
+        if (files.length) {
           input.files = files;
           updateName(input, nameEl);
         }
@@ -193,22 +193,22 @@ static const char htmlBody[] = R"rawliteral(
     }
 
     function setupForm(formId, progressId, fillId, textId, statusId) {
-      var form = document.getElementById(formId);
+      const form = document.getElementById(formId);
       form.addEventListener('submit', function(e) {
         e.preventDefault();
-        var formData = new FormData(form);
-        var xhr = new XMLHttpRequest();
-        var progress = document.getElementById(progressId);
-        var fill = document.getElementById(fillId);
-        var text = document.getElementById(textId);
-        var status = document.getElementById(statusId);
+        const formData = new FormData(form);
+        const xhr = new XMLHttpRequest();
+        const progress = document.getElementById(progressId);
+        const fill = document.getElementById(fillId);
+        const text = document.getElementById(textId);
+        const status = document.getElementById(statusId);
 
         progress.classList.add('active');
         status.classList.remove('active', 'success', 'error');
 
         xhr.upload.onprogress = function(ev) {
           if (ev.lengthComputable) {
-            var pct = Math.round((ev.loaded / ev.total) * 100);
+            const pct = Math.round((ev.loaded / ev.total) * 100);
             fill.style.width = pct + '%';
             text.textContent = pct + '% (' + formatSize(ev.loaded) + ' / ' + formatSize(ev.total) + ')';
           }
@@ -338,7 +338,12 @@ static const char htmlListBodyEnd[] = R"rawliteral(
 
 static const char bootScript[] = R"rawliteral(
 <script>
-var bootProgressInterval = null;
+function formatSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+}
+let bootProgressInterval = null;
 function bootFile(path) {
   if(confirm('Boot this file via Multiboot?\n' + path)) {
     fetch('/boot?p=' + encodeURIComponent(path), {method: 'POST'})
@@ -359,12 +364,12 @@ function startBootProgressPolling() {
     fetch('/progress')
       .then(function(r) { return r.json(); })
       .then(function(data) {
-        var progress = data.progress;
+        const progress = data.progress;
         if (progress >= 0 && progress <= 100) {
-          var prog = document.getElementById('opProgress');
+          const prog = document.getElementById('opProgress');
           if (prog) {
-            var fill = document.getElementById('opProgressFill');
-            var text = document.getElementById('opProgressText');
+            const fill = document.getElementById('opProgressFill');
+            const text = document.getElementById('opProgressText');
             if (fill) fill.style.width = progress + '%';
             if (text) text.textContent = 'Booting: ' + progress + '%';
             prog.style.display = 'block';
@@ -387,7 +392,7 @@ function startBootProgressPolling() {
 function previewFile(path, sd) {
   window.location.href = '/preview?p=' + encodeURIComponent(path) + (sd ? '&sd=true' : '');
 }
-var dropZone = document.getElementById('fileDropZone');
+const dropZone = document.getElementById('fileDropZone');
 if (dropZone) {
   ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(function(evt) {
     dropZone.addEventListener(evt, function(e) { e.preventDefault(); e.stopPropagation(); });
@@ -399,30 +404,89 @@ if (dropZone) {
     dropZone.addEventListener(evt, function() { dropZone.classList.remove('drag-over'); });
   });
   dropZone.addEventListener('drop', function(e) {
-    var files = e.dataTransfer.files;
-    if (files.length > 0) {
-      for (var i = 0; i < files.length; i++) {
-        uploadFileToFolder(files[i], currentPath, isSdCard);
-      }
+    const files = e.dataTransfer.files;
+    if (files.length) {
+      uploadMultipleFiles(files, currentPath, isSdCard);
     }
   });
 }
-function uploadFileToFolder(file, folder, sd) {
-  var formData = new FormData();
-  formData.append('file', file);
-  var url = '/upload' + (sd ? '?sd=true' : '?sd=false');
-  if (folder && folder.length > 0) url += '&path=' + encodeURIComponent(folder);
-  var xhr = new XMLHttpRequest();
-  xhr.open('POST', url, true);
-  xhr.onload = function() {
-    if (xhr.status >= 200 && xhr.status < 300) {
-      alert('File uploaded: ' + file.name);
+
+let uploadQueue = [];
+let uploadResults = { success: [], failed: [] };
+
+function uploadMultipleFiles(files, folder, sd) {
+  uploadQueue = [];
+  uploadResults = { success: [], failed: [] };
+  for (let i = 0; i < files.length; i++) {
+    uploadQueue.push(files[i]);
+  }
+  processUploadQueue(folder, sd);
+}
+
+function processUploadQueue(folder, sd) {
+  if (uploadQueue.length === 0) {
+    const progress = document.getElementById('opProgress');
+    if (progress) progress.style.display = 'none';
+    let msg = '';
+    if (uploadResults.success.length) {
+      msg += uploadResults.success.length + ' file(s) uploaded successfully';
+      if (uploadResults.failed.length) msg += '\\n';
+    }
+    if (uploadResults.failed.length) {
+      msg += uploadResults.failed.length + ' file(s) failed: ' + uploadResults.failed.join(', ');
+    }
+    if (msg) {
+      alert(msg);
+      if (uploadResults.success.length) location.reload();
+    } else if (uploadResults.success.length) {
       location.reload();
-    } else {
-      alert('Upload failed: ' + xhr.responseText);
+    }
+    return;
+  }
+  
+  const file = uploadQueue.shift();
+  uploadFileToFolder(file, folder, sd, uploadQueue.length);
+}
+
+function uploadFileToFolder(file, folder, sd, remainingCount) {
+  const formData = new FormData();
+  formData.append('file', file);
+  let url = '/upload' + (sd ? '?sd=true' : '?sd=false');
+  if (folder && folder.length) url += '&path=' + encodeURIComponent(folder);
+  
+  const xhr = new XMLHttpRequest();
+  const progress = document.getElementById('opProgress');
+  const fill = document.getElementById('opProgressFill');
+  const text = document.getElementById('opProgressText');
+  
+  if (progress) progress.style.display = 'block';
+  if (fill) fill.style.width = '0%';
+  const queueInfo = remainingCount > 0 ? ' (' + remainingCount + ' remaining)' : '';
+  if (text) text.textContent = 'Uploading ' + file.name + '...' + queueInfo;
+  
+  xhr.upload.onprogress = function(ev) {
+    if (ev.lengthComputable && fill && text) {
+      const pct = Math.round((ev.loaded / ev.total) * 100);
+      fill.style.width = pct + '%';
+      text.textContent = 'Uploading ' + file.name + ': ' + pct + '% (' + formatSize(ev.loaded) + ' / ' + formatSize(ev.total) + ')' + queueInfo;
     }
   };
-  xhr.onerror = function() { alert('Upload error'); };
+  
+  xhr.onload = function() {
+    if (xhr.status >= 200 && xhr.status < 300) {
+      uploadResults.success.push(file.name);
+    } else {
+      uploadResults.failed.push(file.name);
+    }
+    processUploadQueue(folder, sd);
+  };
+  
+  xhr.onerror = function() {
+    uploadResults.failed.push(file.name);
+    processUploadQueue(folder, sd);
+  };
+  
+  xhr.open('POST', url, true);
   xhr.send(formData);
 }
 function closeModal(id) {
@@ -433,9 +497,9 @@ function showNewFolderDialog() {
   document.getElementById('newFolderModal').classList.add('active');
 }
 function createNewFolder() {
-  var name = document.getElementById('newFolderName').value.trim();
+  const name = document.getElementById('newFolderName').value.trim();
   if (!name) { alert('Please enter a folder name'); return; }
-  var url = '/mkdir?sd=' + (isSdCard ? 'true' : 'false') + '&p=' + encodeURIComponent(currentPath + '/' + name);
+  const url = '/mkdir?sd=' + (isSdCard ? 'true' : 'false') + '&p=' + encodeURIComponent(currentPath + '/' + name);
   fetch(url, {method: 'POST'})
     .then(function(r) { return r.ok ? (closeModal('newFolderModal'), location.reload()) : r.text().then(function(t) { alert('Error: ' + t); }); })
     .catch(function(e) { alert('Error: ' + e); });
@@ -447,8 +511,8 @@ function deleteFile(path, sd) {
     .then(function(r) { return r.ok ? (hideProgress(), location.reload()) : r.text().then(function(t) { hideProgress(); alert('Error: ' + t); }); })
     .catch(function(e) { hideProgress(); alert('Error: ' + e); });
 }
-var copySourcePath = '';
-var copySourceSd = false;
+let copySourcePath = '';
+let copySourceSd = false;
 function showCopyDialog(path, sd) {
   copySourcePath = path;
   copySourceSd = sd;
@@ -457,13 +521,13 @@ function showCopyDialog(path, sd) {
   document.getElementById('copyModal').classList.add('active');
 }
 function loadFolderTree() {
-  var tree = document.getElementById('folderTree');
+  const tree = document.getElementById('folderTree');
   tree.innerHTML = '<div class=\"folder-item selected\" data-path=\"\">/ (Root)</div>';
   fetch('/listdirs?sd=' + (isSdCard ? 'true' : 'false') + '&p=' + encodeURIComponent(currentPath))
     .then(function(r) { return r.json(); })
     .then(function(data) {
       data.forEach(function(folder) {
-        var item = document.createElement('div');
+        const item = document.createElement('div');
         item.className = 'folder-item';
         item.textContent = '  ' + folder;
         item.dataset.path = folder;
@@ -477,9 +541,9 @@ function loadFolderTree() {
     .catch(function(e) { tree.innerHTML = '<div>Error loading folders</div>'; });
 }
 function executeCopy() {
-  var selected = document.querySelector('#folderTree .folder-item.selected');
+  const selected = document.querySelector('#folderTree .folder-item.selected');
   if (!selected) { alert('Please select a destination folder'); return; }
-  var destPath = selected.dataset.path;
+  const destPath = selected.dataset.path;
   closeModal('copyModal');
   showProgress('Copying...');
   fetch('/copy?sd=' + (copySourceSd ? 'true' : 'false') + '&src=' + encodeURIComponent(copySourcePath) + '&dst=' + encodeURIComponent(destPath), {method: 'POST'})
@@ -487,7 +551,7 @@ function executeCopy() {
     .catch(function(e) { hideProgress(); alert('Error: ' + e); });
 }
 function showProgress(msg) {
-  var prog = document.getElementById('opProgress');
+  const prog = document.getElementById('opProgress');
   document.getElementById('opProgressText').textContent = msg;
   document.getElementById('opProgressFill').style.width = '50%';
   prog.style.display = 'block';
