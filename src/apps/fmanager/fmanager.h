@@ -25,15 +25,16 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // COLORS:  ///////////////////////////////////////////////////////////////////////////////////////////
-#define FT_NONE_COLOR       lilka::colors::Red
-#define FT_NES_ROM_COLOR    lilka::colors::Candy_pink
-#define FT_BIN_COLOR        lilka::colors::Mint_green
-#define FT_LUA_SCRIPT_COLOR lilka::colors::Maya_blue
-#define FT_JS_SCRIPT_COLOR  lilka::colors::Butterscotch
-#define FT_MOD_COLOR        lilka::colors::Plum_web
-#define FT_LT_COLOR         lilka::colors::Pink_lace
-#define FT_DIR_COLOR        lilka::colors::Arylide_yellow
-#define FT_OTHER_COLOR      lilka::colors::Light_gray
+#define FT_NONE_COLOR        lilka::colors::Red
+#define FT_NES_ROM_COLOR     lilka::colors::Candy_pink
+#define FT_COLECO_ROM_COLOR  lilka::colors::Air_superiority_blue
+#define FT_BIN_COLOR         lilka::colors::Mint_green
+#define FT_LUA_SCRIPT_COLOR  lilka::colors::Maya_blue
+#define FT_JS_SCRIPT_COLOR   lilka::colors::Butterscotch
+#define FT_MOD_COLOR         lilka::colors::Plum_web
+#define FT_LT_COLOR          lilka::colors::Pink_lace
+#define FT_DIR_COLOR         lilka::colors::Arylide_yellow
+#define FT_OTHER_COLOR       lilka::colors::Light_gray
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // TODO: add HideItem into lilka::Menu
@@ -43,6 +44,7 @@
 // ICONS:  ////////////////////////////////////////////////////////////////////////////////////////////
 #define FT_NONE_ICON            &normalfile_img
 #define FT_NES_ICON             &nes_img
+#define FT_COLECO_ROM_ICON      &colecovision_img
 #define FT_BIN_ICON             &bin_img
 #define FT_LUA_SCRIPT_ICON      &lua_img
 #define FT_JS_SCRIPT_ICON       &js_img
@@ -105,6 +107,7 @@
 #include "../icons/music.h"
 #include "../icons/selectedfile.h"
 #include "../icons/selectedfolder.h"
+#include "../icons/colecovision.h"
 
 // very bad test
 // /sd/1 => /sd/1122/1
@@ -118,7 +121,7 @@
 #    define FM_DBG if (0)
 #endif
 
-typedef enum { FT_NONE, FT_NES_ROM, FT_BIN, FT_LUA_SCRIPT, FT_JS_SCRIPT, FT_MOD, FT_LT, FT_DIR, FT_OTHER } FileType;
+typedef enum { FT_NONE, FT_NES_ROM, FT_COLECO_ROM, FT_BIN, FT_LUA_SCRIPT, FT_JS_SCRIPT, FT_MOD, FT_LT, FT_DIR, FT_OTHER } FileType;
 typedef enum {
     FM_MODE_VIEW, // Standard mode
     FM_MODE_SELECT, // if selectedEntries contain something
