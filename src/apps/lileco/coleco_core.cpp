@@ -198,7 +198,7 @@ bool ColecoCore::resolveFilePath(const char* name, String& outPath) const {
 }
 
 void ColecoCore::clearFrame() {
-    std::fill(frameBuffer.begin(), frameBuffer.end(), lilka::colors::Black);
+    memset(frameBuffer.data(), 0, frameBuffer.end() - frameBuffer.begin());
     if (app && app->canvas) {
         app->canvas->fillScreen(lilka::colors::Black);
         app->queueDraw();
