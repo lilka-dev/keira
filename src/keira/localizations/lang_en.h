@@ -186,6 +186,7 @@
 #define K_S_FMANAGER_CLEAR_SELECTION               "Clear selection"
 #define K_S_FMANAGER_CALC_INTERRUPTED              "Not computed"
 #define K_S_FMANAGER_ARE_YOU_SURE_ALERT            "Are you sure"
+#define K_S_FMANAGER_LILECO                        "Lileco"
 
 #define K_S_FMANAGER_THIS_OP_WOULD_DELETE_FILE_FMT "This operation would delete file\n %s\nProceed: START\nExit: B"
 #define K_S_FMANAGER_THIS_OP_WOULD_DELETE_COUNT_FILES_FMT \
@@ -355,5 +356,12 @@
 #define K_S_WEATHER_SAVE                          "Save"
 #define K_S_WEATHER_CANCEL                        "Cancel"
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// apps/lileco ////////////////////////////////////////////////////////////////////////////////////////
+#define K_S_LILECO_FAILED_COLECO_ROM              "Unable to start emulator.\nCheck coleco.rom BIOS."
+#define K_S_LILECO_HELP_HINT                      "SELECT + A - show help"
+#define K_S_LILECO_HELP                           "D-pad -> Joystick 1\nA/B -> Fire 1/2\nC -> Keypad 1\nD -> Keypad 2\nStart -> Keypad #\nSelect -> Keypad *\nSelect + B -> Exit\nSelect + A -> Help"
+#define K_S_LILECO_HELP_TITLE                     "Lileco Help"
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // clang-format on

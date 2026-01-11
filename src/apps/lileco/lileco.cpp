@@ -4,6 +4,7 @@
 /**                                                                   **/
 /***********************************************************************/
 #include "lileco.h"
+#include "keira/keira.h"
 
 LilecoApp::LilecoApp(String path) :
     App("Lileco", 0, 0, lilka::display.width(), lilka::display.height()), romPath(path) {
@@ -25,7 +26,7 @@ LilecoApp::LilecoApp(String path) :
 void LilecoApp::run() {
     lileco::ColecoCore core;
     if (!core.start(this, romPath)) {
-        lilka::Alert alert("Lileco", "Unable to start emulator.\nCheck coleco.rom BIOS.");
+        lilka::Alert alert(K_S_FMANAGER_LILECO, K_S_LILECO_FAILED_COLECO_ROM);
         lilka::serial.err("Failed to start Coleco emulator for %s", romPath.c_str());
         vTaskDelay(1500 / portTICK_PERIOD_MS);
         return;
@@ -54,21 +55,11 @@ void LilecoApp::drawHelpHint() {
     canvas->setFont(FONT_8x13);
     canvas->setTextColor(lilka::colors::White);
     canvas->setCursor(50, y + 15);
-    canvas->print("Select + A - show help");
+    canvas->print(K_S_LILECO_HELP_HINT);
 }
 
 void LilecoApp::showControlsOverlay(lileco::ColecoCore& core) {
-    static const char* helpMessage =
-        "D-pad -> Joystick 1\n"
-        "A/B -> Fire 1/2\n"
-        "C -> Keypad 1\n"
-        "D -> Keypad 2\n"
-        "Start -> Keypad #\n"
-        "Select -> Keypad *\n"
-        "Select + B -> Exit\n"
-        "Select + A -> Help";
-
-    lilka::Alert alert("Lileco Help", helpMessage);
+    lilka::Alert alert(K_S_LILECO_HELP_TITLE, K_S_LILECO_HELP);
     alert.addActivationButton(lilka::Button::A);
     alert.addActivationButton(lilka::Button::B);
     alert.addActivationButton(lilka::Button::C);

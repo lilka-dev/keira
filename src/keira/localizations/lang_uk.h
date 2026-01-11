@@ -207,6 +207,7 @@
 #define K_S_FMANAGER_SELECTED_FILES_FMT             "Вибрано %d файл(ів)"
 #define K_S_FMANAGER_CANT_DO_OP                     "Не можу виконати операцію"
 #define K_S_FMANAGER_FILE_ADDED_TO_BUFFER_EXCHANGE  "Файл додано в буфер обміну"
+#define K_S_FMANAGER_LILECO                         "Лілеко"
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // apps/liltracker/liltracker.cpp ////////////////////////////////////////////
 #define K_S_LILTRACKER_SAVE_TRACK             "Зберегти трек"
@@ -352,5 +353,12 @@
 #define K_S_WEATHER_SAVE                          "Зберегти"
 #define K_S_WEATHER_CANCEL                        "Скасувати"
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// apps/lileco ////////////////////////////////////////////////////////////////////////////////////////
+#define K_S_LILECO_FAILED_COLECO_ROM              "Неможливо запустити емулятор.\nПеревірте coleco.rom BIOS."
+#define K_S_LILECO_HELP_HINT                      "SELECT + A - Довідка"
+#define K_S_LILECO_HELP                           "D-pad -> Джойстик 1\nA/B -> Вогонь 1/2\nC -> Клавіатура 1\nD -> Клавіатура 2\nStart -> Клавіатура #\nSelect -> Клавіатура *\nSelect + B -> Вихід\nSelect + A -> Довідка"
+#define K_S_LILECO_HELP_TITLE                     "Довідка Lileco"
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // clang-format on
