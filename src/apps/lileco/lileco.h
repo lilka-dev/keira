@@ -16,7 +16,5 @@ public:
 
 private:
     void showControlsOverlay(lileco::ColecoCore& core);
-
-    String selectedFileName;
     String romPath;
 };

@@ -9,18 +9,6 @@
 LilecoApp::LilecoApp(String path) :
     App("Lileco", 0, 0, lilka::display.width(), lilka::display.height()), romPath(path) {
     setFlags(AppFlags::APP_FLAG_FULLSCREEN);
-
-    String localPath = lilka::fileutils.getLocalPathInfo(path).path;
-    if (localPath.isEmpty()) localPath = path;
-    int16_t slashIndex = localPath.lastIndexOf('/');
-    if (slashIndex >= 0 && slashIndex < localPath.length() - 1) {
-        selectedFileName = localPath.substring(slashIndex + 1);
-    } else {
-        selectedFileName = localPath;
-    }
-    if (selectedFileName.isEmpty()) {
-        selectedFileName = "Unknown file";
-    }
 }
 
 void LilecoApp::run() {
