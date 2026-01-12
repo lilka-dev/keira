@@ -1,18 +1,4 @@
 #include "fmanager.h"
-#include "keira/keira_macro.h"
-void FileManagerApp::alert(const String& title, const String& message) {
-    lilka::Alert alert(title, message);
-    alert.draw(canvas);
-    queueDraw();
-    while (!alert.isFinished()) {
-        alert.update();
-        taskYIELD();
-    }
-}
-
-void FileManagerApp::alertNotImplemented() {
-    alert(K_S_ERROR, K_S_FEATURE_IN_DEVELOPMENT);
-}
 
 FileManagerApp::FileManagerApp(const String& path) :
     App("FileManager"),
@@ -349,7 +335,6 @@ void FileManagerApp::openCurrentEntry() {
             FT_DEFAULT_OTHER_HANDLER;
             break;
     }
-    vTaskDelay(SUSPEND_AWAIT_TIME / portTICK_RATE_MS);
     changeMode(FM_MODE_RELOAD);
     exitChildDialogs = true;
 }
@@ -970,6 +955,13 @@ void FileManagerApp::onFileListMenuItem() {
             fileListMenu.isFinished();
             changeMode(FM_MODE_RELOAD);
             return;
+        } else if (mode == FM_MODE_SELECT) {
+            if (confirm(
+                    K_S_FMANAGER_ARE_YOU_SURE_ALERT,
+                    StringFormat(K_S_FMANAGER_SELECTED_ENTRIES_EXIT_FMT, selectedDirEntries.size())
+                ))
+                return;
+            fileListMenu.isFinished();
         } else return;
     }
 
@@ -993,6 +985,13 @@ void FileManagerApp::onFileListMenuItem() {
             if (currentPath != initalPath) {
                 currentPath = lilka::fileutils.getParentDirectory(currentPath);
                 changeMode(FM_MODE_RELOAD);
+                fileListMenu.isFinished();
+            } else if (mode == FM_MODE_SELECT) {
+                if (confirm(
+                        K_S_FMANAGER_ARE_YOU_SURE_ALERT,
+                        StringFormat(K_S_FMANAGER_SELECTED_ENTRIES_EXIT_FMT, selectedDirEntries.size())
+                    ))
+                    return;
                 fileListMenu.isFinished();
             }
 

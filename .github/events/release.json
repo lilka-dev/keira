@@ -1,0 +1,10 @@
+{
+  "action": "published",
+  "release": {
+    "tag_name": "v1.2.3",
+    "prerelease": false
+  },
+  "repository": {
+    "full_name": "yevhen/SDK"
+  }
+}

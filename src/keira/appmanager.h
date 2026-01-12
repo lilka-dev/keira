@@ -1,5 +1,4 @@
-#ifndef MAIN_APPMANAGER_H
-#define MAIN_APPMANAGER_H
+#pragma once
 
 #include <Arduino.h>
 #include <lilka.h>
@@ -10,6 +9,8 @@ class AppManager {
 public:
     ~AppManager();
     void setPanel(App* app);
+    // adds app to appsToRun list, actuall runing happens
+    // inside loop
     void runApp(App* app);
     void loop();
     void renderToCanvas(lilka::Canvas* canvas);
@@ -24,6 +25,7 @@ private:
 
     App* panel;
     std::vector<App*> apps;
+    std::vector<App*> appsToRun;
     static AppManager* instance;
     SemaphoreHandle_t lock;
 
@@ -31,5 +33,3 @@ private:
     uint64_t toastStartTime;
     uint64_t toastEndTime;
 };
-
-#endif // MAIN_APPMANAGER_H

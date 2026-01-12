@@ -208,11 +208,11 @@ void LilTrackerApp::run() {
                     activeBlock == BLOCK_CONTROLS && controlCursorX == i && controlCursorY == CONTROL_ROW_0_BUTTONS;
                 const char* buttonText;
                 if (i == 0) {
-                    buttonText = "Відкрити";
+                    buttonText = K_S_LILTRACKER_OPEN;
                 } else if (i == 1) {
-                    buttonText = "Зберегти";
+                    buttonText = K_S_LILTRACKER_SAVE;
                 } else {
-                    buttonText = "Скинути";
+                    buttonText = K_S_LILTRACKER_RESET;
                 }
                 drawElement(
                     buttonText,
@@ -544,7 +544,7 @@ void LilTrackerApp::run() {
                                 }
                             } else if (controlCursorX == 2) {
                                 // Reset
-                                if (confirm("Увага", "Очистити всі дані\nкомпозиції?")) {
+                                if (confirm(K_S_ATTENTION, K_S_LILTRACKER_CLEAR_TRACK_DATA)) {
                                     track.reset();
                                     pageIndex = 0;
                                     scoreCursorX = 0;
@@ -827,26 +827,6 @@ int LilTrackerApp::drawElement(
 //         }
 //     }
 // }
-
-void LilTrackerApp::alert(String title, String message) {
-    lilka::Alert alertDialog(title, message);
-    alertDialog.draw(canvas);
-    queueDraw();
-    while (!alertDialog.isFinished()) {
-        alertDialog.update();
-    }
-}
-
-bool LilTrackerApp::confirm(String title, String message) {
-    lilka::Alert confirmDialog(title, message + "\n\n[START] - Так\n[A] - Ні");
-    confirmDialog.addActivationButton(K_BTN_CONFIRM);
-    confirmDialog.draw(canvas);
-    queueDraw();
-    while (!confirmDialog.isFinished()) {
-        confirmDialog.update();
-    }
-    return confirmDialog.getButton() == K_BTN_CONFIRM;
-}
 
 String LilTrackerApp::filePicker(String ext, bool isSave) {
     // isSave determines whether we are writing to file or opening an existing one

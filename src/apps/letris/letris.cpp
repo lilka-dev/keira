@@ -325,15 +325,5 @@ void LetrisApp::run() {
     }
 
     // Гра закінчилася. Виводимо повідомлення на екран
-    // TODO: FreeRTOS experiment
-    // lilka::ui_alert(canvas, "Game over", "Гру завершено!\nТи намагався. :)");
-    lilka::Alert alert(K_S_LETRIS_GAME_OVER, K_S_LETRIS_GAME_OVER_LONG);
-    alert.draw(canvas);
-    queueDraw();
-    while (1) {
-        alert.update();
-        if (alert.isFinished()) {
-            break;
-        }
-    }
+    alert(K_S_LETRIS_GAME_OVER, K_S_LETRIS_GAME_OVER_LONG);
 }

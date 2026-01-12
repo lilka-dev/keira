@@ -5,25 +5,29 @@
 #include "keira/appmanager.h"
 
 #include "keira/servicemanager.h"
+// Services:
 #include "services/network/network.h"
 #include "services/ftp/ftp.h"
 #include "services/telnet/telnet.h"
-
+#include "services/web/web.h"
+// Demos:
+#include "apps/demos/lines/lines.h"
+#include "apps/demos/disk/disk.h"
+#include "apps/demos/ball/ball.h"
+#include "apps/demos/transform/transform.h"
+#include "apps/demos/cube/cube.h"
+#include "apps/demos/epilepsy/epilepsy.h"
+#include "apps/demos/petpet/petpet.h"
+// Tests:
+#include "apps/tests/keyboard/keyboard.h"
+#include "apps/tests/user_spi/user_spi.h"
+#include "apps/tests/scan_i2c/scan_i2c.h"
+#include "apps/tests/callbacktest/callbacktest.h"
+#include "apps/tests/combo/combo.h"
+// Apps
 #include "apps/wificonfig/wificonfig.h"
-#include "apps/demos/lines.h"
-#include "apps/demos/disk.h"
-#include "apps/demos/ball.h"
-#include "apps/demos/transform.h"
-#include "apps/demos/cube.h"
-#include "apps/demos/epilepsy.h"
 #include "apps/letris/letris.h"
-#include "apps/demos/keyboard.h"
-#include "apps/demos/user_spi.h"
-#include "apps/demos/scan_i2c.h"
-#include "apps/demos/petpet.h"
-#include "apps/demos/combo.h"
 #include "apps/gpiomanager/gpiomanager.h"
-#include "apps/demos/callbacktest.h"
 #include "apps/tamagotchi/tamagotchi.h"
 #include "apps/lua/luarunner.h"
 #include "apps/mjs/mjsrunner.h"
@@ -34,6 +38,7 @@
 #include "apps/liltracker/liltracker.h"
 #include "apps/fmanager/fmanager.h"
 #include "apps/pastebin/pastebinApp.h"
+#include "apps/usbdrive/usbdrive.h"
 
 #include "apps/soundsettings/sound.h"
 
@@ -47,6 +52,7 @@
 
 #include <WiFi.h> // for setWiFiTxPower
 #include <Preferences.h>
+#include <lilka/spi.h>
 
 LauncherApp::LauncherApp() : App("Launcher") {
     networkService = static_cast<NetworkService*>(ServiceManager::getInstance()->getService<NetworkService>("network"));
@@ -113,6 +119,12 @@ void LauncherApp::run() {
                 lilka::colors::Arylide_yellow
             ),
             ITEM::APP(
+                K_S_LAUNCHER_USB_DRIVE,
+                [this]() { this->runApp<USBDriveApp>(); },
+                &sdcard_img,
+                lilka::colors::Mint
+            ),
+            ITEM::APP(
                 K_S_LAUNCHER_SPIFFS_BROWSER,
                 [this]() { this->runApp<FileManagerApp>(LILKA_SPIFFS_ROOT); },
                 &memory_img,
@@ -142,8 +154,29 @@ void LauncherApp::run() {
                     ),
                     ITEM::MENU(K_S_LAUNCHER_WIFI_NETWORKS, [this]() { this->wifiManager(); }),
                     ITEM::MENU(K_S_LAUNCHER_WIFI_TX_POWER, [this]() { this->setWiFiTxPower(); }),
+                    ITEM::MENU(K_S_LAUNCHER_SPI_SD_SPEED, [this]() { this->setSpiSDSpeed(); }),
                     ITEM::MENU(K_S_LAUNCHER_SOUND, [this]() { this->runApp<SoundConfigApp>(); }),
                     ITEM::SUBMENU(K_S_LAUNCHER_SERVICES, {
+                        ITEM::SUBMENU(K_S_LAUNCHER_WEB, {
+                            ITEM::MENU(
+                                K_S_STATUS,
+                                [this]() {
+                                            WebService* webService = static_cast<WebService*>(
+                                                ServiceManager::getInstance()->getService<WebService>("web")
+                                            );
+                                            webService->setEnabled(!webService->getEnabled());
+                                },
+                                nullptr,
+                                lilka::colors::White,
+                                [this](void* item) {
+                                            lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
+                                            WebService* webService = static_cast<WebService*>(
+                                                ServiceManager::getInstance()->getService<WebService>("web")
+                                            );
+                                            menuItem->postfix = webService->getEnabled() ? K_S_ON : K_S_OFF;
+                                }
+                            ),
+                        }),
                         ITEM::SUBMENU(K_S_LAUNCHER_TELNET, {
                             ITEM::MENU(
                                 K_S_STATUS,
@@ -154,7 +187,7 @@ void LauncherApp::run() {
                                             telnetService->setEnabled(!telnetService->getEnabled());
                                 },
                                 nullptr,
-                                0,
+                                lilka::colors::White,
                                 [this](void* item) {
                                             lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
                                             TelnetService* telnetService = static_cast<TelnetService*>(
@@ -163,7 +196,7 @@ void LauncherApp::run() {
                                             menuItem->postfix = telnetService->getEnabled() ? K_S_ON : K_S_OFF;
                                 }
                             ),
-                    }),
+                        }),
                         ITEM::SUBMENU(K_S_LAUNCHER_FTP, {
                             ITEM::MENU(
                                 K_S_STATUS,
@@ -174,7 +207,7 @@ void LauncherApp::run() {
                                             ftpService->setEnabled(!ftpService->getEnabled());
                                 },
                                 nullptr,
-                                0,
+                                lilka::colors::White,
                                 [this](void* item) {
                                             lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
                                             FTPService* ftpService = static_cast<FTPService*>(
@@ -187,7 +220,7 @@ void LauncherApp::run() {
                                 K_S_LAUNCHER_FTP_USER,
                                 nullptr,
                                 nullptr,
-                                0,
+                                lilka::colors::White,
                                 [this](void* item) {
                                             lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
                                             FTPService* ftpService = static_cast<FTPService*>(
@@ -205,7 +238,7 @@ void LauncherApp::run() {
                                             ftpService->createPassword();
                                 },
                                 nullptr,
-                                0,
+                                lilka::colors::White,
                                 [this](void* item) {
                                             lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
                                             FTPService* ftpService = static_cast<FTPService*>(
@@ -279,15 +312,6 @@ void LauncherApp::showMenu(const char* title, ITEM_LIST& list, bool back) {
         }
     }
 }
-void LauncherApp::alert(String title, String message) {
-    lilka::Alert alert(title, message);
-    alert.draw(canvas);
-    queueDraw();
-    while (!alert.isFinished()) {
-        alert.update();
-        taskYIELD();
-    }
-}
 template <typename T, typename... Args>
 void LauncherApp::runApp(Args&&... args) {
     AppManager::getInstance()->runApp(new T(std::forward<Args>(args)...));
@@ -337,6 +361,46 @@ void LauncherApp::setWiFiTxPower() {
     prefs.putInt("txPower", static_cast<int>(values[index]));
     prefs.end();
 }
+
+void LauncherApp::setSpiSDSpeed() {
+    uint32_t sdFrequencies[] = {
+        4000000, // 4  MHz
+        16000000, // 16 MHz
+        20000000, // 20 MHz
+        40000000, // 40 MHz
+        80000000 // 80 MHz
+    };
+
+    lilka::Menu setSpiSDSpeedMenu;
+    setSpiSDSpeedMenu.setTitle(K_S_LAUNCHER_SPI_SD_SPEED);
+    setSpiSDSpeedMenu.addActivationButton(K_BTN_BACK); // Exit
+
+    // Add frequencies to menu
+    for (auto i = 0; i < sizeof(sdFrequencies) / sizeof(sdFrequencies[0]); i++)
+        setSpiSDSpeedMenu.addItem(StringFormat("%d MHz", sdFrequencies[i] / 1000000));
+
+    // Perform draw
+    while (!setSpiSDSpeedMenu.isFinished()) {
+        setSpiSDSpeedMenu.update();
+        setSpiSDSpeedMenu.draw(canvas);
+        queueDraw();
+    }
+    auto button = setSpiSDSpeedMenu.getButton();
+
+    if (button == K_BTN_BACK) return;
+
+    auto index = setSpiSDSpeedMenu.getCursor();
+
+    // store new frequency to NVS
+    Preferences prefs;
+    prefs.begin(LILKA_SPI_NVS_NAMESPACE, false);
+    uint32_t sdFrequency = sdFrequencies[index];
+    prefs.putUInt(LILKA_SPI_NVS_SD_FREQUENCY_KEY, sdFrequency);
+    prefs.end();
+
+    alert("", K_S_CHANGE_ON_NEXT_BOOT);
+}
+
 void LauncherApp::wifiToggle() {
     networkService->setEnabled(!networkService->getEnabled());
 }
@@ -386,17 +450,7 @@ void LauncherApp::partitions() {
     showMenu(K_S_PARTITION_TABLE, partitionsMenu);
 }
 void LauncherApp::formatSD() {
-    lilka::Alert confirm(K_S_LAUNCHER_FORMAT, K_S_LAUNCHER_FORMAT_DISCLAIMER_ALERT);
-    confirm.addActivationButton(K_BTN_CONFIRM);
-    confirm.draw(canvas);
-    queueDraw();
-    while (!confirm.isFinished()) {
-        confirm.update();
-        taskYIELD();
-    }
-    if (confirm.getButton() != K_BTN_CONFIRM) {
-        return;
-    }
+    if (!confirm(K_S_LAUNCHER_FORMAT, K_S_LAUNCHER_FORMAT_DISCLAIMER_ALERT)) return;
 
     lilka::ProgressDialog dialog(K_S_LAUNCHER_FORMAT, K_S_LAUNCHER_PLEASE_STANDBY);
     dialog.draw(canvas);

@@ -9,6 +9,9 @@
 // clang-format off
 
 // Multi purpose strings  /////////////////////////////////////////////////////////////////////////////
+#define K_S_CURRENT_LANGUAGE_SHORT      "uk"
+#define K_S_CURRENT_LANGUAGE_FULL       "Українська"
+
 #define K_S_ERROR                       "Помилка"
 #define K_S_ATTENTION                   "Увага"
 #define K_S_SUCCESS                     "Успіх"
@@ -20,7 +23,6 @@
 #define K_S_CANT_CREATE_DIR_FMT         "Не вдалося створити директорію %s"
 #define K_S_CANT_REMOVE_FILE_FMT        "Не вдалося видалити файл %s"
 #define K_S_DIR_EMPTY_FMT               "Директорія %s порожня"
-
 #define K_S_MENU_BACK                   "<< Назад"
 
 #define K_S_PASSWORD                    "Пароль"
@@ -33,8 +35,9 @@
 
 #define K_S_SERVICES                    "Сервіси"
 #define K_S_FTP                         "FTP"
+#define K_S_WEB                         "Web"
 #define K_S_TELNET                      "Telnet"
-
+#define K_S_CHANGE_ON_NEXT_BOOT         "Зміни вступлять в силу при наступному завантаженні"
 #define K_S_OS_NAME                     "Keira OS"
 #define K_S_OS_DESCRIPTION              "by Андерсон & friends"
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -76,9 +79,11 @@
 #define K_S_LAUNCHER_WIFI_ADAPTER      "WiFi-адаптер"
 #define K_S_LAUNCHER_WIFI_NETWORKS     "Мережі WiFi"
 #define K_S_LAUNCHER_WIFI_TX_POWER     "Потужність WiFi"
+#define K_S_LAUNCHER_SPI_SD_SPEED      "Частота SD картки"
 #define K_S_LAUNCHER_SOUND             "Звук"
 #define K_S_LAUNCHER_SERVICES          K_S_SERVICES
 #define K_S_LAUNCHER_FTP               K_S_FTP
+#define K_S_LAUNCHER_WEB               K_S_WEB
 #define K_S_LAUNCHER_TELNET            K_S_TELNET
 #define K_S_LAUNCHER_FTP_USER          K_S_USER
 #define K_S_LAUNCHER_FTP_PASSWORD      K_S_PASSWORD
@@ -188,6 +193,7 @@
 #define K_S_FMANAGER_ARE_YOU_SURE_ALERT                   "Ви впевнені?"
 #define K_S_FMANAGER_THIS_OP_WOULD_DELETE_FILE_FMT        "Ця операція видалить файл %s\nПродовжити: START\nВихід: B"
 #define K_S_FMANAGER_THIS_OP_WOULD_DELETE_COUNT_FILES_FMT "Ця операція видалить %d файлів\nПродовжити: START\nВихід: B"
+#define K_S_FMANAGER_SELECTED_ENTRIES_EXIT_FMT "Вибрано %d файлів\nПідтвердити вихід: START\nПовернутися: B"
 #define K_S_FMANAGER_ABOUT_DIR_FMT \
     "Тип: директорія\n"            \
     "Шлях: %s"
@@ -215,14 +221,17 @@
 #define K_S_LILTRACKER_CREATE_NEW_TRACK       "++ Створити новий"
 #define K_S_LILTRACKER_ENTER_FILENAME         "Введіть назву файлу"
 #define K_S_LILTRACKER_FILENAME_CANT_BE_EMPTY "Назва файлу не може бути порожньою"
-
+#define K_S_LILTRACKER_CLEAR_TRACK_DATA       "Очистити всі дані\nкомпозиції?\n[START]Так\n[B]Ні"
+#define K_S_LILTRACKER_OPEN                   "Відкрити"
+#define K_S_LILTRACKER_SAVE                   "Зберегти"
+#define K_S_LILTRACKER_RESET                  "Скинути"
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // apps/lilcatalog/lilcatalog.cpp /////////////////////////////////////////////////////////////////////
-#define K_S_LILCATALOG_LANGUAGE                      "uk"
 #define K_S_LILCATALOG_APP                           "ЛілКаталог"
 
-#define K_S_LILCATALOG_FETCH_CATALOG                 "Оновити каталог"
+#define K_S_LILCATALOG_APPS                          "Додатки"
+#define K_S_LILCATALOG_MODS                          "Моди"
 #define K_S_LILCATALOG_STOP                          "Вихід"
 #define K_S_LILCATALOG_BACK                          "Назад"
 #define K_S_LILCATALOG_EMPTY                         ""
@@ -231,24 +240,35 @@
 #define K_S_LILCATALOG_INSTALL                       "Встановити"
 #define K_S_LILCATALOG_REMOVE                        "Видалити"
 #define K_S_LILCATALOG_UPDATE                        "Оновити"
+#define K_S_LILCATALOG_SOURCE                        "Джерело"
 #define K_S_LILCATALOG_ENTRY_DESCRIPTION             "Опис"
 #define K_S_LILCATALOG_LOADING                       "Завантаження"
+#define K_S_LILCATALOG_LOADING_CATALOG               "Завантаження каталогу..."
 #define K_S_LILCATALOG_STARTING                      "Починаємо..."
 #define K_S_LILCATALOG_ENTRY_DESCRIPTION_NAME        "Назва: "
 #define K_S_LILCATALOG_ENTRY_DESCRIPTION_AUTHOR      "Автор: "
 #define K_S_LILCATALOG_ENTRY_DESCRIPTION_DESCRIPTION "Опис: "
-#define K_S_LILCATALOG_ENTRY_DESCRIPTION_FILES       "Файли: "
+#define K_S_LILCATALOG_ENTRY_DESCRIPTION_FILE        "Файл: "
 
-#define K_S_LILCATALOG_CATEGORY_POSTFIX              " елементів"
+#define K_S_LILCATALOG_NEXT_PAGE                     ">> Наступна сторінка"
+#define K_S_LILCATALOG_PREV_PAGE                     "<< Попередня сторінка"
 #define K_S_LILCATALOG_SIZE                          "Розмір:"
 #define K_S_LILCATALOG_FILE_LOADING                  "Завантаження файлу..."
-#define K_S_LILCATALOG_FILE_LOADING_COMPLETE         "Файл завантажено, та збережено"
+#define K_S_LILCATALOG_FILE_LOADING_COMPLETE         "Файл завантажено та збережено"
+
+#define K_S_LILCATALOG_ARCHIVE_NOTICE                "Архіви потрібно розпакувати вручну"
+#define K_S_LILCATALOG_UNSUPPORTED_TYPE              "Непідтримуваний тип файлу"
+#define K_S_LILCATALOG_CLEAR_CACHE                   "Очистити кеш"
+#define K_S_LILCATALOG_CACHE_CLEARED                 "Кеш очищено"
+#define K_S_LILCATALOG_INSTALLED                     "Встановлені"
+#define K_S_LILCATALOG_NO_INSTALLED                  "Немає встановлених"
+#define K_S_LILCATALOG_NO_BINARY                     "Цей додаток не має файлів для завантаження"
+#define K_S_LILCATALOG_VIEW_SOURCE                   "Переглянути джерело"
 
 #define K_S_LILCATALOG_ERROR_CREATE_FOLDER           "Помилка створення каталогу"
-#define K_S_LILCATALOG_ERROR_NO_CATALOG              "Каталог не знайдено. Завантажте його з інтернету"
 #define K_S_LILCATALOG_ERROR_LOAD_CATALOG            "Помилка завантаження каталогу"
 #define K_S_LILCATALOG_ERROR_FILE_OPEN               "Помилка відкриття файлу"
-#define K_S_LILCATALOG_ERROR_CONNECTION              "Помилка підключення:"
+#define K_S_LILCATALOG_ERROR_CONNECTION              "Помилка підключення: "
 #define K_S_LILCATALOG_ERROR_DIRETORY_CREATE         "Помилка створення директорії"
 #define K_S_LILCATALOG_ERROR_STAGE1                  "Етап: 1\nКод: "
 #define K_S_LILCATALOG_ERROR_STAGE2                  "Етап: 2\nКод: "
@@ -354,4 +374,57 @@
 #define K_S_WEATHER_CANCEL                        "Скасувати"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// apps/usbdrive/usbdrive.cpp /////////////////////////////////////////////////////////////////////////
+#define K_S_USB_DRIVE_TITLE                       "USB-накопичувач"
+#define K_S_USB_DRIVE_EXPERIMENTAL_TITLE          "Увага"
+#define K_S_USB_DRIVE_EXPERIMENTAL_WARNING        "Експериментальна функція.\n" \
+                                                  "Serial буде вимкнено.\n\n" \
+                                                  "[START] - OK  [A] - Скасувати"
+#define K_S_USB_DRIVE_INITIALIZING                "Ініціалізація USB..."
+#define K_S_USB_DRIVE_INIT_ERROR                  "Помилка ініціалізації USB"
+#define K_S_USB_DRIVE_NO_SD                       "SD-карта недоступна"
+#define K_S_USB_DRIVE_CONNECT_USB                 "Підключіть USB-кабель до ПК"
+#define K_S_USB_DRIVE_CONNECTED                   "Підключено до ПК"
+#define K_S_USB_DRIVE_EJECTED                     "Безпечно вилучено"
+#define K_S_USB_DRIVE_PC_INSTRUCTION              "SD доступна на ПК"
+#define K_S_USB_DRIVE_SAFE_EJECT                  "Вийміть диск перед виходом"
+#define K_S_USB_DRIVE_PRESS_A_TO_EXIT             "[A] - вихід"
+#define K_S_USB_DRIVE_DISCONNECTING               "Від'єднання..."
+#define K_S_USB_DRIVE_REBOOT_REQUIRED             "Пристрій перезавантажиться..."
+#define K_S_USB_DRIVE_NOT_EJECTED                 "Не вилучено безпечно!"
+#define K_S_USB_DRIVE_EJECT_WARNING               "Дані можуть бути пошкоджені"
+#define K_S_USB_DRIVE_PRESS_START_CONTINUE        "[START] - продовжити"
+#define K_S_USB_DRIVE_PRESS_B_CANCEL              "[B] - скасувати"
+#define K_S_LAUNCHER_USB_DRIVE                    "USB-накопичувач"
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// apps/pastebin/pastebinApp.cpp //////////////////////////////////////////////////////////////////////
+#define K_S_PASTEBIN_CODE                         "Код"
+#define K_S_PASTEBIN_NAME                         "Назва"
+#define K_S_PASTEBIN_DOWNLOAD                     "Завантажити"
+#define K_S_PASTEBIN_ENTER_CODE                   "Введіть код"
+#define K_S_PASTEBIN_ENTER_NAME                   "Введіть назву"
+#define K_S_PASTEBIN_ERROR_CREATE_DIR             "Помилка створення директорії"
+#define K_S_PASTEBIN_ERROR_OPEN_FILE              "Помилка відкриття файлу"
+#define K_S_PASTEBIN_FILE_DOWNLOADED_FMT          "Файл завантажено в \n%s"
+#define K_S_PASTEBIN_REQUEST_FAIL_FMT             "Помилка HTTP\n%s"
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// apps/mjs/mjsrunner.cpp /////////////////////////////////////////////////////////////////////////////
+#define K_S_MJS_ERROR                             "Помилка: "
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// apps/mjs/luarunner.cpp /////////////////////////////////////////////////////////////////////////////
+#define K_S_LUA_ERROR                             "Помилка: "
+#define K_S_LUA_AWAIT_CODE_FROM_UART              "Очікування коду\nз  UART...\n\nНатисність [A]\nдля виходу."
+#define K_S_LUA_DOWNLOAD                          "Завантаження..."
+#define K_S_LUA_REPL_AWAIT_CODE_FROM_UART         "REPL:\nОчікування коду\nз  UART...\n\nНатисність [A]\nдля виходу."
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// apps/tests/keyboard/keyboard.cpp //////////////////////////////////////////////////////////////////
+#define K_S_KEYBOARD_ENTER_TEXT                    "Введіть текст: "
+#define K_S_KEYBOARD_YOU_ENTERED                   "Ви ввели:"
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+
 // clang-format on

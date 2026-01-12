@@ -55,6 +55,10 @@ public:
     /// Після малювання, буфер потрібно відобразити на екрані за допомогою методу queueDraw().
     lilka::Canvas* canvas;
 
+    /// Допоміжні методи для роботи зі сповіщеннями
+    void alert(const String& title, const String& description);
+    bool confirm(const String& title, const String& description);
+
 protected:
     void start();
     void suspend();

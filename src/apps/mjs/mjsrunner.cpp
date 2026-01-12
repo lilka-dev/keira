@@ -1,7 +1,7 @@
 #include "mjsrunner.h"
 #include "lilka.h"
 #include "mjs.h"
-
+#include "keira/keira.h"
 MJSApp::MJSApp(String path) : App("mJS", 0, 0, lilka::display.width(), lilka::display.height()), path(path) {
 }
 
@@ -15,12 +15,7 @@ void MJSApp::run() {
     if (err != MJS_OK) {
         const char* error = mjs_strerror(mjs, err);
         (void)error;
-        lilka::Alert alert("mJS", String("Помилка: ") + err);
-        alert.draw(canvas);
-        queueDraw();
-        while (!alert.isFinished()) {
-            alert.update();
-        }
+        alert("mJS", String(K_S_MJS_ERROR) + err);
     }
 }
 

@@ -15,12 +15,12 @@ permissions:
 jobs:
   keira:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v3
         with:
-          submodules: recursive  # or 'true' for non-recursive
-          fetch-depth: 0         # fetch full history, required for submodules to work properly
+          submodules: recursive
+          fetch-depth: 0
+
       - uses: actions/cache@v3
         with:
           path: |
@@ -28,16 +28,64 @@ jobs:
             ~/.platformio/.cache
             ./.pio
           key: ${{ runner.os }}-keira
+
       - uses: actions/setup-python@v4
         with:
           python-version: '3.9'
+
       - name: Install PlatformIO Core
         run: pip install --upgrade platformio
+
+      - name: Extract version and generate Keira header
+        id: version
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            TAG="${GITHUB_REF#refs/tags/}"
+            VERSION="${TAG#v}"
+            IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
+
+            # Use prerelease info from event payload if available
+            if [[ "${GITHUB_EVENT_NAME}" == "release" && "${GITHUB_EVENT_RELEASE_PRERELEASE}" == "true" ]]; then
+              VERSION_TYPE="KEIRA_VERSION_TYPE_PRE_RELEASE"
+            else
+              VERSION_TYPE="KEIRA_VERSION_TYPE_RELEASE"
+            fi
+          else
+            MAJOR=0
+            MINOR=0
+            PATCH=0
+            VERSION="0.0.0"
+            VERSION_TYPE="KEIRA_VERSION_TYPE_DEV"
+          fi
+
+          mkdir -p lib/keira/include
+          cat > lib/keira/include/keira_version_auto_gen.h <<EOF
+          #pragma once
+          #ifndef KEIRA_VERSION_AUTO_GEN_H
+          #define KEIRA_VERSION_AUTO_GEN_H
+
+          #define KEIRA_VERSION_MAJOR $MAJOR
+          #define KEIRA_VERSION_MINOR $MINOR
+          #define KEIRA_VERSION_PATCH $PATCH
+          #define KEIRA_VERSION_TYPE $VERSION_TYPE
+
+          #endif // KEIRA_VERSION_AUTO_GEN_H
+          EOF
+
+          echo "Generated version:"
+          cat lib/keira/include/keira_version_auto_gen.h
+
+          # Export outputs for later steps
+          echo "MAJOR=$MAJOR" >> $GITHUB_OUTPUT
+          echo "MINOR=$MINOR" >> $GITHUB_OUTPUT
+          echo "PATCH=$PATCH" >> $GITHUB_OUTPUT
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "TYPE=$VERSION_TYPE" >> $GITHUB_OUTPUT
 
       - name: Build and package firmware
         run: |
           mkdir -p out
-          if [[ "${{ startsWith(github.ref, 'refs/tags/') }}" == "true" ]]; then
+          if [[ "${{ steps.version.outputs.VERSION_TYPE }}" != "KEIRA_VERSION_TYPE_DEV" ]]; then
             echo "Tag detected - building for all languages"
             for lang in $(cat languages.txt); do
               echo "Building for $lang"
