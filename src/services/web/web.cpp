@@ -117,10 +117,10 @@ static const char htmlBody[] = R"rawliteral(
       <form id="otaForm" action="/firmware" method="post" enctype="multipart/form-data">
         <div class="file-input-wrapper">
           <input type="file" name="file" id="otaFile" class="file-input" accept=".bin">
-          <label for="otaFile" class="drop-zone" id="otaDrop">
+          <div class="drop-zone" id="otaDrop">
             <span>&#128193; Drop .bin file here or click to select</span>
             <span style="font-size:0.8em;color:var(--text-muted)">For OTA firmware update</span>
-          </label>
+          </div>
           <div id="otaFileName" class="file-name"></div>
           <button type="submit" class="btn btn-danger">&#9889; Flash OTA &amp; Reboot</button>
         </div>
@@ -158,34 +158,56 @@ static const char htmlBody[] = R"rawliteral(
     }
 
     function setupDropZone(dropId, inputId, nameId) {
-      const drop = document.getElementById(dropId);
-      const input = document.getElementById(inputId);
+      const dropZone = document.getElementById(dropId);
+      const fileInput = document.getElementById(inputId);
       const nameEl = document.getElementById(nameId);
 
+      dropZone.addEventListener('click', function() { fileInput.click(); });
+
       ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(function(evt) {
-        drop.addEventListener(evt, function(e) { e.preventDefault(); e.stopPropagation(); });
+        dropZone.addEventListener(evt, function(e) { e.preventDefault(); e.stopPropagation(); });
       });
       ['dragenter', 'dragover'].forEach(function(evt) {
-        drop.addEventListener(evt, function() { drop.classList.add('drag-over'); });
+        dropZone.addEventListener(evt, function() { dropZone.classList.add('drag-over'); });
       });
       ['dragleave', 'drop'].forEach(function(evt) {
-        drop.addEventListener(evt, function() { drop.classList.remove('drag-over'); });
+        dropZone.addEventListener(evt, function() { dropZone.classList.remove('drag-over'); });
       });
 
-      drop.addEventListener('drop', function(e) {
-        const files = e.dataTransfer.files;
+      dropZone.addEventListener('drop', function(e) {
+        const files = [];
+        for (const item of e.dataTransfer.items) {
+          if (item.kind === 'file') {
+            const entry = item.webkitGetAsEntry();
+            if (entry && entry.isFile) {
+              const file = item.getAsFile();
+              const fileExtension = file.name.split('.').pop().toLowerCase();
+              if (fileExtension === 'bin') {
+                files.push(file);
+              }
+            }
+          }
+        }
         if (files.length) {
-          input.files = files;
-          updateName(input, nameEl);
+          updateName(files, nameEl);
         }
       });
 
-      input.addEventListener('change', function() { updateName(input, nameEl); });
+      fileInput.addEventListener('change', function(e) {
+        const files = [];
+        for (file of e.target.files) {
+          const fileExtension = file.name.split('.').pop().toLowerCase();
+          if (fileExtension === 'bin') {
+            files.push(file);
+          }
+        }
+        updateName(files, nameEl);
+      });
     }
 
-    function updateName(input, nameEl) {
-      if (input.files && input.files[0]) {
-        nameEl.innerHTML = '&#128196; ' + input.files[0].name + ' (' + formatSize(input.files[0].size) + ')';
+    function updateName(files, nameEl) {
+      if (Array.isArray(files) && files.length) {
+        nameEl.innerHTML = '&#128196; ' + files[0].name + ' (' + formatSize(files[0].size) + ')';
         nameEl.classList.add('active');
       } else {
         nameEl.classList.remove('active');
@@ -302,7 +324,7 @@ static const char cssFileList[] = R"rawliteral(
 .file-item.video .icon { color: var(--accent-danger); }
 .file-item.audio .icon { color: var(--accent-warning); }
 .file-item.text .icon { color: var(--text-secondary); }
-.file-list-drop-zone { padding: 20px; border: 2px dashed var(--border-color); border-radius: 8px; text-align: center; color: var(--text-muted); margin-bottom: 12px; transition: all 0.2s ease; }
+.file-list-drop-zone { padding: 20px; color: var(--text-muted); margin-bottom: 12px; }
 .file-list-drop-zone.drag-over { border-color: var(--accent-primary); background: rgba(122, 162, 247, 0.1); border-style: solid; }
 .file-list-drop-zone .icon { font-size: 2em; margin-bottom: 8px; }
 </style>
@@ -343,6 +365,45 @@ function formatSize(bytes) {
   if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
   return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
 }
+
+function setupDropZone(dropId, inputId) {
+  const dropZone = document.getElementById(dropId);
+  const fileInput = document.getElementById(inputId);
+
+  dropZone.addEventListener('click', function() { fileInput.click(); });
+
+  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(function(e) {
+    dropZone.addEventListener(e, function(e) { e.preventDefault(); e.stopPropagation(); });
+  });
+  ['dragenter', 'dragover'].forEach(function(e) {
+    dropZone.addEventListener(e, function() { dropZone.classList.add('drag-over'); });
+  });
+  ['dragleave', 'drop'].forEach(function(e) {
+    dropZone.addEventListener(e, function() { dropZone.classList.remove('drag-over'); });
+  });
+
+  dropZone.addEventListener('drop', function(e) {
+    const files = [];
+    for (const item of e.dataTransfer.items) {
+      if (item.kind === 'file') {
+        const entry = item.webkitGetAsEntry();
+        if (entry && entry.isFile) {
+          files.push(item.getAsFile());
+        }
+      }
+    }
+    if (files.length) {
+      uploadMultipleFiles(files, currentPath, isSdCard);
+    }
+  });
+
+  fileInput.addEventListener('change', function(e) {
+    if (e.target.files.length) {
+      uploadMultipleFiles(e.target.files, currentPath, isSdCard);
+    }
+  });
+}
+
 let bootProgressInterval = null;
 function bootFile(path) {
   if(confirm('Boot this file via Multiboot?\n' + path)) {
@@ -392,24 +453,8 @@ function startBootProgressPolling() {
 function previewFile(path, sd) {
   window.location.href = '/preview?p=' + encodeURIComponent(path) + (sd ? '&sd=true' : '');
 }
-const dropZone = document.getElementById('fileDropZone');
-if (dropZone) {
-  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(function(evt) {
-    dropZone.addEventListener(evt, function(e) { e.preventDefault(); e.stopPropagation(); });
-  });
-  ['dragenter', 'dragover'].forEach(function(evt) {
-    dropZone.addEventListener(evt, function() { dropZone.classList.add('drag-over'); });
-  });
-  ['dragleave', 'drop'].forEach(function(evt) {
-    dropZone.addEventListener(evt, function() { dropZone.classList.remove('drag-over'); });
-  });
-  dropZone.addEventListener('drop', function(e) {
-    const files = e.dataTransfer.files;
-    if (files.length) {
-      uploadMultipleFiles(files, currentPath, isSdCard);
-    }
-  });
-}
+
+setupDropZone('fileDropZone', 'fileInput');
 
 let uploadQueue = [];
 let uploadResults = { success: [], failed: [] };
@@ -430,14 +475,18 @@ function processUploadQueue(folder, sd) {
     let msg = '';
     if (uploadResults.success.length) {
       msg += uploadResults.success.length + ' file(s) uploaded successfully';
-      if (uploadResults.failed.length) msg += '\\n';
+      if (uploadResults.failed.length) msg += '\n';
     }
     if (uploadResults.failed.length) {
       msg += uploadResults.failed.length + ' file(s) failed: ' + uploadResults.failed.join(', ');
     }
     if (msg) {
-      alert(msg);
-      if (uploadResults.success.length) location.reload();
+      requestAnimationFrame(function() {
+        setTimeout(function() {
+          alert(msg);
+          if (uploadResults.success.length) location.reload();
+        });
+      });
     } else if (uploadResults.success.length) {
       location.reload();
     }
@@ -799,8 +848,9 @@ static esp_err_t replyWithDirectory(httpd_req_t* req, DIR* dir, const String& qu
     toolbarHtml += "</div>";
     httpd_resp_sendstr_chunk(req, toolbarHtml.c_str());
 
-    String dropZoneHtml = "<div class='file-list-drop-zone' id='fileDropZone'><div "
-                          "class='icon'>&#128229;</div><div>Drop files here to upload to current folder</div></div>";
+    String dropZoneHtml = "<div class='file-list-drop-zone drop-zone' id='fileDropZone'>"
+        "<input type='file' name='file' id='fileInput' class='file-input' multiple>"
+        "<div class='icon'>&#128229;</div><div>Drop files here to upload to current folder</div></div>";
     dropZoneHtml +=
         "<div id='opProgress' class='progress-container'><div class='progress-bar'><div id='opProgressFill' "
         "class='progress-fill'></div></div><div id='opProgressText' class='progress-text'></div></div>";
