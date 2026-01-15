@@ -162,9 +162,9 @@ String TxtViewerApp::onGetStrProgress() {
 }
 
 String TxtViewerApp::onGetStrFontSize() {
-    return StringFormat("Font SIZE %d C(-) A(+)", fontSize);
+    return StringFormat("Font SIZE  %d D(-) A(+)", fontSize);
 }
 String TxtViewerApp::onGetStrFontSpacing() {
-    return StringFormat("Font SPACE %d C(-) A(+)", fontSpacing);
+    return StringFormat("Font SPACE %d D(-) A(+)", fontSpacing);
 }
 // ===== END TOOLBAR

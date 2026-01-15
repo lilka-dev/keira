@@ -1,4 +1,5 @@
 #pragma once
+#include <lilka/stringutils.h>  // TODO: Add this header as well as all expected others directly to lilka/lilka.h in sdk
 #include "abstractwidget.h"
 
 #define TXT_MAX_BLOCK_SIZE 2048

@@ -119,59 +119,6 @@ size_t shiftMemRight(char* block, const size_t shiftAmount, const size_t content
 
 // ===== END MEMORY
 
-// ===== UNICODE
-
-// move to next Unicode character
-static inline char* uforward(char* cstr) {
-    // TXT_DBG LEP;
-    if (!cstr || !*cstr) return cstr;
-    cstr++;
-    while ((*cstr & 0xC0) == 0x80)
-        cstr++; // skip continuation bytes
-    return cstr;
-}
-
-// move to beginning of previous Unicode character
-static inline char* ubackward(char* cstr) {
-    // TXT_DBG LEP;
-    if (!cstr) return cstr;
-    char* p = cstr - 1;
-    while ((*(reinterpret_cast<unsigned char*>(p)) & 0xC0) == 0x80)
-        --p; // skip continuation bytes
-    return p;
-}
-// get length of a first Unicode character
-static inline size_t ulen(char* cstr) {
-    const char* nextchar = uforward(cstr);
-    return nextchar - cstr;
-}
-
-// Get length in Unicode characters
-size_t ulength(char* from, const char* to = 0) {
-    if (!from) return 0;
-
-    size_t len = 0;
-    char* ptr = from;
-
-    if (!to) {
-        while (*ptr) {
-            ptr = uforward(ptr);
-            len++;
-        }
-    } else {
-        if (to - from <= 0) return 0;
-        while (ptr < to && *ptr) {
-            char* next = uforward(ptr);
-            if (next > to) break; // don't go past 'to'
-            ptr = next;
-            len++;
-        }
-    }
-
-    return len;
-}
-// ===== END UNICODE
-
 // ===== CANVAS
 // expects bounds and cursor already set
 static inline uint16_t getStringWidth(const char* pLine, Arduino_GFX* canvas) {
@@ -364,7 +311,7 @@ void TxtView::draw(Arduino_GFX* canvas) {
         canvas->setCursor(TXT_MARGIN_LEFT, y);
         // TODO: add ANSI colors support here, would be fun
         canvas->print(lineStart);
-        // TXT_DBG lilka::serial.log("drawing %s, Length %d, ULength %d", lineStart, strlen(lineStart), ulength(lineStart));
+        // TXT_DBG lilka::serial.log("drawing %s, Length %d, ULength %d", lineStart, strlen(lineStart), lilka::sutils.ulength(lineStart));
         *lineEnd = backup;
 
         y += lineHeight + spacing;
@@ -509,7 +456,7 @@ void TxtView::dPtrRefresh(long maxoffset) {
         // skip if dptr points past the block
         if (pLineStart >= tBlock + tLen) continue;
 
-        char* pLineEnd = uforward(pLineStart); // first letter
+        char* pLineEnd = lilka::sutils.uforward(pLineStart); // first letter
         if (pLineEnd > tBlock + tLen) pLineEnd = tBlock + tLen; // clamp
 
         while (pLineEnd < tBlock + tLen) {
@@ -531,7 +478,7 @@ void TxtView::dPtrRefresh(long maxoffset) {
                 *pLineEnd = backupChar;
 
                 // move backward safely
-                char* prev = ubackward(pLineEnd);
+                char* prev = lilka::sutils.ubackward(pLineEnd);
                 if (prev == pLineEnd || prev < tBlock) break; // avoid infinite loop
                 pLineEnd = prev;
 
@@ -542,7 +489,7 @@ void TxtView::dPtrRefresh(long maxoffset) {
             *pLineEnd = backupChar;
 
             // advance safely
-            char* next = uforward(pLineEnd);
+            char* next = lilka::sutils.uforward(pLineEnd);
             if (next <= pLineEnd || next > tBlock + tLen) break;
             pLineEnd = next;
         }
