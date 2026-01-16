@@ -40,8 +40,11 @@
 
 // Exit/Entry point loggage, add it to begin/end of method/function to get a comprehensive log
 // about calls
-#define LEP  lilka::serial.log("==> %s:%d %s\n", __FILE__, __LINE__, __PRETTY_FUNCTION__);
-#define LEXP lilka::serial.log("<== %s:%d %s\n", __FILE__, __LINE__, __PRETTY_FUNCTION__);
+// Note: You should use both to utilize performance deterimination
+
+extern unsigned long __PRETTY_TIMER__;
+#define LEP {__PRETTY_TIMER__ = millis(); lilka::serial.log("==> %s:%d %s\n", __FILE__, __LINE__, __PRETTY_FUNCTION__);}
+#define LEXP {unsigned long __PRETTY_DELAY__ = millis() - __PRETTY_TIMER__; lilka::serial.log("<== [ %lu ms ] %s:%d %s\n", __PRETTY_DELAY__, __FILE__, __LINE__, __PRETTY_FUNCTION__);}
 
 //
 // Note: each app/context have to provide own way to make it togglable
