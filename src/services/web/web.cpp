@@ -848,7 +848,8 @@ static esp_err_t replyWithDirectory(httpd_req_t* req, DIR* dir, const String& qu
     toolbarHtml += "</div>";
     httpd_resp_sendstr_chunk(req, toolbarHtml.c_str());
 
-    String dropZoneHtml = "<div class='file-list-drop-zone drop-zone' id='fileDropZone'>"
+    String dropZoneHtml =
+        "<div class='file-list-drop-zone drop-zone' id='fileDropZone'>"
         "<input type='file' name='file' id='fileInput' class='file-input' multiple>"
         "<div class='icon'>&#128229;</div><div>Drop files here to upload to current folder</div></div>";
     dropZoneHtml +=
