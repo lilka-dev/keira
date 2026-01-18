@@ -185,6 +185,7 @@
 #define K_S_FMANAGER_MJS                           "mJS"
 #define K_S_FMANAGER_LILTRACKER                    K_S_LAUNCHER_LILTRACKER
 #define K_S_FMANAGER_MOD_PLAYER                    "MOD Player"
+#define K_S_FMANAGER_TXT_VIEWER                    "Text Viewer"
 #define K_S_FMANAGER_ACTIONS_ON_SELECTED           "Actions on selected"
 #define K_S_FMANAGER_COPY_SELECTED                 "Copy selected"
 #define K_S_FMANAGER_MOVE_SELECTED                 "Move selected"
