@@ -289,6 +289,7 @@ int AbstractLuaRunnerApp::execute() {
 }
 
 LuaFileRunnerApp::LuaFileRunnerApp(String path) : AbstractLuaRunnerApp("Lua file run"), path(path) {
+    setStackSize(8192);
 }
 
 void LuaFileRunnerApp::run() {
@@ -455,6 +456,7 @@ void LuaLiveRunnerApp::execSource(String source) {
 }
 
 LuaReplApp::LuaReplApp() : AbstractLuaRunnerApp("Lua REPL") {
+    setStackSize(8192);
 }
 
 void LuaReplApp::run() {
