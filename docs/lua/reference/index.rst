@@ -21,3 +21,4 @@ Lua API
     wifi
     serial
     http
+    crypto
