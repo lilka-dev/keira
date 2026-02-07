@@ -21,6 +21,7 @@
 #include "lualilka_serial.h"
 #include "lualilka_http.h"
 #include "lualilka_ui.h"
+#include "lualilka_crypto.h"
 #define SERIAL_DELAY 1000
 
 jmp_buf stopjmp;
@@ -170,6 +171,7 @@ void AbstractLuaRunnerApp::luaSetup(const char* dir) {
     lualilka_UI_register_keyboard(L);
     lualilka_UI_register_alert(L);
     lualilka_UI_register_progress(L);
+    lualilka_crypto_register(L);
 
     // lilka::serial.log("lua: init canvas");
     // lilka::Canvas* canvas = new lilka::Canvas();
