@@ -55,7 +55,7 @@ int lualilka_crypto_encrypt(lua_State* L) {
     uint8_t pad_value = AES_BLOCK_SIZE - (plaintext_len % AES_BLOCK_SIZE);
     size_t padded_len = plaintext_len + pad_value;
 
-    uint8_t* padded = (uint8_t*)malloc(padded_len);
+    uint8_t* padded = static_cast<uint8_t*>(malloc(padded_len));
     if (!padded) {
         return luaL_error(L, "Не вдалося виділити пам'ять");
     }
@@ -69,14 +69,14 @@ int lualilka_crypto_encrypt(lua_State* L) {
     // Encrypt
     mbedtls_aes_context ctx;
     mbedtls_aes_init(&ctx);
-    int ret = mbedtls_aes_setkey_enc(&ctx, (const uint8_t*)key, key_len * 8);
+    int ret = mbedtls_aes_setkey_enc(&ctx, reinterpret_cast<const uint8_t*>(key), key_len * 8);
     if (ret != 0) {
         mbedtls_aes_free(&ctx);
         free(padded);
         return luaL_error(L, "Помилка ініціалізації AES: %d", ret);
     }
 
-    uint8_t* ciphertext = (uint8_t*)malloc(padded_len);
+    uint8_t* ciphertext = static_cast<uint8_t*>(malloc(padded_len));
     if (!ciphertext) {
         mbedtls_aes_free(&ctx);
         free(padded);
@@ -97,7 +97,7 @@ int lualilka_crypto_encrypt(lua_State* L) {
 
     // Build output: IV + ciphertext, hex-encoded
     size_t output_bin_len = AES_BLOCK_SIZE + padded_len;
-    char* hex_output = (char*)malloc(output_bin_len * 2 + 1);
+    char* hex_output = static_cast<char*>(malloc(output_bin_len * 2 + 1));
     if (!hex_output) {
         free(ciphertext);
         return luaL_error(L, "Не вдалося виділити пам'ять");
@@ -136,7 +136,7 @@ int lualilka_crypto_decrypt(lua_State* L) {
     }
 
     size_t bin_len = hex_len / 2;
-    uint8_t* bin_data = (uint8_t*)malloc(bin_len);
+    uint8_t* bin_data = static_cast<uint8_t*>(malloc(bin_len));
     if (!bin_data) {
         return luaL_error(L, "Не вдалося виділити пам'ять");
     }
@@ -159,14 +159,14 @@ int lualilka_crypto_decrypt(lua_State* L) {
     // Decrypt
     mbedtls_aes_context ctx;
     mbedtls_aes_init(&ctx);
-    int ret = mbedtls_aes_setkey_dec(&ctx, (const uint8_t*)key, key_len * 8);
+    int ret = mbedtls_aes_setkey_dec(&ctx, reinterpret_cast<const uint8_t*>(key), key_len * 8);
     if (ret != 0) {
         mbedtls_aes_free(&ctx);
         free(bin_data);
         return luaL_error(L, "Помилка ініціалізації AES: %d", ret);
     }
 
-    uint8_t* plaintext = (uint8_t*)malloc(ciphertext_len);
+    uint8_t* plaintext = static_cast<uint8_t*>(malloc(ciphertext_len));
     if (!plaintext) {
         mbedtls_aes_free(&ctx);
         free(bin_data);
@@ -196,7 +196,7 @@ int lualilka_crypto_decrypt(lua_State* L) {
     }
 
     size_t plaintext_len = ciphertext_len - pad_value;
-    lua_pushlstring(L, (const char*)plaintext, plaintext_len);
+    lua_pushlstring(L, reinterpret_cast<const char*>(plaintext), plaintext_len);
     free(plaintext);
     return 1;
 }
@@ -215,7 +215,7 @@ int lualilka_crypto_md5(lua_State* L) {
     mbedtls_md5_context ctx;
     mbedtls_md5_init(&ctx);
     mbedtls_md5_starts_ret(&ctx);
-    mbedtls_md5_update_ret(&ctx, (const uint8_t*)data, data_len);
+    mbedtls_md5_update_ret(&ctx, reinterpret_cast<const uint8_t*>(data), data_len);
     mbedtls_md5_finish_ret(&ctx, hash);
     mbedtls_md5_free(&ctx);
 
@@ -237,7 +237,7 @@ int lualilka_crypto_crc32(lua_State* L) {
     const char* data = luaL_checklstring(L, 1, &data_len);
 
     // ESP ROM CRC32 (апаратна функція з ROM)
-    uint32_t crc = esp_crc32_le(0, (const uint8_t*)data, data_len);
+    uint32_t crc = esp_crc32_le(0, reinterpret_cast<const uint8_t*>(data), data_len);
 
     lua_pushinteger(L, crc);
     return 1;
