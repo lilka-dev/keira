@@ -84,7 +84,7 @@ void setup() {
         current_sdk_version.minor,
         current_sdk_version.patch
     );
-    if (current_sdk_version_type == lilka::SDK_VERSION_TYPE) lilka::serial.log("DEV VERSION");
+    if (current_sdk_version_type == lilka::SDK_VERSION_TYPE_DEV) lilka::serial.log("DEV VERSION");
     if (current_sdk_version_type == lilka::SDK_VERSION_TYPE_PRE_RELEASE) lilka::serial.log("PRE RELEASED VERSION");
     if (current_sdk_version_type == lilka::SDK_VERSION_TYPE_RELEASE) lilka::serial.log("RELEASE VERSION");
 
@@ -93,9 +93,9 @@ void setup() {
     auto resetReason = lilka::multiboot.getResetReason();
     // chip always run in ESP_RST_PANIC instead of ESP_RST_POWERON
     // to speedify dev, we just do not display splash in a dev mode at all
-    bool displaySplash =
-        (resetReason == ESP_RST_POWERON || resetReason == ESP_RST_PANIC) &&
-        (current_sdk_version_type != lilka::SDK_VERSION_TYPE || current_keira_version_type == KEIRA_VERSION_TYPE_DEV);
+    bool displaySplash = (resetReason == ESP_RST_POWERON || resetReason == ESP_RST_PANIC) &&
+                         (!(current_sdk_version_type == lilka::SDK_VERSION_TYPE_DEV ||
+                            current_keira_version_type == KEIRA_VERSION_TYPE_DEV));
 
     if (displaySplash) lilka::display.showStartupScreen();
 
