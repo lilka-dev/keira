@@ -172,6 +172,7 @@ void AbstractLuaRunnerApp::luaSetup(const char* dir) {
     lualilka_UI_register_alert(L);
     lualilka_UI_register_progress(L);
     lualilka_crypto_register(L);
+    lualilka_state_register(L);
 
     // lilka::serial.log("lua: init canvas");
     // lilka::Canvas* canvas = new lilka::Canvas();
@@ -303,6 +304,9 @@ void LuaFileRunnerApp::run() {
 
     // Load state from file (file name is "path" with .lua replaced with .state)
     String statePath = path.substring(0, path.lastIndexOf('.')) + ".state";
+    // Store state path in registry for state.save() and state.reset()
+    lua_pushstring(L, statePath.c_str());
+    lua_setfield(L, LUA_REGISTRYINDEX, "state_path");
     // Check if state file exists
     if (access(statePath.c_str(), F_OK) != -1) {
         lilka::serial.log("lua: found state file %s", statePath.c_str());
