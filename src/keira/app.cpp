@@ -2,6 +2,7 @@
 #include "keira/app.h"
 
 #include "keira/servicemanager.h"
+#include "lilka/colors565.h"
 #include "services/watchdog/watchdog.h"
 
 App::App(const char* name) : App(name, 0, 24, lilka::display.width(), lilka::display.height() - 24) {
@@ -152,6 +153,7 @@ void App::alert(const String& title, const String& description) {
 
     while (!alertDialog.isFinished()) {
         alertDialog.update();
+        canvas->fillScreen(lilka::colors::Black);
         alertDialog.draw(canvas);
         queueDraw();
     }
@@ -165,6 +167,7 @@ bool App::confirm(const String& title, const String& description) {
 
     while (!confirmDialog.isFinished()) {
         confirmDialog.update();
+        canvas->fillScreen(lilka::colors::Black);
         confirmDialog.draw(canvas);
         queueDraw();
     }
