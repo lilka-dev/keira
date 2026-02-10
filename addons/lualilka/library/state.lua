@@ -47,6 +47,15 @@ function state.save() end
 --- state.reset() -- повернути останній збережений стан
 function state.reset() end
 
+---Видаляє файл стану та встановлює ``state`` в ``nil``.
+---
+---Після виклику цього методу ``state`` стає ``nil``,
+---а файл ``.state`` видаляється з диску.
+---
+---@usage
+--- state.clear() -- видалити збережений стан
+function state.clear() end
+
 ---Шлях до файлу стану (тільки для читання).
 ---
 ---@type string

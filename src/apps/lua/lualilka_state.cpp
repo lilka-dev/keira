@@ -5,6 +5,7 @@
 // Forward declarations
 static int lualilka_state_save_lua(lua_State* L);
 static int lualilka_state_reset_lua(lua_State* L);
+static int lualilka_state_clear_lua(lua_State* L);
 
 // __index metamethod: provides save() and reset() methods
 static int lualilka_state_meta_index(lua_State* L) {
@@ -15,6 +16,9 @@ static int lualilka_state_meta_index(lua_State* L) {
             return 1;
         } else if (strcmp(key, "reset") == 0) {
             lua_pushcfunction(L, lualilka_state_reset_lua);
+            return 1;
+        } else if (strcmp(key, "clear") == 0) {
+            lua_pushcfunction(L, lualilka_state_clear_lua);
             return 1;
         } else if (strcmp(key, "path") == 0) {
             lua_getfield(L, LUA_REGISTRYINDEX, "state_path");
@@ -28,7 +32,8 @@ static int lualilka_state_meta_index(lua_State* L) {
 static int lualilka_state_meta_newindex(lua_State* L) {
     // Args: t (1), k (2), v (3)
     const char* key = lua_tostring(L, 2);
-    if (key && (strcmp(key, "save") == 0 || strcmp(key, "reset") == 0 || strcmp(key, "path") == 0)) {
+    if (key && (strcmp(key, "save") == 0 || strcmp(key, "reset") == 0 || strcmp(key, "clear") == 0 ||
+                strcmp(key, "path") == 0)) {
         return luaL_error(L, "Неможливо перезаписати state.%s", key);
     }
     lua_rawset(L, 1);
@@ -180,6 +185,26 @@ static int lualilka_state_reset_lua(lua_State* L) {
         lua_setmetatable(L, -2);
         lua_setglobal(L, "state");
     }
+    return 0;
+}
+
+// Lua-callable clear()
+static int lualilka_state_clear_lua(lua_State* L) {
+    lua_getfield(L, LUA_REGISTRYINDEX, "state_path");
+    if (!lua_isstring(L, -1)) {
+        lua_pop(L, 1);
+        return luaL_error(L, "Очищення стану доступне лише при запуску з файлу");
+    }
+    const char* path = lua_tostring(L, -1);
+    lua_pop(L, 1);
+
+    // Delete state file
+    remove(path);
+
+    // Set state to nil
+    lua_pushnil(L);
+    lua_setglobal(L, "state");
+
     return 0;
 }
 
