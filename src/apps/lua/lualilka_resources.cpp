@@ -1,5 +1,27 @@
 #include "lualilka_resources.h"
 
+static bool lualilka_resources_removeFromRegistry(lua_State* L, const char* registryKey, const void* ptr) {
+    lua_getfield(L, LUA_REGISTRYINDEX, registryKey);
+    if (!lua_istable(L, -1)) {
+        lua_pop(L, 1);
+        return false;
+    }
+    lua_pushnil(L);
+    while (lua_next(L, -2) != 0) {
+        if (lua_islightuserdata(L, -1) && lua_touserdata(L, -1) == ptr) {
+            lua_pop(L, 1);
+            lua_pushvalue(L, -1);
+            lua_pushnil(L);
+            lua_rawset(L, -4);
+            lua_pop(L, 1);
+            return true;
+        }
+        lua_pop(L, 1);
+    }
+    lua_pop(L, 1);
+    return false;
+}
+
 int lualilka_resources_loadImage(lua_State* L) {
     const char* path = luaL_checkstring(L, 1);
     // Get dir from registry
@@ -157,6 +179,26 @@ int lualilka_resources_flipImageY(lua_State* L) {
     return 1;
 }
 
+int lualilka_resources_delete(lua_State* L) {
+    lua_getfield(L, 1, "pointer");
+    if (!lua_islightuserdata(L, -1)) {
+        lua_pop(L, 1);
+        return 0;
+    }
+    void* ptr = lua_touserdata(L, -1);
+    lua_pop(L, 1);
+
+    if (lualilka_resources_removeFromRegistry(L, "images", ptr)) {
+        delete (lilka::Image*)ptr;
+    }
+    // else if (lualilka_resources_removeFromRegistry(L, "sounds", ptr)) { ... }
+
+    lua_pushnil(L);
+    lua_setfield(L, 1, "pointer");
+
+    return 0;
+}
+
 int lualilka_resources_readFile(lua_State* L) {
     const char* path = luaL_checkstring(L, 1);
     // Get dir from registry
@@ -197,6 +239,7 @@ static const luaL_Reg lualilka_resources[] = {
     {"rotate_image", lualilka_resources_rotateImage},
     {"flip_image_x", lualilka_resources_flipImageX},
     {"flip_image_y", lualilka_resources_flipImageY},
+    {"delete", lualilka_resources_delete},
     {"read_file", lualilka_resources_readFile},
     {"write_file", lualilka_resources_writeFile},
     {NULL, NULL},
