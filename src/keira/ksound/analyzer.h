@@ -1,4 +1,8 @@
+#pragma once
+
 #include <AudioOutput.h>
+
+namespace lilka {
 
 #define ANALYZER_BUFFER_SIZE 256
 
@@ -28,3 +32,5 @@ protected:
     int16_t bufferDivisor = 0;
     int16_t buffer[ANALYZER_BUFFER_SIZE];
 };
+
+} // namespace lilka

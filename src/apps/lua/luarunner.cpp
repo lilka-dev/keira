@@ -23,6 +23,7 @@
 #include "lualilka_ui.h"
 #include "lualilka_crypto.h"
 #include "lualilka_audio.h"
+#include "keira/ksound/sound.h"
 #define SERIAL_DELAY 1000
 
 jmp_buf stopjmp;
@@ -215,8 +216,8 @@ void AbstractLuaRunnerApp::luaTeardown() {
     lua_getfield(L, LUA_REGISTRYINDEX, "sounds");
     lua_pushnil(L);
     while (lua_next(L, -2) != 0) {
-        uint8_t* data = static_cast<uint8_t*>(lua_touserdata(L, -1));
-        delete[] data;
+        lilka::Sound* sound = static_cast<lilka::Sound*>(lua_touserdata(L, -1));
+        delete sound;
         lua_pop(L, 1);
     }
     lua_pop(L, 1);

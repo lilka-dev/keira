@@ -5,7 +5,7 @@
 #include "keira/app.h"
 #include "keira/appmanager.h"
 // APPS:
-#include "../modplayer/modplayer.h"
+#include "../madplayer/madplayer.h"
 #include "../liltracker/liltracker.h"
 #include "../lua/luarunner.h"
 #include "../mjs/mjsrunner.h"
