@@ -3,7 +3,9 @@
 ---@class audio
 audio = {}
 
----Починає відтворення аудіо-файлу (MOD або WAV).
+---Починає відтворення аудіо-файлу.
+---
+---Підтримувані формати: MOD, WAV, MP3, AAC, FLAC.
 ---
 ---Якщо вже щось відтворюється, поточне аудіо буде зупинено.
 ---
@@ -11,9 +13,9 @@ audio = {}
 ---@usage
 --- local music = resources.load_audio("song.mod")
 --- audio.play(music)
---- -- Також підтримуються WAV-файли:
+--- -- Підтримуються різні формати:
 --- local sfx = resources.load_audio("sound.wav")
---- audio.play(sfx)
+--- local track = resources.load_audio("track.mp3")
 function audio.play(sound) end
 
 ---Зупиняє відтворення аудіо.
