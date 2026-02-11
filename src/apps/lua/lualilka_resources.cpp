@@ -1,4 +1,5 @@
 #include "lualilka_resources.h"
+#include "lualilka_audio.h"
 
 static bool lualilka_resources_removeFromRegistry(lua_State* L, const char* registryKey, const void* ptr) {
     lua_getfield(L, LUA_REGISTRYINDEX, registryKey);
@@ -179,6 +180,80 @@ int lualilka_resources_flipImageY(lua_State* L) {
     return 1;
 }
 
+int lualilka_resources_loadAudio(lua_State* L) {
+    const char* path = luaL_checkstring(L, 1);
+    // Get dir from registry
+    lua_getfield(L, LUA_REGISTRYINDEX, "dir");
+    const char* dir = lua_tostring(L, -1);
+    lua_pop(L, 1);
+    String fullPath = String(dir) + "/" + path;
+
+    // Detect audio type by extension
+    String lowerPath = fullPath;
+    lowerPath.toLowerCase();
+    const char* type = NULL;
+    if (lowerPath.endsWith(".mod")) {
+        type = "mod";
+    } else if (lowerPath.endsWith(".wav")) {
+        type = "wav";
+    } else if (lowerPath.endsWith(".mp3")) {
+        type = "mp3";
+    } else if (lowerPath.endsWith(".aac")) {
+        type = "aac";
+    } else if (lowerPath.endsWith(".flac")) {
+        type = "flac";
+    } else {
+        return luaL_error(L, "Непідтримуваний формат аудіо: %s", fullPath.c_str());
+    }
+
+    FILE* file = fopen(fullPath.c_str(), "rb");
+    if (!file) {
+        return luaL_error(L, "Не вдалося відкрити аудіо-файл %s", fullPath.c_str());
+    }
+
+    fseek(file, 0, SEEK_END);
+    size_t fileSize = ftell(file);
+    fseek(file, 0, SEEK_SET);
+
+    if (fileSize == 0) {
+        fclose(file);
+        return luaL_error(L, "Аудіо-файл порожній: %s", fullPath.c_str());
+    }
+
+    uint8_t* data = new (std::nothrow) uint8_t[fileSize];
+    if (!data) {
+        fclose(file);
+        return luaL_error(L, "Недостатньо пам'яті для аудіо-файлу %s (%d байт)", fullPath.c_str(), fileSize);
+    }
+
+    size_t bytesRead = fread(data, 1, fileSize, file);
+    fclose(file);
+
+    if (bytesRead != fileSize) {
+        delete[] data;
+        return luaL_error(L, "Не вдалося прочитати аудіо-файл %s", fullPath.c_str());
+    }
+
+    lilka::serial.log("lua: loaded audio %s, size: %d bytes", path, fileSize);
+
+    // Store pointer in "sounds" registry table
+    lua_getfield(L, LUA_REGISTRYINDEX, "sounds");
+    lua_pushlightuserdata(L, data);
+    lua_setfield(L, -2, path);
+    lua_pop(L, 1);
+
+    // Return table: { size = <number>, type = <string>, pointer = <lightuserdata> }
+    lua_newtable(L);
+    lua_pushinteger(L, fileSize);
+    lua_setfield(L, -2, "size");
+    lua_pushstring(L, type);
+    lua_setfield(L, -2, "type");
+    lua_pushlightuserdata(L, data);
+    lua_setfield(L, -2, "pointer");
+
+    return 1;
+}
+
 int lualilka_resources_delete(lua_State* L) {
     lua_getfield(L, 1, "pointer");
     if (!lua_islightuserdata(L, -1)) {
@@ -190,8 +265,10 @@ int lualilka_resources_delete(lua_State* L) {
 
     if (lualilka_resources_removeFromRegistry(L, "images", ptr)) {
         delete (lilka::Image*)ptr;
+    } else if (lualilka_resources_removeFromRegistry(L, "sounds", ptr)) {
+        lualilka_audio_stop_playback();
+        delete[] static_cast<uint8_t*>(ptr);
     }
-    // else if (lualilka_resources_removeFromRegistry(L, "sounds", ptr)) { ... }
 
     lua_pushnil(L);
     lua_setfield(L, 1, "pointer");
@@ -239,6 +316,7 @@ static const luaL_Reg lualilka_resources[] = {
     {"rotate_image", lualilka_resources_rotateImage},
     {"flip_image_x", lualilka_resources_flipImageX},
     {"flip_image_y", lualilka_resources_flipImageY},
+    {"load_audio", lualilka_resources_loadAudio},
     {"delete", lualilka_resources_delete},
     {"read_file", lualilka_resources_readFile},
     {"write_file", lualilka_resources_writeFile},

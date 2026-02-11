@@ -22,6 +22,7 @@
 #include "lualilka_http.h"
 #include "lualilka_ui.h"
 #include "lualilka_crypto.h"
+#include "lualilka_audio.h"
 #define SERIAL_DELAY 1000
 
 jmp_buf stopjmp;
@@ -172,6 +173,7 @@ void AbstractLuaRunnerApp::luaSetup(const char* dir) {
     lualilka_UI_register_alert(L);
     lualilka_UI_register_progress(L);
     lualilka_crypto_register(L);
+    lualilka_audio_register(L);
     lualilka_state_register(L);
 
     // lilka::serial.log("lua: init canvas");
@@ -183,6 +185,10 @@ void AbstractLuaRunnerApp::luaSetup(const char* dir) {
     lilka::serial.log("lua: init memory for images");
     lua_newtable(L);
     lua_setfield(L, LUA_REGISTRYINDEX, "images");
+
+    lilka::serial.log("lua: init memory for sounds");
+    lua_newtable(L);
+    lua_setfield(L, LUA_REGISTRYINDEX, "sounds");
 
     // Set global "lilka" table for user stuff
     lua_newtable(L);
@@ -203,6 +209,17 @@ void AbstractLuaRunnerApp::luaTeardown() {
         delete image;
         lua_pop(L, 1);
     }
+
+    // Stop audio playback and free sounds from registry
+    lualilka_audio_cleanup();
+    lua_getfield(L, LUA_REGISTRYINDEX, "sounds");
+    lua_pushnil(L);
+    while (lua_next(L, -2) != 0) {
+        uint8_t* data = static_cast<uint8_t*>(lua_touserdata(L, -1));
+        delete[] data;
+        lua_pop(L, 1);
+    }
+    lua_pop(L, 1);
 
     // Free canvas from registry
     // lilka::Canvas* canvas = (lilka::Canvas*)lua_touserdata(L, lua_getfield(L, LUA_REGISTRYINDEX, "canvas"));
