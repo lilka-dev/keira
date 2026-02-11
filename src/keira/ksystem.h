@@ -1,0 +1,61 @@
+#pragma once
+
+// System Managers:
+#include "keira/servicemanager.h"
+#include "keira/appmanager.h"
+
+// Libraries
+#include <lilka.h>
+#include <vector>
+
+// VFS(Virtual File Systems):
+#include "kvfs.h"
+
+#define KEIRA_VERSION_TYPE_ACSTR lilka::SDK_VERSION_TYPE_ACSTR
+
+typedef enum KEIRA_VERSION_TYPE : uint8_t {
+    KEIRA_VERSION_TYPE_DEV = 0,
+    KEIRA_VERSION_TYPE_PRE_RELEASE = 1,
+    KEIRA_VERSION_TYPE_RELEASE = 2
+} version_type_t;
+
+class KeiraSystem {
+public:
+    KeiraSystem();
+
+    // VFS (Virtual File Systems)
+    void registerVFS(KeiraVFS* fs, const char* path);
+
+    const String& getVersionStr() {
+        return version;
+    }
+
+    // Arduino-like entry points
+    void setup();
+    void loop();
+
+private:
+    // Boot Stages
+    void showStartupScreen();
+    void handleCMDParams();
+    void verifyOTA();
+    void showWelcomeMessage();
+    void launchServices();
+
+    // Apps/Services
+    AppManager* appManager;
+    ServiceManager* serviceManager;
+
+    // Version
+    String version;
+    version_type_t versionType;
+
+    // CMD Params
+    int argc;
+    char** argv;
+
+    // VFS (Virtual File Systems)
+    std::vector<KeiraVFS*> vfs;
+};
+
+extern KeiraSystem ksystem;
