@@ -183,6 +183,7 @@
 #define K_S_FMANAGER_MJS                                  "mJS"
 #define K_S_FMANAGER_LILTRACKER                           K_S_LAUNCHER_LILTRACKER
 #define K_S_FMANAGER_MOD_PLAYER                           "Програвач MOD"
+#define K_S_FMANAGER_TXT_VIEWER                           "Текстовий переглядач"
 #define K_S_FMANAGER_ACTIONS_ON_SELECTED                  "Дії над вибраним"
 #define K_S_FMANAGER_COPY_SELECTED                        "Копіювати вибране"
 #define K_S_FMANAGER_MOVE_SELECTED                        "Перемістити вибране"
