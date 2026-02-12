@@ -53,7 +53,7 @@ void MadPlayerApp::run() {
     analyzer = new lilka::AudioOutputAnalyzer(i2sOutput);
 
     // Start playback via AudioPlayer
-    lilka::AudioPlayer* player = lilka::AudioPlayer::getInstance();
+    lilka::AudioPlayer* player = &lilka::audioPlayer;
     player->play(sound, analyzer);
 
     while (1) {
@@ -91,7 +91,7 @@ void MadPlayerApp::run() {
 void MadPlayerApp::mainWindow() {
     canvas->fillScreen(lilka::colors::Black);
 
-    lilka::AudioPlayer* player = lilka::AudioPlayer::getInstance();
+    lilka::AudioPlayer* player = &lilka::audioPlayer;
     bool shouldDrawAnalyzer = !player->isPaused() && !player->isFinished();
     if (shouldDrawAnalyzer) {
         int16_t analyzerBuffer[ANALYZER_BUFFER_SIZE];

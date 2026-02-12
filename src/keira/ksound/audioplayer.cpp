@@ -11,11 +11,6 @@
 
 namespace lilka {
 
-AudioPlayer* AudioPlayer::getInstance() {
-    static AudioPlayer instance;
-    return &instance;
-}
-
 AudioPlayer::AudioPlayer() {
 }
 
@@ -256,5 +251,7 @@ void AudioPlayer::cleanup() {
     finished = false;
     gain = -1.0f;
 }
+
+AudioPlayer audioPlayer;
 
 } // namespace lilka

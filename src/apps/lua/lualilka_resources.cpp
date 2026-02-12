@@ -272,8 +272,8 @@ int lualilka_resources_delete(lua_State* L) {
         delete (lilka::Image*)ptr;
     } else if (lualilka_resources_removeFromRegistry(L, "sounds", ptr)) {
         lilka::Sound* sound = static_cast<lilka::Sound*>(ptr);
-        if (lilka::AudioPlayer::getInstance()->getPlayingSound() == sound) {
-            lilka::AudioPlayer::getInstance()->stop();
+        if (lilka::audioPlayer.getPlayingSound() == sound) {
+            lilka::audioPlayer.stop();
         }
         delete sound;
     }

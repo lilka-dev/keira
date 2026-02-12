@@ -14,40 +14,40 @@ int lualilka_audio_play(lua_State* L) {
     lilka::Sound* sound = static_cast<lilka::Sound*>(lua_touserdata(L, -1));
     lua_pop(L, 1);
 
-    if (!lilka::AudioPlayer::getInstance()->play(sound)) {
+    if (!lilka::audioPlayer.play(sound)) {
         return luaL_error(L, "Непідтримуваний формат аудіо: %s", sound->type);
     }
     return 0;
 }
 
 int lualilka_audio_stop(lua_State* L) {
-    lilka::AudioPlayer::getInstance()->stop();
+    lilka::audioPlayer.stop();
     return 0;
 }
 
 int lualilka_audio_pause(lua_State* L) {
-    lilka::AudioPlayer::getInstance()->pause();
+    lilka::audioPlayer.pause();
     return 0;
 }
 
 int lualilka_audio_resume(lua_State* L) {
-    lilka::AudioPlayer::getInstance()->resume();
+    lilka::audioPlayer.resume();
     return 0;
 }
 
 int lualilka_audio_set_volume(lua_State* L) {
     float gain = luaL_checknumber(L, 1);
-    lilka::AudioPlayer::getInstance()->setGain(gain);
+    lilka::audioPlayer.setGain(gain);
     return 0;
 }
 
 int lualilka_audio_get_volume(lua_State* L) {
-    lua_pushnumber(L, lilka::AudioPlayer::getInstance()->getGain());
+    lua_pushnumber(L, lilka::audioPlayer.getGain());
     return 1;
 }
 
 int lualilka_audio_is_playing(lua_State* L) {
-    lua_pushboolean(L, lilka::AudioPlayer::getInstance()->isPlaying());
+    lua_pushboolean(L, lilka::audioPlayer.isPlaying());
     return 1;
 }
 
@@ -69,5 +69,5 @@ int lualilka_audio_register(lua_State* L) {
 }
 
 void lualilka_audio_cleanup() {
-    lilka::AudioPlayer::getInstance()->cleanup();
+    lilka::audioPlayer.cleanup();
 }
