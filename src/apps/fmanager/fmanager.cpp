@@ -84,11 +84,11 @@ FileManagerApp::FileManagerApp(const String& path) :
         FM_CALLBACK_PTHIS
     );
     fileOpenWithMenu.addItem(
-        K_S_FMANAGER_MOD_PLAYER,
+        K_S_FMANAGER_MAD_PLAYER,
         0,
         lilka::colors::White,
         "",
-        FM_CALLBACK_CAST(onFileOpenWithMODPlayer),
+        FM_CALLBACK_CAST(onFileOpenWithMadPlayer),
         FM_CALLBACK_PTHIS
     );
     fileOpenWithMenu.addItem(
@@ -266,10 +266,11 @@ FMEntry FileManagerApp::pathToEntry(const String& path) {
         newEntry.type = FT_JS_SCRIPT;
         newEntry.icon = FT_JS_SCRIPT_ICON;
         newEntry.color = FT_JS_SCRIPT_COLOR;
-    } else if (lowerCasedPath.endsWith(".mod")) {
-        newEntry.type = FT_MOD;
-        newEntry.icon = FT_MOD_ICON;
-        newEntry.color = FT_MOD_COLOR;
+    } else if (lowerCasedPath.endsWith(".mod") || lowerCasedPath.endsWith(".wav") || lowerCasedPath.endsWith(".mp3") ||
+               lowerCasedPath.endsWith(".aac") || lowerCasedPath.endsWith(".flac")) {
+        newEntry.type = FT_SOUND;
+        newEntry.icon = FT_SOUND_ICON;
+        newEntry.color = FT_SOUND_COLOR;
     } else if (lowerCasedPath.endsWith(".lt")) {
         newEntry.type = FT_LT;
         newEntry.icon = FT_LT_ICON;
@@ -307,8 +308,8 @@ void FileManagerApp::openCurrentEntry() {
         case FT_JS_SCRIPT:
             K_FT_JS_SCRIPT_HANDLER(path);
             break;
-        case FT_MOD:
-            K_FT_MOD_HANDLER(path);
+        case FT_SOUND:
+            K_FT_SOUND_HANDLER(path);
             break;
         case FT_LT:
             K_FT_LT_HANDLER(path);
@@ -436,12 +437,12 @@ void FileManagerApp::onFileOpenWithLilTracker() {
     K_FT_LT_HANDLER(lilka::fileutils.joinPath(currentEntry.path, currentEntry.name));
 }
 
-void FileManagerApp::onFileOpenWithMODPlayer() {
-    FM_DBG lilka::serial.log("Enter onFileOpenWithMODPlayer");
+void FileManagerApp::onFileOpenWithMadPlayer() {
+    FM_DBG lilka::serial.log("Enter onFileOpenWithMadPlayer");
     auto button = fileOpenWithMenu.getButton();
     if (button == FM_EXIT_BUTTON) return; // Exit
 
-    K_FT_MOD_HANDLER(lilka::fileutils.joinPath(currentEntry.path, currentEntry.name));
+    K_FT_SOUND_HANDLER(lilka::fileutils.joinPath(currentEntry.path, currentEntry.name));
 }
 
 // FILE SELECTION MENU BELOW:

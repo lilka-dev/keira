@@ -1,5 +1,7 @@
 #include "analyzer.h"
 
+namespace lilka {
+
 AudioOutputAnalyzer::AudioOutputAnalyzer(AudioOutput* sink, int16_t bufferDivisor) :
     sink(sink), bufferDivisor(bufferDivisor) {
     memset(buffer, 0, sizeof(buffer));
@@ -51,3 +53,5 @@ int16_t AudioOutputAnalyzer::getBufferHead() {
 bool AudioOutputAnalyzer::stop() {
     return sink->stop();
 }
+
+} // namespace lilka

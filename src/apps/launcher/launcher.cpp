@@ -33,7 +33,7 @@
 #include "apps/mjs/mjsrunner.h"
 #include "apps/nes/nesapp.h"
 #include "apps/weather/weather.h"
-#include "apps/modplayer/modplayer.h"
+#include "apps/madplayer/madplayer.h"
 #include "apps/lilcatalog/lilcatalog.h"
 #include "apps/liltracker/liltracker.h"
 #include "apps/fmanager/fmanager.h"
