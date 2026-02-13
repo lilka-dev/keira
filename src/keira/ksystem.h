@@ -10,6 +10,7 @@
 
 // VFS(Virtual File Systems):
 #include "kvfs.h"
+#include "keira/vfs/rootfs/rootfs.h"
 
 #define KEIRA_VERSION_TYPE_ACSTR lilka::SDK_VERSION_TYPE_ACSTR
 
@@ -23,39 +24,43 @@ class KeiraSystem {
 public:
     KeiraSystem();
 
-    // VFS (Virtual File Systems)
+    //===== VFS (Virtual File Systems)
+    // This thing is inteded to be used with mountable/remountable in runtime
+    // devices. Not used yet, but this would change on adding USB-OTG support
+    // TODO: handle rootVFS reg/unreg here
     void registerVFS(KeiraVFS* fs, const char* path);
 
     const String& getVersionStr() {
         return version;
     }
 
-    // Arduino-like entry points
+    //===== Arduino-like entry points
     void setup();
     void loop();
 
 private:
-    // Boot Stages
+    //==== Boot Stages
     void showStartupScreen();
     void handleCMDParams();
     void verifyOTA();
     void showWelcomeMessage();
     void launchServices();
 
-    // Apps/Services
+    //===== Apps/Services
     AppManager* appManager;
     ServiceManager* serviceManager;
 
-    // Version
+    //===== Version
     String version;
     version_type_t versionType;
 
-    // CMD Params
+    //===== CMD Params
     int argc;
     char** argv;
 
     // VFS (Virtual File Systems)
     std::vector<KeiraVFS*> vfs;
+    RootVFS* rootVFS = NULL; // special case
 };
 
 extern KeiraSystem ksystem;

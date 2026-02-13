@@ -806,6 +806,8 @@ bool FileManagerApp::fileListMenuLoadDir() {
         dirLength++;
     rewinddir(dir);
 
+    FM_DBG lilka::serial.log("Directory %s contains %d entries", currentPath.c_str(), dirLength);
+
     bool drawProgress = ((dirLength - PROGRESS_FILE_LIST_NO_DRAW_COUNT) >= 0);
 
     fileListMenu.setTitle(currentPath);
@@ -814,6 +816,9 @@ bool FileManagerApp::fileListMenuLoadDir() {
 
     while ((dir_entry = readdir(dir)) != NULL) {
         String filename = dir_entry->d_name;
+
+        FM_DBG lilka::serial.log("Loaded entry %s", dir_entry->d_name);
+
         // Skip current directory and top level entries
         if (filename != "." && filename != "..") {
             FMEntry newEntry = pathToEntry(lilka::fileutils.joinPath(currentPath, filename));

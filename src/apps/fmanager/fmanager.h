@@ -112,6 +112,7 @@
 #define MAKE_SANDWICH(X) \
     if (0) AppManager::getInstance()->startToast(X)
 
+//#define FMANAGER_DEBUG
 #ifdef FMANAGER_DEBUG
 #    define FM_DBG if (1)
 #else

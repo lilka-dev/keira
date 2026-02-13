@@ -28,7 +28,11 @@
 #define DEFAULT_PFAPI_IMPL \
     {                      \
         errno = ENOSYS;    \
-        nullptr;           \
+        return nullptr;    \
+    }
+#define DEFAULT_VFAPI_IMPL \
+    {                      \
+        errno = ENOSYS;    \
     }
 //////////////////////////////////////////////////////////////////////////////
 
@@ -42,6 +46,7 @@
 // Keep in mind that current approach doesn't provide Arduino-like methods
 // to work with those files, but this can change in future.
 // So, if possible, just stick to a well documented/tested/used POSIX file api
+
 class KeiraVFS {
 private:
     // VFS Implementation routines ===========================================
@@ -66,7 +71,7 @@ private:
     virtual DIR* opendir(const char* name) DEFAULT_PFAPI_IMPL;
     virtual struct dirent* readdir(DIR* pdir) DEFAULT_PFAPI_IMPL;
     virtual long telldir(DIR* pdir) DEFAULT_FAPI_IMPL;
-    virtual void seekdir(DIR* pdir, long offset) DEFAULT_PFAPI_IMPL;
+    virtual void seekdir(DIR* pdir, long offset) DEFAULT_VFAPI_IMPL;
     virtual int closedir(DIR* pdir) DEFAULT_FAPI_IMPL;
     virtual int mkdir(const char* name, mode_t mode) DEFAULT_FAPI_IMPL;
     virtual int rmdir(const char* name) DEFAULT_FAPI_IMPL;
@@ -99,14 +104,11 @@ private:
 #endif
     // VFS Implementation END ================================================
     // Place to define other virtual methods in case we ever need them
-
+protected:
     char rootDir[ESP_VFS_PATH_MAX] = {};
 
-    // File/Dir descriptors in use
-    //    std::vector<DIR*> oDirs;
-    //    std::vector<FILE * oFiles>;
-
 public:
+    KeiraVFS() {}; // empty canstructor
     KeiraVFS(const char* path);
     // Registers VFS implementation
     void reg();

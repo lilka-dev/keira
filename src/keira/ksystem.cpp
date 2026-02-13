@@ -26,6 +26,11 @@
 #include <lilka/sdk.h>
 #include "keira_version_auto_gen.h"
 
+// Libs:
+#include <string.h>
+#include <lilka/display.h>
+#include <lilka/ui.h>
+
 //////////////////////////////////////////////////////////////////////////////
 // GUIDELINE: external libraries to use <> in includes
 //////////////////////////////////////////////////////////////////////////////
@@ -41,6 +46,53 @@
 // to do it
 //////////////////////////////////////////////////////////////////////////////
 
+//////////////////////////////////////////////////////////////////////////////
+// Further ideas:
+//////////////////////////////////////////////////////////////////////////////
+//
+// Since we can't pass an app constructor directly to KeiraSystem to make a
+// comprehensive app registry to easily iterate over in runtime without
+// stupid if type == some enum in case of and other non linear blah blah blah
+//
+// We still able to provide a macro which moves our app constructor into a
+// simple sexy function, whose we can then pass to a system
+// for example:
+//
+//       AppGroup       AppType       VirtualEXE  Mime-Type          Ext
+// R_APP(GEntertainment, FManagerApp, "/bin/fm", "inode/directory", "*")
+//
+// R_APP macro can later be defined as
+// R_APP(APP_GROUP, APP_TYPE, VIRT_EXE, MIME, EXT) namespace AppInvisibleRegistry{void AppType(){ auto x= new AppType(argc, argv) }} ksystem.regApp(AppInvisibleRegistry::AppType, APP_GROUP, VIRT_EXE, MIME_EXT)
+//
+// or sort of.
+//
+// Here c++ is our Gendalf standing on a bridge not allowing us to pass,
+// so we've to find a hack arround(maybe is non-much meaningfull
+// namespace-shelter is an actual answer, cause somehow c++ mangles
+// same names :D)
+//
+// While it feels almost impossible, I believe there's a better way
+// to organize all that stuff, and make our system more interactive, shortcut
+// makeable and multi-purposable
+//
+// This may simplify some other things as well like Lua interpreter
+// #!/bin/lua as well as telnet commands implementations in Lua(yeah, imagine)
+//
+// This seems to be possible cause we can overload stdin/stdout/stderr and
+// send our new born thread stdios in a shape of regualar file to our RamVFS
+//
+// Something similar already done in STDIO VFS implemented in sdk and seems
+// works purfectly (^__^) == \~
+//
+// Aftewards,
+//
+// Feels logical to move all appManager logics into KeiraSystem
+//
+// But first:
+//
+// TODO: Move App constructors to (int argc, char **argv) scheme and provide exit code return to a system
+//////////////////////////////////////////////////////////////////////////////
+
 KeiraSystem::KeiraSystem() {
     versionType = KEIRA_VERSION_TYPE;
     // Keira version
@@ -52,12 +104,44 @@ KeiraSystem::KeiraSystem() {
         KEIRA_VERSION_TYPE_ACSTR[KEIRA_VERSION_TYPE],
         K_S_CURRENT_LANGUAGE_SHORT
     );
+    // Prepare RootVFS
+    // / doesn't work here. 0_0==\~ Give me control filthy bitch -_-
+    this->rootVFS = new RootVFS("");
+
+    // Add well known dirs
+    rootVFS->addDir(LILKA_SD_ROOT);
+    rootVFS->addDir(LILKA_SPIFFS_ROOT);
+
+    // Time to reg it (^_^)==\~
+    rootVFS->reg();
 }
 
 // TODO: CMD Params Handling
 void KeiraSystem::handleCMDParams() {
+#define CHECK_ARG(ARG, SHORT_ARG, NEEDLE) \
+    ((ARG && strcmp(ARG, NEEDLE) == 0) || (SHORT_ARG && strcmp(SHORT_ARG, NEEDLE) == 0))
+    // Retrieve cmd params
     this->argc = lilka::multiboot.getArgc();
     this->argv = lilka::multiboot.getArgv();
+
+/*
+    // Do actions based on params
+    for (auto i = 0; i < argc; i++) {
+        auto cLeftArgs = argc - i - 1;
+        // Display message set via external/current firmware
+        if (cLeftArgs && CHECK_ARG("-m", "--message", argv[i])) {
+            lilka::Alert message("", argv[i + 1]);
+            lilka::Canvas tmpCanvas(lilka::display.width(), lilka::display.height());
+            while (!message.isFinished()) {
+                message.draw(tmpCanvas);
+                lilka::display.drawCanvas(tmpCanvas);
+            }
+            continue;
+        }
+
+    }
+*/
+#undef CHECK_CMD
 }
 
 // Sends greeting message to serial
