@@ -4,8 +4,6 @@
 // Автори: Олексій "Alder" Деркач (https://github.com/alder) та Андрій "and3rson" Дунай (https://github.com/and3rson)
 //
 
-#include <AudioFileSourceSD.h>
-
 #include "madplayer.h"
 
 // Визначає тип аудіо за розширенням файлу. Повертає nullptr, якщо формат невідомий.
@@ -23,7 +21,7 @@ static const char* detectAudioType(const String& path) {
 MadPlayerApp::MadPlayerApp(String path) : App("MadPlayer", 0, 0, lilka::display.width(), lilka::display.height()) {
     setFlags(AppFlags::APP_FLAG_FULLSCREEN);
     setCore(1);
-    fileName = lilka::fileutils.getLocalPathInfo(path).path;
+    fileName = path;
 }
 
 void MadPlayerApp::run() {
@@ -34,14 +32,34 @@ void MadPlayerApp::run() {
         return;
     }
 
-    // Read file into memory (scoped so SD file is closed immediately, freeing VFS buffer)
-    uint8_t* fileData;
-    size_t fileSize;
-    {
-        AudioFileSourceSD fileSource(fileName.c_str());
-        fileSize = fileSource.getSize();
-        fileData = new uint8_t[fileSize];
-        fileSource.read(fileData, fileSize);
+    // Read file into memory
+    FILE* file = fopen(fileName.c_str(), "rb");
+    if (!file) {
+        alert("Помилка", "Не вдалося відкрити файл");
+        return;
+    }
+    fseek(file, 0, SEEK_END);
+    size_t fileSize = ftell(file);
+    fseek(file, 0, SEEK_SET);
+
+    if (fileSize == 0) {
+        fclose(file);
+        alert("Помилка", "Аудіо-файл порожній");
+        return;
+    }
+
+    uint8_t* fileData = new (std::nothrow) uint8_t[fileSize];
+    if (!fileData) {
+        fclose(file);
+        alert("Помилка", "Недостатньо пам'яті");
+        return;
+    }
+    size_t bytesRead = fread(fileData, 1, fileSize, file);
+    fclose(file);
+    if (bytesRead != fileSize) {
+        delete[] fileData;
+        alert("Помилка", "Не вдалося прочитати файл");
+        return;
     }
 
     // Create Sound (takes ownership of fileData)
