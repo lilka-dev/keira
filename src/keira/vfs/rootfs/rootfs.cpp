@@ -22,11 +22,31 @@ RootVFS::RootVFS(const char* rootDir) {
 void RootVFS::addDir(const char* path) {
     RVFS_DBG lilka::serial.log("Registering %s int RootVFS\n", path);
     // TODO: allow overrive DT_DIR with DT_FILE or something else
-    struct dirent newEntry = {
-        .d_ino = static_cast<short unsigned int>((this->dirEntries.size() + 1)), .d_type = DT_DIR
+    RootVFSDirectoryEntry newEntry = {
+        .dirent =
+            {
+
+                .d_ino = static_cast<short unsigned int>((this->dirEntries.size() + 1)), .d_type = DT_DIR
+            },
+        .st = {.st_mode = S_IFDIR}
     };
-    strcpy(newEntry.d_name, path + 1);
+    strcpy(newEntry.dirent.d_name, path + 1);
     this->dirEntries.push_back(newEntry);
+}
+
+int RootVFS::stat(const char* path, struct stat* st) {
+    // TODO: less lazy handle path
+    auto name = path[0] == '/' ? path + 1 : path; // skip the /
+    // A bit rusty all of that, but still :)
+    for (const auto& dirEntry : dirEntries) {
+        RVFS_DBG lilka::serial.log("cmp %s to %s in %s", dirEntry.dirent.d_name, name, __PRETTY_FUNCTION__);
+        if (strcmp(dirEntry.dirent.d_name, name) == 0) {
+            memcpy(st, &(dirEntry.st), sizeof(struct stat));
+            return 0;
+        }
+    }
+
+    return -1;
 }
 
 DIR* RootVFS::opendir(const char* name) {
@@ -54,7 +74,7 @@ struct dirent* RootVFS::readdir(DIR* pdir) {
 
     // It seems that offset is always equal to max dirEntries, what do I miss?
     if (dirStream->offset >= 0 && dirEntries.size() > dirStream->offset) {
-        struct dirent* cDirent = &(dirEntries[dirStream->offset]);
+        struct dirent* cDirent = &(dirEntries[dirStream->offset].dirent);
         dirStream->offset++;
         return cDirent;
     }
@@ -69,6 +89,7 @@ long RootVFS::telldir(DIR* pdir) {
 }
 
 void RootVFS::seekdir(DIR* pdir, long offset) {
+    RVFS_DBG lilka::serial.log("External call to rewinddir, routed via RootVFS\nNew offset:%d\n", offset);
     // Cast to internal directory stream implementation
     RootVFSDirStream* dirStream = reinterpret_cast<RootVFSDirStream*>(pdir);
 

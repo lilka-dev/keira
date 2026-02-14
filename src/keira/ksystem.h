@@ -27,8 +27,9 @@ public:
     //===== VFS (Virtual File Systems)
     // This thing is inteded to be used with mountable/remountable in runtime
     // devices. Not used yet, but this would change on adding USB-OTG support
+    // Though, not guaranteed we would use it at all
     // TODO: handle rootVFS reg/unreg here
-    void registerVFS(KeiraVFS* fs, const char* path);
+    // void registerVFS(KeiraVFS* fs, const char* path);
 
     const String& getVersionStr() {
         return version;
@@ -54,13 +55,12 @@ private:
     String version;
     version_type_t versionType;
 
-    //===== CMD Params
-    int argc;
-    char** argv;
-
     // VFS (Virtual File Systems)
-    std::vector<KeiraVFS*> vfs;
-    RootVFS* rootVFS = NULL; // special case
+    // std::vector<KeiraVFS*> vfs; // normally to store all here
+
+    // special case, might require reg/unreg after each VFS reg as well as
+    // might work normally, we don't know it yet, and this need to check
+    RootVFS* rootVFS = NULL;
 };
 
 extern KeiraSystem ksystem;

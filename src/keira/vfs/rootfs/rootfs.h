@@ -32,12 +32,22 @@
 // Directory stream implementation used by RootVFS. Doesn't meant to be used
 // somewhere else, and represents any data we want to attach to our a.k.a.
 // directory file descryptor
+
 typedef struct {
+    // In reality, this value is maintaned by esp-idf, and tells us a number
+    // which is equal to an index of our registred VFS[4 bytes]. Just skip it
+    DIR dir;
     long offset;
 } RootVFSDirStream;
 
 // Inital dir stream value
 #define ROOT_VFS_DIR_STREAM_INITIALIZER {.offset = 0}
+
+// Our File Table entry
+typedef struct {
+    struct dirent dirent;
+    struct stat st;
+} RootVFSDirectoryEntry;
 
 class RootVFS : public KeiraVFS {
 public:
@@ -52,6 +62,7 @@ public:
 private:
     // Here we just override needed for our VFS functioning methods, others
     // provided by KeiraVFS abstract filesystem
+    int stat(const char* path, struct stat* st) override;
 
     // Opens directory and returns a pointer to internal directory stream
     // It seems allows us to pass almost everything, cause implementation
@@ -83,7 +94,7 @@ private:
     int closedir(DIR* pdir) override;
 
     std::vector<RootVFSDirStream> dirFDs;
-    std::vector<struct dirent> dirEntries;
+    std::vector<RootVFSDirectoryEntry> dirEntries;
 
     std::vector<char*> paths;
 };

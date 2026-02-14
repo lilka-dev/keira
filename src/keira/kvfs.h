@@ -14,25 +14,34 @@
 #include <vector>
 #include <cstddef>
 #include <errno.h>
+#include <lilka/serial.h>
+
+#define KEIRA_VFS_DEBUG
+#ifdef KEIRA_VFS_DEBUG
+#    define KVFS_DBG if (1)
+#else
+#    define KVFS_DBG if (0)
+#endif
 
 //////////////////////////////////////////////////////////////////////////////
-// Default file api implementations. this is kind a funky, but theoretically
-// we can provide even debug for calls using __PRETTY_FUNCTION__ here, but
-// let's save it for better times (^__^) == \~
-// TODO: maybe hide it in keira/bits/kvfs.h ? :D
-#define DEFAULT_FAPI_IMPL \
-    {                     \
-        errno = ENOSYS;   \
-        return -1;        \
+// Default file api implementations.
+#define DEFAULT_FAPI_IMPL                                                                   \
+    {                                                                                       \
+        KVFS_DBG lilka::serial.log("[KVFS]Runing not implemented %s", __PRETTY_FUNCTION__); \
+        errno = ENOSYS;                                                                     \
+        return -1;                                                                          \
     }
-#define DEFAULT_PFAPI_IMPL \
-    {                      \
-        errno = ENOSYS;    \
-        return nullptr;    \
+
+#define DEFAULT_PFAPI_IMPL                                                                  \
+    {                                                                                       \
+        KVFS_DBG lilka::serial.log("[KVFS]Runing not implemented %s", __PRETTY_FUNCTION__); \
+        errno = ENOSYS;                                                                     \
+        return nullptr;                                                                     \
     }
-#define DEFAULT_VFAPI_IMPL \
-    {                      \
-        errno = ENOSYS;    \
+#define DEFAULT_VFAPI_IMPL                                                                  \
+    {                                                                                       \
+        KVFS_DBG lilka::serial.log("[KVFS]Runing not implemented %s", __PRETTY_FUNCTION__); \
+        errno = ENOSYS;                                                                     \
     }
 //////////////////////////////////////////////////////////////////////////////
 
@@ -46,6 +55,14 @@
 // Keep in mind that current approach doesn't provide Arduino-like methods
 // to work with those files, but this can change in future.
 // So, if possible, just stick to a well documented/tested/used POSIX file api
+
+// A structure to be used as DIR in our directory APIs. Header of it, is
+// maintained partly by esp idf itself
+
+typedef struct {
+    DIR dir;
+    void* data;
+} KeiraVFSDirStream;
 
 class KeiraVFS {
 private:
@@ -70,6 +87,8 @@ private:
     virtual int rename(const char* src, const char* dst) DEFAULT_FAPI_IMPL;
     virtual DIR* opendir(const char* name) DEFAULT_PFAPI_IMPL;
     virtual struct dirent* readdir(DIR* pdir) DEFAULT_PFAPI_IMPL;
+    virtual int readdir_r(DIR* pdir, struct dirent* entry, struct dirent** out_dirent) DEFAULT_FAPI_IMPL;
+
     virtual long telldir(DIR* pdir) DEFAULT_FAPI_IMPL;
     virtual void seekdir(DIR* pdir, long offset) DEFAULT_VFAPI_IMPL;
     virtual int closedir(DIR* pdir) DEFAULT_FAPI_IMPL;

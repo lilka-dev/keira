@@ -121,8 +121,8 @@ void KeiraSystem::handleCMDParams() {
 #define CHECK_ARG(ARG, SHORT_ARG, NEEDLE) \
     ((ARG && strcmp(ARG, NEEDLE) == 0) || (SHORT_ARG && strcmp(SHORT_ARG, NEEDLE) == 0))
     // Retrieve cmd params
-    this->argc = lilka::multiboot.getArgc();
-    this->argv = lilka::multiboot.getArgv();
+    auto argc = lilka::multiboot.getArgc();
+    auto argv = lilka::multiboot.getArgv();
 
 /*
     // Do actions based on params
