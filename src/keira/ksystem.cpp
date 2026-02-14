@@ -27,7 +27,7 @@
 #include "keira_version_auto_gen.h"
 
 // Libs:
-#include <string.h>
+//#include <string.h>
 #include <lilka/display.h>
 #include <lilka/ui.h>
 
@@ -104,16 +104,6 @@ KeiraSystem::KeiraSystem() {
         KEIRA_VERSION_TYPE_ACSTR[KEIRA_VERSION_TYPE],
         K_S_CURRENT_LANGUAGE_SHORT
     );
-    // Prepare RootVFS
-    // / doesn't work here. 0_0==\~ Give me control filthy bitch -_-
-    this->rootVFS = new RootVFS("");
-
-    // Add well known dirs
-    rootVFS->addDir(LILKA_SD_ROOT);
-    rootVFS->addDir(LILKA_SPIFFS_ROOT);
-
-    // Time to reg it (^_^)==\~
-    rootVFS->reg();
 }
 
 // TODO: CMD Params Handling
@@ -181,6 +171,19 @@ void KeiraSystem::verifyOTA() {
     }
 }
 
+void KeiraSystem::registerFileSystems() {
+    // Prepare RootVFS. Better to register it last
+    // / doesn't work here. 0_0==\~ Give me control filthy bitch -_-
+    this->rootVFS = new RootVFS("");
+
+    // Add well known dirs
+    rootVFS->addDir(LILKA_SD_ROOT);
+    rootVFS->addDir(LILKA_SPIFFS_ROOT);
+
+    // Time to reg it (^_^)==\~
+    rootVFS->reg();
+}
+
 // Displays startup screen, a.k.a bootlogo/splash
 void KeiraSystem::showStartupScreen() {
     lilka::display.setSplash(keira_splash, keira_splash_length);
@@ -208,6 +211,9 @@ void KeiraSystem::setup() {
 
     // Verify OTA Update
     verifyOTA();
+
+    // Register VFS
+    registerFileSystems();
 
     // Launch appManager
     this->appManager = AppManager::getInstance();

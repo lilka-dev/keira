@@ -1,4 +1,11 @@
 #pragma once
+//////////////////////////////////////////////////////////////////////////////
+//
+//  Keira OS Header file
+//
+//////////////////////////////////////////////////////////////////////////////
+// KeiraSystem singlethon class
+//////////////////////////////////////////////////////////////////////////////
 
 // System Managers:
 #include "keira/servicemanager.h"
@@ -6,10 +13,10 @@
 
 // Libraries
 #include <lilka.h>
-#include <vector>
+//#include <vector>
 
 // VFS(Virtual File Systems):
-#include "kvfs.h"
+//#include "kvfs.h"
 #include "keira/vfs/rootfs/rootfs.h"
 
 #define KEIRA_VERSION_TYPE_ACSTR lilka::SDK_VERSION_TYPE_ACSTR
@@ -44,12 +51,13 @@ private:
     void showStartupScreen();
     void handleCMDParams();
     void verifyOTA();
+    void registerFileSystems();
     void showWelcomeMessage();
     void launchServices();
 
     //===== Apps/Services
-    AppManager* appManager;
-    ServiceManager* serviceManager;
+    AppManager* appManager = NULL;
+    ServiceManager* serviceManager = NULL;
 
     //===== Version
     String version;

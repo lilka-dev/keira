@@ -4,6 +4,23 @@ KeiraVFS::KeiraVFS(const char* path) {
     strcpy(this->rootDir, path);
 }
 
+// Returns current offset in a directory stream
+// @param pdir pointer to directory stream
+// @returns offset
+long KeiraVFS::telldir(kvfs_dir_t* pdir) { // TODO:move to KVFS
+    KVFS_DBG lilka::serial.log("[KVFS] %s offset %d\n", __PRETTY_FUNCTION__, pdir->offset);
+    return pdir->offset;
+}
+
+// Sets current directory stream offset. Note offset should be a number
+// once provided by telldir only, cause doesn't always meant to be an
+// index
+// @param pdir pointer to directory stream
+void KeiraVFS::seekdir(kvfs_dir_t* pdir, long offset) {
+    KVFS_DBG lilka::serial.log("[KVFS] %s to new offset:%d\n", __PRETTY_FUNCTION__, offset);
+    pdir->offset = offset;
+}
+
 void KeiraVFS::reg() {
     esp_vfs_t vfs = {};
     // let's hope this hack works :D
@@ -19,7 +36,7 @@ void KeiraVFS::reg() {
     memcpy(vfs_table, vtable, sizeof(esp_vfs_t) - sizeof(v.flags));
 
     // register
-    if (esp_vfs_register(rootDir, &v, this) == ESP_OK) {
+    if (!registered && (esp_vfs_register(rootDir, &v, this) == ESP_OK)) {
         this->registered = true;
     }
 }

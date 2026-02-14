@@ -5,24 +5,13 @@
 #include <errno.h>
 #include <lilka/serial.h>
 
-#define ROOT_VFS_DEBUG
-
-#ifdef ROOT_VFS_DEBUG
-#    define RVFS_DBG if (1)
-#else
-#    define RVFS_DBG if (0)
-#endif
-
-// TODO: implement stat()
-
 RootVFS::RootVFS(const char* rootDir) {
     strcpy(this->rootDir, rootDir);
 }
 
 void RootVFS::addDir(const char* path) {
-    RVFS_DBG lilka::serial.log("Registering %s int RootVFS\n", path);
     // TODO: allow overrive DT_DIR with DT_FILE or something else
-    RootVFSDirectoryEntry newEntry = {
+    rvfs_dirent_t newEntry = {
         .dirent =
             {
 
@@ -30,17 +19,19 @@ void RootVFS::addDir(const char* path) {
             },
         .st = {.st_mode = S_IFDIR}
     };
-    strcpy(newEntry.dirent.d_name, path + 1);
+    strcpy(newEntry.dirent.d_name, basename(path));
+    RVFS_DBG lilka::serial.log("[RVFS] %s new entry %s", __PRETTY_FUNCTION__, newEntry.dirent.d_name);
     this->dirEntries.push_back(newEntry);
 }
 
+// This part has not much sense now, see a point, if it appears to be
+// LILKA_SD_SPIFFS for example, then stat routed to it :D
 int RootVFS::stat(const char* path, struct stat* st) {
     // TODO: less lazy handle path
-    auto name = path[0] == '/' ? path + 1 : path; // skip the /
     // A bit rusty all of that, but still :)
     for (const auto& dirEntry : dirEntries) {
-        RVFS_DBG lilka::serial.log("cmp %s to %s in %s", dirEntry.dirent.d_name, name, __PRETTY_FUNCTION__);
-        if (strcmp(dirEntry.dirent.d_name, name) == 0) {
+        RVFS_DBG lilka::serial.log("cmp %s to %s in %s", dirEntry.dirent.d_name, basename(path), __PRETTY_FUNCTION__);
+        if (strcmp(dirEntry.dirent.d_name, basename(path)) == 0) {
             memcpy(st, &(dirEntry.st), sizeof(struct stat));
             return 0;
         }
@@ -49,17 +40,17 @@ int RootVFS::stat(const char* path, struct stat* st) {
     return -1;
 }
 
-DIR* RootVFS::opendir(const char* name) {
-    RVFS_DBG lilka::serial.log("External call to opendir, routed via RootVFS\nPath:%s\n", name);
+kvfs_dir_t* RootVFS::opendir(const char* name) {
+    RVFS_DBG lilka::serial.log("[RVFS] %s Path:%s\n", __PRETTY_FUNCTION__, name);
 
     // Allow only rootDir open
     if (strcmp(name, "/") == 0) {
         // Create new directory stream
-        RootVFSDirStream dirStream = ROOT_VFS_DIR_STREAM_INITIALIZER;
-        dirFDs.push_back(dirStream);
+        kvfs_dir_t dStream = KVFS_DIR_INITIALIZER;
+        // Push new directory stream to keep track on it
+        dirStreams.push_back(dStream);
 
-        DIR* pdir = reinterpret_cast<DIR*>(&(dirFDs[dirFDs.size() - 1]));
-        RVFS_DBG lilka::serial.log("Returning dir stream with offset %d", dirFDs[dirFDs.size() - 1].offset);
+        kvfs_dir_t* pdir = &(dirStreams[dirStreams.size() - 1]);
         return pdir;
     } else {
         errno = EINVAL;
@@ -67,41 +58,22 @@ DIR* RootVFS::opendir(const char* name) {
     }
 }
 
-struct dirent* RootVFS::readdir(DIR* pdir) {
-    // Cast to internal directory stream implementation
-    RootVFSDirStream* dirStream = reinterpret_cast<RootVFSDirStream*>(pdir);
-    RVFS_DBG lilka::serial.log("External call to readdir, routed via RootVFS\nOffset:%d\n", dirStream->offset);
+struct dirent* RootVFS::readdir(kvfs_dir_t* pdir) {
+    RVFS_DBG lilka::serial.log("[RVFS] %s offset:%d\n", __PRETTY_FUNCTION__, pdir->offset);
 
     // It seems that offset is always equal to max dirEntries, what do I miss?
-    if (dirStream->offset >= 0 && dirEntries.size() > dirStream->offset) {
-        struct dirent* cDirent = &(dirEntries[dirStream->offset].dirent);
-        dirStream->offset++;
+    if (pdir->offset >= 0 && dirEntries.size() > pdir->offset) {
+        struct dirent* cDirent = &(dirEntries[pdir->offset].dirent);
+        pdir->offset++;
         return cDirent;
     }
 
     return NULL;
 }
 
-long RootVFS::telldir(DIR* pdir) {
-    // Cast to internal directory stream implementation
-    RootVFSDirStream* dirStream = reinterpret_cast<RootVFSDirStream*>(pdir);
-    return dirStream->offset;
-}
-
-void RootVFS::seekdir(DIR* pdir, long offset) {
-    RVFS_DBG lilka::serial.log("External call to rewinddir, routed via RootVFS\nNew offset:%d\n", offset);
-    // Cast to internal directory stream implementation
-    RootVFSDirStream* dirStream = reinterpret_cast<RootVFSDirStream*>(pdir);
-
-    dirStream->offset = offset;
-}
-
-int RootVFS::closedir(DIR* pdir) {
-    // Cast to internal directory stream implementation
-    RootVFSDirStream* dirStream = reinterpret_cast<RootVFSDirStream*>(pdir);
-
+int RootVFS::closedir(kvfs_dir_t* pdir) {
     // Handle NULL ptr
-    if (dirStream == NULL) {
+    if (pdir == NULL) {
         errno = EINVAL;
         return -1;
     }
@@ -109,9 +81,9 @@ int RootVFS::closedir(DIR* pdir) {
     // Seek & remove from table openned directory streams
     bool success = false;
     size_t i = 0;
-    for (const auto& dFD : dirFDs) {
-        if (dirStream == &dFD) {
-            dirFDs.erase(dirFDs.begin() + i);
+    for (const auto& dirStream : dirStreams) {
+        if (pdir == &dirStream) {
+            dirStreams.erase(dirStreams.begin() + i);
             success = true;
             break; // assume no duplicates
         }

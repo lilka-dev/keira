@@ -6,6 +6,17 @@
 //////////////////////////////////////////////////////////////////////////////
 // Keira VFS(Virtual Filesystem) abstract wrapper to implement VFSs
 //////////////////////////////////////////////////////////////////////////////
+// Abstract class for VFS(Virtual Filesystem).
+// Each VFS implementation must overload needed methods specified here.
+// All others would use default implementations provided via this abstract
+// class.
+// After that, it should be registered in ksystem except unusual case of
+// RootVFS which might have a need to be registered other way. Look
+// keira/ksystem.h for details
+
+// Keep in mind that current approach doesn't provide Arduino-like methods
+// to work with those files, but this can change in future.
+// So, if possible, just stick to a well documented/tested/used POSIX file api
 
 // ESP-IDF VFS implementation
 #include <esp_vfs.h>
@@ -16,14 +27,16 @@
 #include <errno.h>
 #include <lilka/serial.h>
 
-#define KEIRA_VFS_DEBUG
+// Uncomment this line to get some additional debuging information through
+// serial
+//#define KEIRA_VFS_DEBUG
+
 #ifdef KEIRA_VFS_DEBUG
 #    define KVFS_DBG if (1)
 #else
 #    define KVFS_DBG if (0)
 #endif
 
-//////////////////////////////////////////////////////////////////////////////
 // Default file api implementations.
 #define DEFAULT_FAPI_IMPL                                                                   \
     {                                                                                       \
@@ -43,26 +56,29 @@
         KVFS_DBG lilka::serial.log("[KVFS]Runing not implemented %s", __PRETTY_FUNCTION__); \
         errno = ENOSYS;                                                                     \
     }
-//////////////////////////////////////////////////////////////////////////////
 
-// Abstract class for VFS(Virtual Filesystem).
-// Each VFS implementation must overload needed methods specified here.
-// All others would use default implementations provided via this abstract
-// class.
-// After that, it should be registered in ksystem->regiserVFS()
-// except unusual case of RootVFS which might have a need to be registered
-// other way.
-// Keep in mind that current approach doesn't provide Arduino-like methods
-// to work with those files, but this can change in future.
-// So, if possible, just stick to a well documented/tested/used POSIX file api
+// Implementation provided by KeiraVFS
+#define KVFS_IMPL ;
 
-// A structure to be used as DIR in our directory APIs. Header of it, is
-// maintained partly by esp idf itself
-
+// This is our analogue to DIR, simplyfying some stuff. DIR isn't meant to be
+// used by user, so we  can use it almost any way we want.
+// You can specify any other datatype by own as well, but keep in mind that
+// you've to provide ESP-IDF maintained header in it. Though, this one also
+// allows to pass any data you may want inside through @data field.
+// Note in case own datatype, you have to override KVFS_IMPL methods as well
 typedef struct {
+    // ESP-IDF maintained header. I believe it's a number representing index
+    // of current filsystem registration
     DIR dir;
+    // Offset representing a position inside directory stream
+    long offset;
+    // Place to incorporate any additional data you may want to use inside
+    // directory stream
     void* data;
-} KeiraVFSDirStream;
+} kvfs_dir_t;
+
+// Default kvfs_dir_t(a.k.a DIR) initializer
+#define KVFS_DIR_INITIALIZER {.dir = {}, .offset = 0, .data = NULL}
 
 class KeiraVFS {
 private:
@@ -85,13 +101,13 @@ private:
     virtual int link(const char* n1, const char* n2) DEFAULT_FAPI_IMPL;
     virtual int unlink(const char* path) DEFAULT_FAPI_IMPL;
     virtual int rename(const char* src, const char* dst) DEFAULT_FAPI_IMPL;
-    virtual DIR* opendir(const char* name) DEFAULT_PFAPI_IMPL;
-    virtual struct dirent* readdir(DIR* pdir) DEFAULT_PFAPI_IMPL;
-    virtual int readdir_r(DIR* pdir, struct dirent* entry, struct dirent** out_dirent) DEFAULT_FAPI_IMPL;
+    virtual kvfs_dir_t* opendir(const char* name) DEFAULT_PFAPI_IMPL;
+    virtual struct dirent* readdir(kvfs_dir_t* pdir) DEFAULT_PFAPI_IMPL;
+    virtual int readdir_r(kvfs_dir_t* pdir, struct dirent* entry, struct dirent** out_dirent) DEFAULT_FAPI_IMPL;
 
-    virtual long telldir(DIR* pdir) DEFAULT_FAPI_IMPL;
-    virtual void seekdir(DIR* pdir, long offset) DEFAULT_VFAPI_IMPL;
-    virtual int closedir(DIR* pdir) DEFAULT_FAPI_IMPL;
+    virtual long telldir(kvfs_dir_t* pdir) KVFS_IMPL;
+    virtual void seekdir(kvfs_dir_t* pdir, long offset) KVFS_IMPL;
+    virtual int closedir(kvfs_dir_t* pdir) DEFAULT_FAPI_IMPL;
     virtual int mkdir(const char* name, mode_t mode) DEFAULT_FAPI_IMPL;
     virtual int rmdir(const char* name) DEFAULT_FAPI_IMPL;
 #endif
@@ -124,7 +140,11 @@ private:
     // VFS Implementation END ================================================
     // Place to define other virtual methods in case we ever need them
 protected:
+    // Root directory used by our filesystem
     char rootDir[ESP_VFS_PATH_MAX] = {};
+    // Directory streams in use for current filesystem
+    // You have to fill it on opendir(), and clean on closedir()
+    std::vector<kvfs_dir_t> dirStreams;
 
 public:
     KeiraVFS() {}; // empty canstructor
