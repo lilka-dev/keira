@@ -78,7 +78,10 @@ typedef struct {
 } kvfs_dir_t;
 
 // Default kvfs_dir_t(a.k.a DIR) initializer
+// idk why it doesn't autoformat
+// clang-format off
 #define KVFS_DIR_INITIALIZER {.dir = {}, .offset = 0, .data = NULL}
+// clang-format on
 
 class KeiraVFS {
 private:
