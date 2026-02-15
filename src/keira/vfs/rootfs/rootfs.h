@@ -48,7 +48,7 @@ class RootVFS : public KeiraVFS {
 public:
     // Initializes file system and prepares it for further reg()
     // @param rootDir directory from which esp_idf would pass FAPI calls
-    RootVFS(const char* rootDir);
+    explicit RootVFS(const char* rootDir);
 
     // Register new virtual path in our filesystem
     // @param path

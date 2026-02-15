@@ -31,8 +31,8 @@ void KeiraVFS::reg() {
     // elegant way and just copy it in esp_vfs_t without mindfuck with a c++ness
     // this makes wrapper makings for almost anything in esp_idf incredibly simple
     // and incredibly fast as well
-    void** vtable = *(void***)this;
-    void** vfs_table = (void**)((uintptr_t)&v + sizeof(v.flags));
+    void** vtable = *reinterpret_cast<void***>(this);
+    void** vfs_table = reinterpret_cast<void**>((reinterpret_cast<uintptr_t>(&v) + sizeof(v.flags)));
     memcpy(vfs_table, vtable, sizeof(esp_vfs_t) - sizeof(v.flags));
 
     // register

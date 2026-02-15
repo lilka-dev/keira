@@ -186,7 +186,7 @@ void KeiraSystem::showStartupScreen() {
     // to speedify dev, we just do not display splash in a dev mode at all
     bool displaySplash =
         (resetReason == ESP_RST_POWERON || resetReason == ESP_RST_PANIC) &&
-        (!(lilka::sdk.getVersionType() == lilka::SDK_VERSION_TYPE_DEV || versionType == KEIRA_VERSION_TYPE_DEV));
+        (!(lilka::sdk.getVersion().vtype == lilka::SDK_VERSION_TYPE_DEV || versionType == KEIRA_VERSION_TYPE_DEV));
 
     if (displaySplash) lilka::display.showStartupScreen();
 }

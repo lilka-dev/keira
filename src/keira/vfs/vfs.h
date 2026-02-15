@@ -149,8 +149,9 @@ protected:
     std::vector<kvfs_dir_t> dirStreams;
 
 public:
-    KeiraVFS() {}; // empty canstructor
-    KeiraVFS(const char* path);
+    KeiraVFS() {
+    } // empty canstructor
+    explicit KeiraVFS(const char* path);
     // Registers VFS implementation
     void reg();
     // Unregisters VFS implementation
