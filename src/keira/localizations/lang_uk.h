@@ -71,8 +71,7 @@
 #define K_S_LAUNCHER_TAMAGOTCHI        "Тамагочі"
 #define K_S_LAUNCHER_WEATHER           "Погода"
 #define K_S_LAUNCHER_PASTEBIN          "Pastebin"
-#define K_S_LAUNCHER_SD_BROWSER        "Браузер SD-карти"
-#define K_S_LAUNCHER_SPIFFS_BROWSER    "Браузер SPIFFS"
+#define K_S_LAUNCHER_FMANAGER          "Файловий менеджер"
 #define K_S_LAUNCHER_DEV_MENU          "Розробка"
 #define K_S_LAUNCHER_LIVE_LUA          "Live Lua" // Lua live?
 #define K_S_LAUNCHER_LUA_REPL          "Lua REPL"

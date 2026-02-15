@@ -219,7 +219,7 @@ FMEntry FileManagerApp::pathToEntry(const String& path) {
     bool statPerformed = false;
     strcpy(newEntry.path, lilka::fileutils.getParentDirectory(path).c_str());
     strcpy(newEntry.name, basename(path.c_str()));
-
+    FM_DBG lilka::serial.log("[FM]In |%s| found |%s| = |%s|", newEntry.path, newEntry.name, path.c_str());
     // Perform stat
     // . dir needs specific way to do that
     struct stat tmpStat;
@@ -807,6 +807,8 @@ bool FileManagerApp::fileListMenuLoadDir() {
         dirLength++;
     rewinddir(dir);
 
+    FM_DBG lilka::serial.log("Directory %s contains %d entries", currentPath.c_str(), dirLength);
+
     bool drawProgress = ((dirLength - PROGRESS_FILE_LIST_NO_DRAW_COUNT) >= 0);
 
     fileListMenu.setTitle(currentPath);
@@ -815,9 +817,25 @@ bool FileManagerApp::fileListMenuLoadDir() {
 
     while ((dir_entry = readdir(dir)) != NULL) {
         String filename = dir_entry->d_name;
+
+        FM_DBG lilka::serial.log("Loaded entry %s", dir_entry->d_name);
+
         // Skip current directory and top level entries
         if (filename != "." && filename != "..") {
-            FMEntry newEntry = pathToEntry(lilka::fileutils.joinPath(currentPath, filename));
+            FMEntry newEntry;
+            // Handle dirs immediately
+            if (dir_entry->d_type == DT_DIR) {
+                // create entry inplace without stat
+                newEntry.type = FT_DIR;
+                newEntry.icon = FT_DIR_ICON;
+                newEntry.color = FT_DIR_COLOR;
+                strcpy(newEntry.path, currentPath.c_str());
+                strcpy(newEntry.name, basename(dir_entry->d_name));
+            } else {
+                // Handle other stuff
+                newEntry = pathToEntry(lilka::fileutils.joinPath(currentPath, filename));
+            }
+            // I should refactor all that crap...
             if (getDirEntryIndex(selectedDirEntries, newEntry) != ENTRY_NOT_FOUND_INDEX) newEntry.selected = true;
             currentDirEntries.push_back(newEntry);
         }
@@ -931,6 +949,7 @@ void FileManagerApp::onFileListMenuItem() {
     if (button == FM_EXIT_BUTTON) {
         if (currentPath != initalPath) {
             currentPath = lilka::fileutils.getParentDirectory(currentPath);
+            if (currentPath == "") return; // wtf, but should work
             fileListMenu.isFinished();
             changeMode(FM_MODE_RELOAD);
             return;

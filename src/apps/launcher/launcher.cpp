@@ -39,9 +39,9 @@
 #include "apps/fmanager/fmanager.h"
 #include "apps/pastebin/pastebinApp.h"
 #include "apps/usbdrive/usbdrive.h"
-
 #include "apps/soundsettings/sound.h"
 
+// Icons
 #include "apps/icons/demos.h"
 #include "apps/icons/sdcard.h"
 #include "apps/icons/memory.h"
@@ -50,6 +50,7 @@
 #include "apps/icons/info.h"
 #include "apps/icons/app_group.h"
 
+// Libs
 #include <WiFi.h> // for setWiFiTxPower
 #include <Preferences.h>
 #include <lilka/spi.h>
@@ -113,22 +114,16 @@ void LauncherApp::run() {
                 lilka::colors::Pink
             ),
             ITEM::APP(
-                K_S_LAUNCHER_SD_BROWSER,
-                [this]() { this->runApp<FileManagerApp>(LILKA_SD_ROOT); },
+                K_S_LAUNCHER_FMANAGER,
+                [this]() { this->runApp<FileManagerApp>("/"); },
                 &sdcard_img,
                 lilka::colors::Arylide_yellow
             ),
             ITEM::APP(
                 K_S_LAUNCHER_USB_DRIVE,
                 [this]() { this->runApp<USBDriveApp>(); },
-                &sdcard_img,
-                lilka::colors::Mint
-            ),
-            ITEM::APP(
-                K_S_LAUNCHER_SPIFFS_BROWSER,
-                [this]() { this->runApp<FileManagerApp>(LILKA_SPIFFS_ROOT); },
                 &memory_img,
-                lilka::colors::Dark_sea_green
+                lilka::colors::Mint
             ),
             ITEM::SUBMENU(
                 K_S_LAUNCHER_DEV_MENU,
