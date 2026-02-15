@@ -82,6 +82,7 @@ typedef struct {
 
 class KeiraVFS {
 private:
+    // cppcheck-suppress-begin unusedPrivateFunction
     // VFS Implementation routines ===========================================
     // Warning : Methods below should be in esp_vfs_t order, all other virtual
     // methods should be defined after, and VFS implementations should specify
@@ -138,6 +139,7 @@ private:
 #ifdef CONFIG_VFS_SUPPORT_SELECT
 #endif
     // VFS Implementation END ================================================
+    // cppcheck-suppress-end unusedPrivateFunction
     // Place to define other virtual methods in case we ever need them
 protected:
     // Root directory used by our filesystem

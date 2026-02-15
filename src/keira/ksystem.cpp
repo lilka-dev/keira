@@ -120,18 +120,12 @@ void KeiraSystem::handleCMDParams() {
         auto cLeftArgs = argc - i - 1;
         // Display message set via external/current firmware
         if (cLeftArgs && CHECK_ARG("-m", "--message", argv[i])) {
-            lilka::Alert message("", argv[i + 1]);
-            lilka::Canvas tmpCanvas(lilka::display.width(), lilka::display.height());
-            while (!message.isFinished()) {
-                message.draw(tmpCanvas);
-                lilka::display.drawCanvas(tmpCanvas);
-            }
-            continue;
+	  // TODO: Implement actual message displayment
         }
 
     }
 */
-#undef CHECK_CMD
+#undef CHECK_ARG
 }
 
 // Sends greeting message to serial

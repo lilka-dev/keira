@@ -16,7 +16,7 @@
 //#include <vector>
 
 // VFS(Virtual File Systems):
-//#include "kvfs.h"
+//#include "keira/vfs/vfs.h"
 #include "keira/vfs/rootfs/rootfs.h"
 
 #define KEIRA_VERSION_TYPE_ACSTR lilka::SDK_VERSION_TYPE_ACSTR

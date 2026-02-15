@@ -1,4 +1,4 @@
-#include "kvfs.h"
+#include "vfs.h"
 
 KeiraVFS::KeiraVFS(const char* path) {
     strcpy(this->rootDir, path);
@@ -7,7 +7,7 @@ KeiraVFS::KeiraVFS(const char* path) {
 // Returns current offset in a directory stream
 // @param pdir pointer to directory stream
 // @returns offset
-long KeiraVFS::telldir(kvfs_dir_t* pdir) { // TODO:move to KVFS
+long KeiraVFS::telldir(kvfs_dir_t* pdir) {
     KVFS_DBG lilka::serial.log("[KVFS] %s offset %d\n", __PRETTY_FUNCTION__, pdir->offset);
     return pdir->offset;
 }
@@ -22,10 +22,10 @@ void KeiraVFS::seekdir(kvfs_dir_t* pdir, long offset) {
 }
 
 void KeiraVFS::reg() {
-    esp_vfs_t vfs = {};
-    // let's hope this hack works :D
     esp_vfs_t v = {};
-    v.flags = ESP_VFS_FLAG_CONTEXT_PTR; // Use the context-pointer (_p) versions
+
+    // Use the context-pointer (_p) versions
+    v.flags = ESP_VFS_FLAG_CONTEXT_PTR;
 
     // our vtable exactly fits the esp_vfs_t description, so we use this
     // elegant way and just copy it in esp_vfs_t without mindfuck with a c++ness
