@@ -20,22 +20,15 @@ StatusBarApp::StatusBarApp() : App("StatusBar", 0, 0, lilka::display.width(), 24
 const uint16_t* icons[] = {wifi_0_img, wifi_1_img, wifi_2_img, wifi_3_img};
 
 void StatusBarApp::run() {
-    lilka::Canvas iconCanvas(240, 24);
     while (1) {
         canvas->fillScreen(lilka::colors::Black);
-
-        ClockService* clockService = ServiceManager::getInstance()->getService<ClockService>("clock");
         canvas->setTextColor(lilka::colors::White, lilka::colors::Black);
         canvas->setFont(FONT_9x15);
-        canvas->setCursor(24, 17);
-        struct tm timeinfo = clockService->getTime();
-        char strftime_buf[16];
-        strftime(strftime_buf, sizeof(strftime_buf), "%H:%M:%S", &timeinfo);
-        canvas->print(strftime_buf);
 
-        // Draw icons
-        int16_t xOffset = drawIcons(&iconCanvas);
-        canvas->draw16bitRGBBitmap(canvas->width() - xOffset - 16, 0, iconCanvas.getFramebuffer(), 240, 24);
+        drawClock();
+        drawRam();
+        drawNetwork();
+        drawBattery();
 
         // Draw everything
         queueDraw();
@@ -43,53 +36,64 @@ void StatusBarApp::run() {
     }
 }
 
-int16_t StatusBarApp::drawIcons(lilka::Canvas* iconCanvas) {
-    NetworkService* networkService = ServiceManager::getInstance()->getService<NetworkService>("network");
+void StatusBarApp::drawClock() {
+    ClockService* clockService = ServiceManager::getInstance()->getService<ClockService>("clock");
+    struct tm timeinfo = clockService->getTime();
+    char strftime_buf[16];
+    strftime(strftime_buf, sizeof(strftime_buf), "%H:%M", &timeinfo);
+    canvas->setCursor(24, 17);
+    canvas->print(strftime_buf);
+}
 
-    int16_t xOffset = 0;
-
-    iconCanvas->fillScreen(lilka::colors::Black);
-    iconCanvas->setFont(FONT_9x15);
-
-    // Draw RAM usage
+void StatusBarApp::drawRam() {
     uint32_t freeRAM = ESP.getFreeHeap();
+    uint32_t freePSRAM = ESP.getFreePsram();
 #ifdef KEIRA_RAM_ICON
+    int xOffset = canvas->width() - 128;
     uint32_t totalRAM = ESP.getHeapSize();
+    uint32_t totalPSRAM = ESP.getPsramSize();
+
     int16_t padding = 2;
     int16_t barWidth = 24 - padding * 2;
     int16_t barHeight = 10;
-    int16_t barWidthUsed = barWidth * (totalRAM - freeRAM) / totalRAM;
-    iconCanvas->fillRect(xOffset + padding, padding, barWidthUsed, barHeight, lilka::colors::Red);
-    iconCanvas->draw16bitRGBBitmapWithTranColor(xOffset, 0, ram_img, lilka::colors::Black, 24, 24);
+    int16_t barWidthRAM = barWidth * (totalRAM - freeRAM) / totalRAM;
+    canvas->fillRect(xOffset + padding, padding, barWidthRAM, barHeight / 2, lilka::colors::Red);
+    int16_t barWidthPSRAM = barWidth * (totalPSRAM - freePSRAM) / totalPSRAM;
+    canvas->fillRect(xOffset + padding, padding + barHeight / 2, barWidthPSRAM, barHeight / 2, lilka::colors::Green);
+    canvas->draw16bitRGBBitmapWithTranColor(xOffset, 0, ram_img, lilka::colors::Black, 24, 24);
 #else
+    char ram_str[15], psram_str[15];
+    formatSize(freeRAM, ram_str, sizeof(ram_str));
+    formatSize(freePSRAM, psram_str, sizeof(psram_str));
+
     char ram_buf[32];
-    sprintf(ram_buf, " %ukB", freeRAM / 1024);
+    snprintf(ram_buf, sizeof(ram_buf), " %s/%s", ram_str, psram_str);
     canvas->print(ram_buf);
 #endif
+}
 
-    xOffset += 4 + 24;
+void StatusBarApp::drawNetwork() {
+    NetworkService* networkService = ServiceManager::getInstance()->getService<NetworkService>("network");
 
-    // Draw WiFi signal strength
+    int xOffset = canvas->width() - 100;
     if (networkService != NULL) {
         if (networkService->getNetworkState() == NETWORK_STATE_DISABLED) {
-            iconCanvas->draw16bitRGBBitmapWithTranColor(xOffset, 0, wifi_disabled_img, 0, 24, 24);
+            canvas->draw16bitRGBBitmapWithTranColor(xOffset, 0, wifi_disabled_img, 0, 24, 24);
         } else if (networkService->getNetworkState() == NETWORK_STATE_OFFLINE) {
-            iconCanvas->draw16bitRGBBitmapWithTranColor(xOffset, 0, wifi_offline_img, 0, 24, 24);
+            canvas->draw16bitRGBBitmapWithTranColor(xOffset, 0, wifi_offline_img, 0, 24, 24);
         } else if (networkService->getNetworkState() == NETWORK_STATE_CONNECTING) {
-            iconCanvas->draw16bitRGBBitmapWithTranColor(xOffset, 0, wifi_connecting_img, 0, 24, 24);
+            canvas->draw16bitRGBBitmapWithTranColor(xOffset, 0, wifi_connecting_img, 0, 24, 24);
         } else if (networkService->getNetworkState() == NETWORK_STATE_ONLINE) {
-            iconCanvas->draw16bitRGBBitmapWithTranColor(
-                xOffset, 0, icons[networkService->getSignalStrength()], 0, 24, 24
-            );
+            canvas->draw16bitRGBBitmapWithTranColor(xOffset, 0, icons[networkService->getSignalStrength()], 0, 24, 24);
         }
-        xOffset += 4 + 24;
     }
+}
 
-    // Draw battery
+void StatusBarApp::drawBattery() {
     int level = lilka::battery.readLevel();
+    int xOffset = canvas->width() - 72;
     if (level == -1) {
-        iconCanvas->draw16bitRGBBitmapWithTranColor(xOffset, 0, battery_absent_img, lilka::colors::Fuchsia, 16, 24);
-        xOffset += 4 + 16;
+        canvas->draw16bitRGBBitmapWithTranColor(xOffset, 0, battery_absent_img, lilka::colors::Fuchsia, 16, 24);
     } else {
         int16_t x1 = 4, y1 = 6;
         int16_t width = 8, fullHeight = 14;
@@ -97,15 +101,18 @@ int16_t StatusBarApp::drawIcons(lilka::Canvas* iconCanvas) {
         if (filledHeight < 1) filledHeight = 1;
         int emptyHeight = fullHeight - filledHeight;
         int16_t color = level > 50 ? lilka::colors::Green : (level > 20 ? lilka::colors::Yellow : lilka::colors::Red);
-        iconCanvas->draw16bitRGBBitmapWithTranColor(
+        canvas->draw16bitRGBBitmapWithTranColor(
             xOffset, 0, level > 10 ? battery_img : battery_danger_img, lilka::colors::Fuchsia, 16, 24
         );
-        iconCanvas->fillRect(xOffset + x1, y1 + emptyHeight, width, filledHeight, color);
+        canvas->fillRect(xOffset + x1, y1 + emptyHeight, width, filledHeight, color);
         xOffset += 4 + 16;
-        iconCanvas->setCursor(xOffset, 17);
-        iconCanvas->print(String(level) + "%");
-        xOffset += 36;
+        canvas->setCursor(xOffset, 17);
+        canvas->print(String(level) + "%");
     }
+}
 
-    return xOffset;
+void StatusBarApp::formatSize(uint32_t bytes, char* buf, size_t len) {
+    if (bytes >= 1048576) snprintf(buf, len, "%.1fM", bytes / 1048576.0f);
+    else if (bytes >= 1024) snprintf(buf, len, "%uk", bytes / 1024);
+    else snprintf(buf, len, "%uB", bytes);
 }

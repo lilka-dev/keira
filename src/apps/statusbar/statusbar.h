@@ -8,5 +8,9 @@ public:
 
 private:
     void run() override;
-    int16_t drawIcons(lilka::Canvas* canvas);
+    void drawClock();
+    void drawRam();
+    void drawNetwork();
+    void drawBattery();
+    void formatSize(uint32_t bytes, char* buf, size_t len);
 };
