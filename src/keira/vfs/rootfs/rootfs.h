@@ -47,12 +47,12 @@ typedef struct {
 class RootVFS : public KeiraVFS {
 public:
     // Initializes file system and prepares it for further reg()
-    // @param rootDir directory from which esp_idf would pass FAPI calls
-    explicit RootVFS(const char* rootDir);
+    // @param mountPoint directory from which esp_idf would pass FAPI calls
+    explicit RootVFS(const char* mountPoint);
 
     // Register new virtual path in our filesystem
     // @param path
-    void addDir(const char* path);
+    void registerPath(const char* path, struct dirent* dir = NULL, struct stat* st = NULL);
 
 private:
     // Here we just override needed for our VFS functioning methods, others

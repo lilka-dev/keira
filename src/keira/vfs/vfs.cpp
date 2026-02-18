@@ -1,7 +1,7 @@
 #include "vfs.h"
 
 KeiraVFS::KeiraVFS(const char* path) {
-    strcpy(this->rootDir, path);
+    strcpy(this->mountPoint, path);
 }
 
 // Returns current offset in a directory stream
@@ -21,7 +21,7 @@ void KeiraVFS::seekdir(kvfs_dir_t* pdir, long offset) {
     pdir->offset = offset;
 }
 
-void KeiraVFS::reg() {
+void KeiraVFS::mount() {
     esp_vfs_t v = {};
 
     // Use the context-pointer (_p) versions
@@ -35,13 +35,13 @@ void KeiraVFS::reg() {
     void** vfs_table = reinterpret_cast<void**>((reinterpret_cast<uintptr_t>(&v) + sizeof(v.flags)));
     memcpy(vfs_table, vtable, sizeof(esp_vfs_t) - sizeof(v.flags));
 
-    // register
-    if (!registered && (esp_vfs_register(rootDir, &v, this) == ESP_OK)) {
-        this->registered = true;
+    // mount
+    if (!this->mounted && (esp_vfs_register(mountPoint, &v, this) == ESP_OK)) {
+        this->mounted = true;
     }
 }
 
-void KeiraVFS::unreg() {
-    if (this->registered) esp_vfs_unregister(rootDir);
-    registered = false;
+void KeiraVFS::umount() {
+    if (this->mounted) esp_vfs_unregister(mountPoint);
+    this->mounted = false;
 }

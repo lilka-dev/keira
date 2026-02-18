@@ -10,8 +10,8 @@
 // Each VFS implementation must overload needed methods specified here.
 // All others would use default implementations provided via this abstract
 // class.
-// After that, it should be registered in ksystem except unusual case of
-// RootVFS which might have a need to be registered other way. Look
+// After that, it should be mounted in ksystem except unusual case of
+// RootVFS which might have a need to be mounted other way. Look
 // keira/ksystem.h for details
 
 // Keep in mind that current approach doesn't provide Arduino-like methods
@@ -89,7 +89,7 @@ private:
     // VFS Implementation routines ===========================================
     // Warning : Methods below should be in esp_vfs_t order, all other virtual
     // methods should be defined after, and VFS implementations should specify
-    // this class first due to vtable manipulations in KeiraVFS->reg()
+    // this class first due to vtable manipulations in KeiraVFS->mount()
     // =======================================================================
     virtual ssize_t write(int fd, void* dst, size_t size) DEFAULT_FAPI_IMPL;
     virtual off_t lseek(int fd, off_t size, int mode) DEFAULT_FAPI_IMPL;
@@ -146,7 +146,7 @@ private:
     // Place to define other virtual methods in case we ever need them
 protected:
     // Root directory used by our filesystem
-    char rootDir[ESP_VFS_PATH_MAX] = {};
+    char mountPoint[ESP_VFS_PATH_MAX] = {};
     // Directory streams in use for current filesystem
     // You have to fill it on opendir(), and clean on closedir()
     std::vector<kvfs_dir_t> dirStreams;
@@ -155,12 +155,12 @@ public:
     KeiraVFS() {
     } // empty canstructor
     explicit KeiraVFS(const char* path);
-    // Registers VFS implementation
-    void reg();
-    // Unregisters VFS implementation
-    void unreg();
+    // Mounts VFS implementation
+    void mount();
+    // Unmounts VFS implementation
+    void umount();
 
     // local storage for file/dirs fds
 
-    bool registered = false;
+    bool mounted = false;
 };

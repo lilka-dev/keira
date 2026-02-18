@@ -5,21 +5,28 @@
 #include <errno.h>
 #include <lilka/serial.h>
 
-RootVFS::RootVFS(const char* rootDir) {
-    strcpy(this->rootDir, rootDir);
+RootVFS::RootVFS(const char* mountPoint) {
+    strcpy(this->mountPoint, mountPoint);
 }
 
-void RootVFS::addDir(const char* path) {
+void RootVFS::registerPath(const char* path, struct dirent* dir, struct stat* st) {
     // TODO: allow overrive DT_DIR with DT_FILE or something else
-    rvfs_dirent_t newEntry = {
-        .dirent =
-            {
+    rvfs_dirent_t newEntry;
 
-                .d_ino = static_cast<short unsigned int>((this->dirEntries.size() + 1)), .d_type = DT_DIR
-            },
-        .st = {.st_mode = S_IFDIR}
-    };
-    strcpy(newEntry.dirent.d_name, basename(path));
+    memset(&newEntry, 0, sizeof(rvfs_dirent_t));
+
+    if (dir) memcpy(&(newEntry.dirent), dir, sizeof(struct dirent));
+    else {
+        newEntry.dirent.d_ino = static_cast<short unsigned int>((this->dirEntries.size() + 1));
+        newEntry.dirent.d_type = DT_DIR;
+    }
+
+    if (st) memcpy(&(newEntry.st), st, sizeof(struct stat));
+    else {
+        newEntry.st.st_mode = S_IFDIR;
+        strcpy(newEntry.dirent.d_name, basename(path));
+    }
+
     RVFS_DBG lilka::serial.log("[RVFS] %s new entry %s", __PRETTY_FUNCTION__, newEntry.dirent.d_name);
     this->dirEntries.push_back(newEntry);
 }
@@ -43,7 +50,7 @@ int RootVFS::stat(const char* path, struct stat* st) {
 kvfs_dir_t* RootVFS::opendir(const char* name) {
     RVFS_DBG lilka::serial.log("[RVFS] %s Path:%s\n", __PRETTY_FUNCTION__, name);
 
-    // Allow only rootDir open
+    // Allow only mountPoint open
     if (strcmp(name, "/") == 0) {
         // Create new directory stream
         kvfs_dir_t dStream = KVFS_DIR_INITIALIZER;

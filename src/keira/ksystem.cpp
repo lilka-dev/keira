@@ -171,11 +171,11 @@ void KeiraSystem::registerFileSystems() {
     this->rootVFS = new RootVFS("");
 
     // Add well known dirs
-    rootVFS->addDir(LILKA_SD_ROOT);
-    rootVFS->addDir(LILKA_SPIFFS_ROOT);
+    rootVFS->registerPath(LILKA_SD_ROOT);
+    rootVFS->registerPath(LILKA_SPIFFS_ROOT);
 
-    // Time to reg it (^_^)==\~
-    rootVFS->reg();
+    // Time to mount it (^_^)==\~
+    rootVFS->mount();
 }
 
 // Displays startup screen, a.k.a bootlogo/splash
