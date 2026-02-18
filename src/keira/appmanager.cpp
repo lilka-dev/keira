@@ -22,6 +22,11 @@ AppManager* AppManager::getInstance() {
     return instance;
 }
 
+// Get the panel app.
+App* AppManager::getPanel() {
+    return panel;
+}
+
 /// Set the panel app.
 /// Panel app is drawn separately from the other apps on the top of the screen.
 void AppManager::setPanel(App* app) {
@@ -180,7 +185,7 @@ void AppManager::startToast(String message, uint64_t duration) {
 uint8_t AppManager::addWidget(std::function<int(lilka::Canvas*)> draw, uint8_t alignment, uint8_t maxWidth) {
     xSemaphoreTake(lock, portMAX_DELAY);
     uint8_t widgetId = 0;
-    auto statusBarApp = (StatusBarApp*)panel;
+    auto statusBarApp = static_cast<StatusBarApp*>(panel);
     widgetId = statusBarApp->addWidget(draw, alignment, maxWidth);
     xSemaphoreGive(lock);
     return widgetId;
@@ -189,7 +194,7 @@ uint8_t AppManager::addWidget(std::function<int(lilka::Canvas*)> draw, uint8_t a
 bool AppManager::removeWidget(uint8_t id) {
     xSemaphoreTake(lock, portMAX_DELAY);
     bool result = false;
-    auto statusBarApp = (StatusBarApp*)panel;
+    auto statusBarApp = static_cast<StatusBarApp*>(panel);
     result = statusBarApp->removeWidget(id);
     lilka::serial.log("AppManager::removeWidget: widget %d removed: %s", id, result ? "true" : "false");
     xSemaphoreGive(lock);

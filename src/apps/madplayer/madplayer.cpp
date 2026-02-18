@@ -23,9 +23,9 @@ MadPlayerApp::MadPlayerApp(String path) : App("MadPlayer") {
     setCore(1);
     fileName = path;
 
-    widgetId = AppManager::getInstance()->addWidget([this](lilka::Canvas* canvas) {
-        return drawWidget(canvas);
-    }, lilka::ALIGN_START, 24);
+    widgetId = AppManager::getInstance()->addWidget(
+        [this](lilka::Canvas* canvas) { return drawWidget(canvas); }, lilka::ALIGN_START, 24
+    );
 }
 
 int MadPlayerApp::drawWidget(lilka::Canvas* canvas) {

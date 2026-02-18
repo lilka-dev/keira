@@ -13,20 +13,28 @@
 #include "keira/servicemanager.h"
 #include "services/clock/clock.h"
 #include "services/network/network.h"
+#include "Preferences.h"
 
 StatusBarApp::StatusBarApp() : App("StatusBar", 0, 0, lilka::display.width(), 24) {
+    loadSettings();
     initSystemWidgets();
 }
 
 void StatusBarApp::initSystemWidgets() {
-    systemWidgets.push_back({[this](lilka::Canvas* canvas) { return drawClock(canvas); }, lilka::ALIGN_START, 50});
-#ifdef KEIRA_RAM_ICON
-    systemWidgets.push_back({[this](lilka::Canvas* canvas) { return drawRamIcon(canvas); }, lilka::ALIGN_END, 24});
-#else
-    systemWidgets.push_back({[this](lilka::Canvas* canvas) { return drawRamText(canvas); }, lilka::ALIGN_START, 150});
-#endif
-    systemWidgets.push_back({[this](lilka::Canvas* canvas) { return drawNetwork(canvas); }, lilka::ALIGN_END, 24});
-    systemWidgets.push_back({[this](lilka::Canvas* canvas) { return drawBattery(canvas); }, lilka::ALIGN_END, 60});
+    systemWidgets.clear();
+    if (clockMode > 0) {
+        systemWidgets.push_back({[this](lilka::Canvas* canvas) { return drawClock(canvas); }, lilka::ALIGN_START, 100});
+    }
+    if (memMode > 0) {
+        uint8_t memAlign = memMode == 1 ? lilka::ALIGN_END : lilka::ALIGN_START;
+        systemWidgets.push_back({[this](lilka::Canvas* canvas) { return drawMem(canvas); }, memAlign, 150});
+    }
+    if (networkMode > 0) {
+        systemWidgets.push_back({[this](lilka::Canvas* canvas) { return drawNetwork(canvas); }, lilka::ALIGN_END, 24});
+    }
+    if (batteryMode > 0) {
+        systemWidgets.push_back({[this](lilka::Canvas* canvas) { return drawBattery(canvas); }, lilka::ALIGN_END, 60});
+    }
 }
 
 uint8_t StatusBarApp::addWidget(std::function<int(lilka::Canvas*)> drawFn, uint8_t alignment, uint8_t maxWidth) {
@@ -51,6 +59,7 @@ const uint16_t* wifiIcons[] = {wifi_0_img, wifi_1_img, wifi_2_img, wifi_3_img};
 
 void StatusBarApp::run() {
     while (1) {
+        canvas->fillScreen(lilka::colors::Black);
         int availableWidth = canvas->width() - leftMargin - rightMargin;
         int xOffsetStart = leftMargin;
         int xOffsetEnd = canvas->width() - rightMargin;
@@ -60,15 +69,13 @@ void StatusBarApp::run() {
         drawLeftWidgets(appWidgets, xOffsetStart, availableWidth);
         drawRightWidgets(appWidgets, xOffsetEnd, availableWidth);
 
-        canvas->fillRect(xOffsetStart, 0, xOffsetEnd - xOffsetStart, canvas->height(), lilka::colors::Black);
-
         // Draw everything
         queueDraw();
         vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
 }
 
-void StatusBarApp::drawLeftWidgets(std::vector<StatusBarWidget>& widgets, int& xOffset, int& availableWidth) {
+void StatusBarApp::drawLeftWidgets(const std::vector<StatusBarWidget>& widgets, int& xOffset, int& availableWidth) {
     for (int i = 0; i < widgets.size(); i++) {
         auto widget = widgets[i];
         if (widget.alignment == lilka::ALIGN_START) {
@@ -82,7 +89,7 @@ void StatusBarApp::drawLeftWidgets(std::vector<StatusBarWidget>& widgets, int& x
     }
 }
 
-void StatusBarApp::drawRightWidgets(std::vector<StatusBarWidget>& widgets, int& xOffset, int& availableWidth) {
+void StatusBarApp::drawRightWidgets(const std::vector<StatusBarWidget>& widgets, int& xOffset, int& availableWidth) {
     // малюємо системні віджети праворуч
     for (int i = widgets.size() - 1; i >= 0; i--) {
         auto widget = widgets[i];
@@ -137,45 +144,43 @@ int StatusBarApp::drawClock(lilka::Canvas* canvas) {
     ClockService* clockService = ServiceManager::getInstance()->getService<ClockService>("clock");
     struct tm timeinfo = clockService->getTime();
     char strftime_buf[16];
-    strftime(strftime_buf, sizeof(strftime_buf), "%H:%M", &timeinfo);
+    strftime(strftime_buf, sizeof(strftime_buf), clockMode == 1 ? "%H:%M:%S" : "%H:%M", &timeinfo);
     canvas->setCursor(0, 17);
     canvas->print(strftime_buf);
     return canvas->getCursorX();
 }
 
-int StatusBarApp::drawRamText(lilka::Canvas* canvas) {
-    char ram_str[15], psram_str[15];
-    formatSize(ESP.getFreeHeap(), ram_str, sizeof(ram_str));
-    formatSize(ESP.getFreePsram(), psram_str, sizeof(psram_str));
-
-    char ram_buf[32];
-    snprintf(ram_buf, sizeof(ram_buf), "%s/%s", ram_str, psram_str);
-    canvas->setTextColor(lilka::colors::Green, lilka::colors::Black);
-    canvas->setCursor(0, 17);
-    canvas->print(ram_buf);
-    return canvas->getCursorX();
-}
-
-int StatusBarApp::drawRamIcon(lilka::Canvas* canvas) {
+int StatusBarApp::drawMem(lilka::Canvas* canvas) {
     uint32_t freeRAM = ESP.getFreeHeap();
     uint32_t freePSRAM = ESP.getFreePsram();
-    uint32_t totalRAM = ESP.getHeapSize();
-    uint32_t totalPSRAM = ESP.getPsramSize();
+    if (memMode == 1) {
+        uint32_t totalRAM = ESP.getHeapSize();
+        uint32_t totalPSRAM = ESP.getPsramSize();
 
-    int16_t padding = 2;
-    int16_t barWidth = 24 - padding * 2;
-    int16_t barHeight = 10;
-    int16_t barWidthRAM = barWidth * (totalRAM - freeRAM) / totalRAM;
-    canvas->fillRect(padding, padding, barWidthRAM, barHeight / 2, lilka::colors::Red);
-    int16_t barWidthPSRAM = barWidth * (totalPSRAM - freePSRAM) / totalPSRAM;
-    canvas->fillRect(padding, padding + barHeight / 2, barWidthPSRAM, barHeight / 2, lilka::colors::Green);
-    canvas->draw16bitRGBBitmapWithTranColor(0, 0, ram_img, lilka::colors::Black, 24, 24);
-    return 24;
+        int16_t padding = 2;
+        int16_t barWidth = 24 - padding * 2;
+        int16_t barHeight = 10;
+        int16_t barWidthRAM = barWidth * (totalRAM - freeRAM) / totalRAM;
+        canvas->fillRect(padding, padding, barWidthRAM, barHeight / 2, lilka::colors::Red);
+        int16_t barWidthPSRAM = barWidth * (totalPSRAM - freePSRAM) / totalPSRAM;
+        canvas->fillRect(padding, padding + barHeight / 2, barWidthPSRAM, barHeight / 2, lilka::colors::Green);
+        canvas->draw16bitRGBBitmapWithTranColor(0, 0, ram_img, lilka::colors::Black, 24, 24);
+        return 24;
+    } else {
+        char ram_str[15], psram_str[15];
+        formatSize(freeRAM, ram_str, sizeof(ram_str));
+        formatSize(freePSRAM, psram_str, sizeof(psram_str));
+        char ram_buf[32];
+        snprintf(ram_buf, sizeof(ram_buf), "%s/%s", ram_str, psram_str);
+        canvas->setTextColor(lilka::colors::Green, lilka::colors::Black);
+        canvas->setCursor(0, 17);
+        canvas->print(ram_buf);
+        return canvas->getCursorX();
+    }
 }
 
 int StatusBarApp::drawNetwork(lilka::Canvas* canvas) {
     NetworkService* networkService = ServiceManager::getInstance()->getService<NetworkService>("network");
-
     if (networkService != NULL) {
         if (networkService->getNetworkState() == NETWORK_STATE_DISABLED) {
             canvas->draw16bitRGBBitmapWithTranColor(0, 0, wifi_disabled_img, 0, 24, 24);
@@ -191,29 +196,97 @@ int StatusBarApp::drawNetwork(lilka::Canvas* canvas) {
 }
 
 int StatusBarApp::drawBattery(lilka::Canvas* canvas) {
-    int level = lilka::battery.readLevel();
-    if (level == -1) {
-        canvas->draw16bitRGBBitmapWithTranColor(0, 0, battery_absent_img, lilka::colors::Fuchsia, 16, 24);
-        return 24;
-    } else {
-        int16_t x1 = 4, y1 = 6;
-        int16_t width = 8, fullHeight = 14;
-        int filledHeight = fullHeight * level / 100;
-        if (filledHeight < 1) filledHeight = 1;
-        int emptyHeight = fullHeight - filledHeight;
-        int16_t color = level > 50 ? lilka::colors::Green : (level > 20 ? lilka::colors::Yellow : lilka::colors::Red);
-        canvas->draw16bitRGBBitmapWithTranColor(
-            0, 0, level > 10 ? battery_img : battery_danger_img, lilka::colors::Fuchsia, 16, 24
-        );
-        canvas->fillRect(0 + x1, y1 + emptyHeight, width, filledHeight, color);
-        canvas->setCursor(20, 17);
-        canvas->print(String(level) + "%");
-        return canvas->getCursorX() + 2;
+    auto level = lilka::battery.readLevel();
+ 
+    auto xOffset = 0;
+    const uint16_t* icon = nullptr;
+    if (batteryMode == 1 || batteryMode == 2) {
+        if (level == -1) {
+            icon = battery_absent_img;
+        } else if (level <= 10) {
+            icon = battery_danger_img;
+        } else {
+            icon = battery_img;
+        }
     }
+
+    if (icon) {
+        canvas->draw16bitRGBBitmapWithTranColor(xOffset, 0, icon, lilka::colors::Fuchsia, 16, 24);
+        if (level > -1) {
+            // clang-format off
+            auto fullHeight = 14;
+            auto filledHeight = std::max(1, fullHeight * level / 100);
+            auto color = level > 50
+                ? lilka::colors::Green
+                : level > 20
+                    ? lilka::colors::Yellow
+                    : lilka::colors::Red;
+            canvas->fillRect(xOffset + 4, fullHeight - filledHeight + 6, 8, filledHeight, color);
+            // clang-format on
+        }
+        xOffset += 18;
+    }
+
+    if (batteryMode == 1 || batteryMode == 3) {
+        canvas->setCursor(xOffset, 17);
+        if (level > -1) {
+            canvas->print(String(level) + "%");
+        } else {
+            canvas->print("N/A");
+        }
+        xOffset = canvas->getCursorX() + 2;
+    }
+    return xOffset;
 }
 
 void StatusBarApp::formatSize(uint32_t bytes, char* buf, size_t len) {
     if (bytes >= 1048576) snprintf(buf, len, "%.1fM", bytes / 1048576.0f);
     else if (bytes >= 1024) snprintf(buf, len, "%uk", bytes / 1024);
     else snprintf(buf, len, "%uB", bytes);
+}
+
+void StatusBarApp::loadSettings() {
+    Preferences prefs;
+    prefs.begin(STATUSBAR_KEIRA_NAMESPACE, true);
+    clockMode = prefs.getInt("clock", 1);
+    memMode = prefs.getInt("mem", 1);
+    networkMode = prefs.getInt("network", 1);
+    batteryMode = prefs.getInt("battery", 1);
+    prefs.end();
+}
+
+void StatusBarApp::setMode(const char* key, uint8_t& mode, uint8_t newMode, uint8_t maxMode) {
+    mode = newMode % (maxMode + 1);
+    Preferences prefs;
+    prefs.begin(STATUSBAR_KEIRA_NAMESPACE, false);
+    prefs.putInt(key, mode);
+    prefs.end();
+
+    initSystemWidgets();
+}
+
+uint8_t StatusBarApp::getClockMode() {
+    return clockMode;
+}
+uint8_t StatusBarApp::getMemMode() {
+    return memMode;
+}
+uint8_t StatusBarApp::getNetworkMode() {
+    return networkMode;
+}
+uint8_t StatusBarApp::getBatteryMode() {
+    return batteryMode;
+}
+
+void StatusBarApp::setClockMode(uint8_t mode) {
+    setMode("clock", clockMode, mode, 2);
+}
+void StatusBarApp::setMemMode(uint8_t mode) {
+    setMode("mem", memMode, mode, 2);
+}
+void StatusBarApp::setNetworkMode(uint8_t mode) {
+    setMode("network", networkMode, mode, 1);
+}
+void StatusBarApp::setBatteryMode(uint8_t mode) {
+    setMode("battery", batteryMode, mode, 3);
 }

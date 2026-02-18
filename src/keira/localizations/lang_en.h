@@ -77,10 +77,13 @@
 #define K_S_LAUNCHER_DEV_MENU          "Development"
 #define K_S_LAUNCHER_LIVE_LUA          "Live Lua" // Lua live?
 #define K_S_LAUNCHER_LUA_REPL          "Lua REPL"
+#define K_S_LAUNCHER_WIFI              "WiFi"
 #define K_S_LAUNCHER_WIFI_ADAPTER      "WiFi"
 #define K_S_LAUNCHER_WIFI_NETWORKS     "WiFi Networks"
 #define K_S_LAUNCHER_WIFI_TX_POWER     "WiFi Power"
-#define K_S_LAUNCHER_SPI_SD_SPEED      "SD card frequency"
+#define K_S_LAUNCHER_SD                "SD"
+#define K_S_LAUNCHER_SD_FORMAT         "Format SD"
+#define K_S_LAUNCHER_SD_SPEED          "SD card frequency"
 #define K_S_LAUNCHER_SOUND             "Sound"
 #define K_S_LAUNCHER_SERVICES          K_S_SERVICES
 #define K_S_LAUNCHER_WEB               K_S_WEB
@@ -89,11 +92,27 @@
 #define K_S_LAUNCHER_TELNET            K_S_TELNET
 #define K_S_LAUNCHER_FTP_USER          K_S_USER
 #define K_S_LAUNCHER_FTP_PASSWORD      K_S_PASSWORD
+#define K_S_LAUNCHER_STATUSBAR         "Statusbar"
+#define K_S_LAUNCHER_CLOCK             "Clock"
+#define K_S_LAUNCHER_CLOCK_0           "None"
+#define K_S_LAUNCHER_CLOCK_1           "HH:MM:SS"
+#define K_S_LAUNCHER_CLOCK_2           "HH:MM"
+#define K_S_LAUNCHER_MEM               "Memory"
+#define K_S_LAUNCHER_MEM_0             "None"
+#define K_S_LAUNCHER_MEM_1             "Icon"
+#define K_S_LAUNCHER_MEM_2             "Text"
+#define K_S_LAUNCHER_NETWORK           K_S_LAUNCHER_WIFI
+#define K_S_LAUNCHER_NETWORK_0         "None"
+#define K_S_LAUNCHER_NETWORK_1         "Icon"
+#define K_S_LAUNCHER_BATTERY           "Battery"
+#define K_S_LAUNCHER_BATTERY_0         "None"
+#define K_S_LAUNCHER_BATTERY_1         "Icon + Text"
+#define K_S_LAUNCHER_BATTERY_2         "Icon"
+#define K_S_LAUNCHER_BATTERY_3         "Text"
 
 #define K_S_LAUNCHER_ABOUT_SYSTEM      "About system"
 #define K_S_LAUNCHER_DEVICE_INFO       "About device"
 #define K_S_PARTITION_TABLE            "Partition table"
-#define K_S_LAUNCHER_SD_FORMAT         "Format SD"
 #define K_S_LAUNCHER_LIGHT_SLEEP       "Light sleep"
 #define K_S_LAUNCHER_DEEP_SLEEP        "Deep sleep"
 #define K_S_LAUNCHER_REBOOT            "Reboot"
