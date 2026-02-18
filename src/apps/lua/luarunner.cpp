@@ -196,6 +196,7 @@ void AbstractLuaRunnerApp::luaSetup(const char* dir) {
     // Add show_fps attribute to lilka table that defaults to false
     lua_pushboolean(L, false);
     lua_setfield(L, -2, "show_fps");
+    lua_setglobal(L, "lilka");    
 }
 
 void AbstractLuaRunnerApp::luaTeardown() {
