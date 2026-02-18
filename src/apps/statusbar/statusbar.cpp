@@ -9,7 +9,7 @@
 #include "apps/icons/wifi_1.h"
 #include "apps/icons/wifi_2.h"
 #include "apps/icons/wifi_3.h"
-#include "apps/icons/ram.h"
+#include "apps/icons/mem.h"
 #include "keira/servicemanager.h"
 #include "services/clock/clock.h"
 #include "services/network/network.h"
@@ -151,30 +151,35 @@ int StatusBarApp::drawClock(lilka::Canvas* canvas) {
 }
 
 int StatusBarApp::drawMem(lilka::Canvas* canvas) {
-    uint32_t freeRAM = ESP.getFreeHeap();
-    uint32_t freePSRAM = ESP.getFreePsram();
+    auto colorRAM = lilka::colors::Red;
+    auto colorPSRAM = lilka::colors::Green;
+
+    auto freeRAM = ESP.getFreeHeap();
+    auto freePSRAM = ESP.getFreePsram();
     if (memMode == 1) {
-        uint32_t totalRAM = ESP.getHeapSize();
-        uint32_t totalPSRAM = ESP.getPsramSize();
+        auto totalRAM = ESP.getHeapSize();
+        auto totalPSRAM = ESP.getPsramSize();
 
         int16_t padding = 2;
         int16_t barWidth = 24 - padding * 2;
         int16_t barHeight = 10;
         int16_t barWidthRAM = barWidth * (totalRAM - freeRAM) / totalRAM;
-        canvas->fillRect(padding, padding, barWidthRAM, barHeight / 2, lilka::colors::Red);
+        canvas->fillRect(padding, padding, barWidthRAM, barHeight / 2, colorRAM);
         int16_t barWidthPSRAM = barWidth * (totalPSRAM - freePSRAM) / totalPSRAM;
-        canvas->fillRect(padding, padding + barHeight / 2, barWidthPSRAM, barHeight / 2, lilka::colors::Green);
-        canvas->draw16bitRGBBitmapWithTranColor(0, 0, ram_img, lilka::colors::Black, 24, 24);
+        canvas->fillRect(padding, padding + barHeight / 2, barWidthPSRAM, barHeight / 2, colorPSRAM);
+        canvas->draw16bitRGBBitmapWithTranColor(0, 0, mem_img, lilka::colors::Black, 24, 24);
         return 24;
     } else {
-        char ram_str[15], psram_str[15];
-        formatSize(freeRAM, ram_str, sizeof(ram_str));
-        formatSize(freePSRAM, psram_str, sizeof(psram_str));
-        char ram_buf[32];
-        snprintf(ram_buf, sizeof(ram_buf), "%s/%s", ram_str, psram_str);
-        canvas->setTextColor(lilka::colors::Green, lilka::colors::Black);
         canvas->setCursor(0, 17);
-        canvas->print(ram_buf);
+
+        char ram_str[15];
+        formatSize(freeRAM, ram_str, sizeof(ram_str));
+        canvas->setTextColor(colorRAM, lilka::colors::Black);
+        canvas->print(ram_str);
+        char psram_str[15];
+        formatSize(freePSRAM, psram_str, sizeof(psram_str));
+        canvas->setTextColor(colorPSRAM, lilka::colors::Black);
+        canvas->print(psram_str);
         return canvas->getCursorX();
     }
 }
@@ -197,7 +202,6 @@ int StatusBarApp::drawNetwork(lilka::Canvas* canvas) {
 
 int StatusBarApp::drawBattery(lilka::Canvas* canvas) {
     auto level = lilka::battery.readLevel();
- 
     auto xOffset = 0;
     const uint16_t* icon = nullptr;
     if (batteryMode == 1 || batteryMode == 2) {

@@ -30,7 +30,10 @@ MadPlayerApp::MadPlayerApp(String path) : App("MadPlayer") {
 
 int MadPlayerApp::drawWidget(lilka::Canvas* canvas) {
     lilka::AudioPlayer* player = &lilka::audioPlayer;
-    if (player->isPaused()) {
+    if (player->isFinished()) {
+        //draw stop icon
+        canvas->drawRect(4, 4, 16, 16, lilka::colors::Red);
+    } else if (player->isPaused()) {
         //draw pause icon
         canvas->drawRect(4, 4, 6, 16, lilka::colors::Yellow);
         canvas->drawRect(14, 4, 6, 16, lilka::colors::Yellow);
