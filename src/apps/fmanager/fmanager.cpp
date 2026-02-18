@@ -1,4 +1,5 @@
 #include "fmanager.h"
+#include "lilka/fileutils.h"
 
 FileManagerApp::FileManagerApp(const String& path) :
     App("FileManager"),
@@ -690,37 +691,51 @@ bool FileManagerApp::areDirEntriesEqual(const FMEntry& ent1, const FMEntry& ent2
 }
 
 bool FileManagerApp::isCopyOrMoveCouldBeDone(const String& src, const String& dst) {
-    FM_DBG lilka::serial.log("Check is copy/move possible for %s => %s", src.c_str(), dst.c_str());
-    // TODO: remove last check from here, and ask user for confirm
-    // Checks on src == dst; src exists; dst not exist;
-    bool checks = (dst != src) && (access(src.c_str(), F_OK) == 0) && (access(dst.c_str(), F_OK) != 0);
-    if (checks) {
-        if (dst.indexOf(src) == 0) {
-            // it still doesn't mean something, cause, well
-            // it would work with path like /sd and /sdf
-            if ((src.length() < dst.length()) && (dst[src.length()] == '/')) {
-                // clear errno to not be displayed on statusBar
-                errno = 0;
-                return false;
-            }
-        }
-        // path to dst exists;
-        auto parentDir = lilka::fileutils.getParentDirectory(dst);
-        if (access(parentDir.c_str(), F_OK) == 0) {
-            // clear errno to not be displayed on statusBar
-            errno = 0;
-            return true;
-        }
-        // Note, current vfs implementation doesn't support check on existence of vfs root.
-        // each vfs root should be added here. Cause lol, it definitely exists
-        // clear errno to not be displayed on statusBar
-        errno = 0;
-        return (parentDir == LILKA_SD_ROOT || parentDir == LILKA_SPIFFS_ROOT);
-    } else {
-        // clear errno to not be displayed on statusBar
-        errno = 0;
+    // Note, this isn't a mistake, is an errno autoclear here
+    // SPIFFS doesn't implement an access() call, so, we use stat as a fallback
+    struct stat st;
+#define F_EXIST(X)                                                                                                    \
+    ((strcmp(X, LILKA_SD_ROOT) == 0) || (strcmp(X, LILKA_SPIFFS_ROOT) == 0) || (strcmp(X, LILKA_SD_ROOT "/") == 0) || \
+     (strcmp(X, LILKA_SPIFFS_ROOT "/") == 0) || (strcmp(X, "/") == 0) || (access(X, F_OK) == 0) ||                    \
+     (stat(X, &st) == 0) || (errno = 0))
+
+    // it's already here
+    if (src == dst) {
+        FM_DBG lilka::serial.log("[FM] Can't copy %s => %s. SRC == DST", src.c_str(), dst._c_str());
         return false;
     }
+
+    // avoid recursion
+    // test case not_allow[ /sd/1/2 == > /sd/1/2/3 ]  but [ /sd/12 => /sd/1 ]
+    if (dst.startsWith(src) && dst[src.length()] == '/') {
+        FM_DBG lilka::serial.log("[FM] Can't copy %s => %s. DST is part of SRC", src.c_str(), dst.c_str());
+        return false;
+    }
+
+    // Nothing to copy
+    if (!F_EXIST(src.c_str())) {
+        FM_DBG lilka::serial.log("[FM] Can't copy %s => %s. SRC not exist", src.c_str(), dst.c_str());
+        return false;
+    }
+
+    // Some other file already at dst
+    // TODO: ask user for replace confirm ?
+    if (F_EXIST(dst.c_str())) {
+        FM_DBG lilka::serial.log("[FM] Can't copy %s => %s. DST already exist", src.c_str(), dst.c_str());
+
+        return false;
+    }
+    // Destination is unreachable
+    if (!F_EXIST(lilka::fileutils.getParentDirectory(dst).c_str())) {
+        FM_DBG lilka::serial.log("[FM] Can't copy %s => %s. DST unreachable", src.c_str(), dst.c_str());
+        return false;
+    }
+
+#undef F_EXIST
+    FM_DBG lilka::serial.log("[FM] Allowed copy %s => %s", src.c_str(), dst.c_str());
+
+    // All good, let's proceed
+    return true;
 }
 
 bool FileManagerApp::isCurrentDirSelected() {
