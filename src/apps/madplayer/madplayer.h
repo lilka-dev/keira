@@ -15,9 +15,11 @@ public:
 
 private:
     void mainWindow();
-    String fileName;
+    int drawWidget(lilka::Canvas* canvas);
 
+    String fileName;
     lilka::Sound* sound = nullptr;
     AudioOutputI2S* i2sOutput = nullptr;
     lilka::AudioOutputAnalyzer* analyzer = nullptr;
+    uint8_t widgetId = 0;
 };

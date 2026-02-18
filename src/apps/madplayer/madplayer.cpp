@@ -4,6 +4,7 @@
 // Автори: Олексій "Alder" Деркач (https://github.com/alder) та Андрій "and3rson" Дунай (https://github.com/and3rson)
 //
 
+#include "keira/appmanager.h"
 #include "madplayer.h"
 
 // Визначає тип аудіо за розширенням файлу. Повертає nullptr, якщо формат невідомий.
@@ -18,10 +19,29 @@ static const char* detectAudioType(const String& path) {
     return nullptr;
 }
 
-MadPlayerApp::MadPlayerApp(String path) : App("MadPlayer", 0, 0, lilka::display.width(), lilka::display.height()) {
-    setFlags(AppFlags::APP_FLAG_FULLSCREEN);
+MadPlayerApp::MadPlayerApp(String path) : App("MadPlayer") {
     setCore(1);
     fileName = path;
+
+    widgetId = AppManager::getInstance()->addWidget([this](lilka::Canvas* canvas) {
+        return drawWidget(canvas);
+    }, lilka::ALIGN_START, 24);
+}
+
+int MadPlayerApp::drawWidget(lilka::Canvas* canvas) {
+    lilka::AudioPlayer* player = &lilka::audioPlayer;
+    if (player->isPaused()) {
+        //draw pause icon
+        canvas->drawRect(4, 4, 6, 16, lilka::colors::Yellow);
+        canvas->drawRect(14, 4, 6, 16, lilka::colors::Yellow);
+    } else {
+        //draw play icon
+        int16_t x0 = 4, y0 = 4, x1 = 20, y1 = 12, x2 = 4, y2 = 20;
+        canvas->drawLine(x0, y0, x1, y1, lilka::colors::Green);
+        canvas->drawLine(x1, y1, x2, y2, lilka::colors::Green);
+        canvas->drawLine(x2, y2, x0, y0, lilka::colors::Green);
+    }
+    return 24;
 }
 
 void MadPlayerApp::run() {
@@ -104,6 +124,8 @@ void MadPlayerApp::run() {
     i2sOutput = nullptr;
     delete sound;
     sound = nullptr;
+
+    AppManager::getInstance()->removeWidget(widgetId);
 }
 
 void MadPlayerApp::mainWindow() {

@@ -196,6 +196,8 @@ void AbstractLuaRunnerApp::luaSetup(const char* dir) {
     // Add show_fps attribute to lilka table that defaults to false
     lua_pushboolean(L, false);
     lua_setfield(L, -2, "show_fps");
+    lua_pushboolean(L, false);
+    lua_setfield(L, -2, "show_ram");
     lua_setglobal(L, "lilka");
 }
 
@@ -277,9 +279,18 @@ int AbstractLuaRunnerApp::execute() {
             if (lua_toboolean(L, -1)) {
                 canvas->setCursor(24, 24);
                 canvas->setTextColor(0xFFFF, 0);
-                canvas->print(String("FPS: ") + (1000 / (delta > 0 ? delta : 1)) + "  ");
+                canvas->print(String("FPS ") + (1000 / (delta > 0 ? delta : 1)) + "  ");
             }
             lua_pop(L, 1);
+            // Check if show_ram is true and render free RAM
+            lua_getfield(L, -1, "show_ram");
+            if (lua_toboolean(L, -1)) {
+                canvas->setCursor(96, 24);
+                canvas->setTextColor(0xFFFF, 0);
+                canvas->print(String("") + ESP.getFreeHeap() / 1024 + "kB " + ESP.getFreePsram() / 1024 + "kB");
+            }
+            lua_pop(L, 1);
+
             queueDraw();
 
             lua_gc(L, LUA_GCCOLLECT, 0); // TODO: Use LUA_GCSTEP?

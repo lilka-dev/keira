@@ -1,5 +1,6 @@
 #include "keira/appmanager.h"
 #include <lilka/default_splash.h>
+#include "apps/statusbar/statusbar.h"
 
 AppManager* AppManager::instance = NULL;
 
@@ -174,4 +175,23 @@ void AppManager::startToast(String message, uint64_t duration) {
     toastStartTime = millis();
     toastEndTime = millis() + duration;
     xSemaphoreGive(lock);
+}
+
+uint8_t AppManager::addWidget(std::function<int(lilka::Canvas*)> draw, uint8_t alignment, uint8_t maxWidth) {
+    xSemaphoreTake(lock, portMAX_DELAY);
+    uint8_t widgetId = 0;
+    auto statusBarApp = (StatusBarApp*)panel;
+    widgetId = statusBarApp->addWidget(draw, alignment, maxWidth);
+    xSemaphoreGive(lock);
+    return widgetId;
+}
+
+bool AppManager::removeWidget(uint8_t id) {
+    xSemaphoreTake(lock, portMAX_DELAY);
+    bool result = false;
+    auto statusBarApp = (StatusBarApp*)panel;
+    result = statusBarApp->removeWidget(id);
+    lilka::serial.log("AppManager::removeWidget: widget %d removed: %s", id, result ? "true" : "false");
+    xSemaphoreGive(lock);
+    return result;
 }
