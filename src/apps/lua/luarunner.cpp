@@ -196,7 +196,6 @@ void AbstractLuaRunnerApp::luaSetup(const char* dir) {
     // Add show_fps attribute to lilka table that defaults to false
     lua_pushboolean(L, false);
     lua_setfield(L, -2, "show_fps");
-    lua_pushboolean(L, false);
 }
 
 void AbstractLuaRunnerApp::luaTeardown() {
@@ -280,7 +279,6 @@ int AbstractLuaRunnerApp::execute() {
                 canvas->print(String("FPS: ") + (1000 / (delta > 0 ? delta : 1)) + "  ");
             }
             lua_pop(L, 1);
-
             queueDraw();
 
             lua_gc(L, LUA_GCCOLLECT, 0); // TODO: Use LUA_GCSTEP?
