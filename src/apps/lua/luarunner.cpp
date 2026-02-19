@@ -287,10 +287,16 @@ int AbstractLuaRunnerApp::execute() {
 
             // Check fullscreen flag and update app flags only when changed
             lua_getfield(L, -1, "fullscreen");
-            bool curFullscreen = lua_toboolean(L, -1);
-            if (curFullscreen != prevFullscreen) {
-                setFlags(curFullscreen ? AppFlags::APP_FLAG_FULLSCREEN : AppFlags::APP_FLAG_NONE);
-                prevFullscreen = curFullscreen;
+            bool fullscreen = lua_toboolean(L, -1);
+            if (fullscreen != prevFullscreen) {
+                auto flags = getFlags();
+                if (fullscreen) {
+                    flags = static_cast<AppFlags>(flags | AppFlags::APP_FLAG_FULLSCREEN);
+                } else {
+                    flags = static_cast<AppFlags>(flags & ~AppFlags::APP_FLAG_FULLSCREEN);
+                }
+                setFlags(flags);
+                prevFullscreen = fullscreen;
             }
             lua_pop(L, 1);
             queueDraw();
