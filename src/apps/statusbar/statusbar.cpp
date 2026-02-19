@@ -144,7 +144,13 @@ int StatusBarApp::drawClock(lilka::Canvas* canvas) {
     ClockService* clockService = ServiceManager::getInstance()->getService<ClockService>("clock");
     struct tm timeinfo = clockService->getTime();
     char strftime_buf[16];
-    strftime(strftime_buf, sizeof(strftime_buf), clockMode == 1 ? "%H:%M:%S" : "%H:%M", &timeinfo);
+    auto clockFormat = "%H:%M";
+    if (clockMode == 1) {
+        clockFormat = "%H:%M:%S";
+    } else if (clockMode == 3 && timeinfo.tm_sec % 2 == 0) {
+        clockFormat = "%H %M";
+    }
+    strftime(strftime_buf, sizeof(strftime_buf), clockFormat, &timeinfo);
     canvas->setCursor(0, 17);
     canvas->print(strftime_buf);
     return canvas->getCursorX();
@@ -283,7 +289,7 @@ uint8_t StatusBarApp::getBatteryMode() {
 }
 
 void StatusBarApp::setClockMode(uint8_t mode) {
-    setMode("clock", clockMode, mode, 2);
+    setMode("clock", clockMode, mode, 3);
 }
 void StatusBarApp::setMemMode(uint8_t mode) {
     setMode("mem", memMode, mode, 2);

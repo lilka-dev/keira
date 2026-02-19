@@ -254,6 +254,16 @@ void LauncherApp::run() {
                                             menuItem->postfix = ftpService->getPassword();
                                 }
                             ),
+                            ITEM::MENU(
+                                K_S_LAUNCHER_FTP_IP,
+                                nullptr,
+                                nullptr,
+                                lilka::colors::White,
+                                [this](void* item) {
+                                            lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
+                                            menuItem->postfix = networkService->getIpAddr();
+                                }
+                            ),
                         }),
                     }),
                     ITEM::SUBMENU(K_S_LAUNCHER_STATUSBAR, {
@@ -275,8 +285,11 @@ void LauncherApp::run() {
                                         case 1:
                                             menuItem->postfix = K_S_LAUNCHER_CLOCK_1;
                                             break;
-                                        default:
+                                        case 2:
                                             menuItem->postfix = K_S_LAUNCHER_CLOCK_2;
+                                            break;
+                                        default:
+                                            menuItem->postfix = K_S_LAUNCHER_CLOCK_3;
                                             break;
                                     }
                             }

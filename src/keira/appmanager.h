@@ -16,10 +16,6 @@ public:
     void loop();
     void renderToCanvas(lilka::Canvas* canvas);
     void startToast(String message, uint64_t duration = 2500);
-    uint8_t addWidget(
-        std::function<int(lilka::Canvas*)> draw, uint8_t alignment = lilka::ALIGN_START, uint8_t maxWidth = 24
-    );
-    bool removeWidget(uint8_t id);
 
     static AppManager* getInstance();
 

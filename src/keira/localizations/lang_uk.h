@@ -85,16 +85,18 @@
 #define K_S_LAUNCHER_SD_SPEED          "Частота SD картки"
 #define K_S_LAUNCHER_SOUND             "Звук"
 #define K_S_LAUNCHER_SERVICES          K_S_SERVICES
-#define K_S_LAUNCHER_FTP               K_S_FTP
 #define K_S_LAUNCHER_WEB               K_S_WEB
 #define K_S_LAUNCHER_TELNET            K_S_TELNET
+#define K_S_LAUNCHER_FTP               K_S_FTP
 #define K_S_LAUNCHER_FTP_USER          K_S_USER
 #define K_S_LAUNCHER_FTP_PASSWORD      K_S_PASSWORD
+#define K_S_LAUNCHER_FTP_IP            "IP"
 #define K_S_LAUNCHER_STATUSBAR         "Статусбар"
 #define K_S_LAUNCHER_CLOCK             "Годинник"
 #define K_S_LAUNCHER_CLOCK_0           "Нема"
 #define K_S_LAUNCHER_CLOCK_1           "HH:MM:SS"
 #define K_S_LAUNCHER_CLOCK_2           "HH:MM"
+#define K_S_LAUNCHER_CLOCK_3           "*HH:MM"
 #define K_S_LAUNCHER_MEM               "Пам'ять"
 #define K_S_LAUNCHER_MEM_0             "Нема"
 #define K_S_LAUNCHER_MEM_1             "Іконка"

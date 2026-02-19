@@ -5,6 +5,7 @@
 //
 
 #include "keira/appmanager.h"
+#include "apps/statusbar/statusbar.h"
 #include "madplayer.h"
 
 // Визначає тип аудіо за розширенням файлу. Повертає nullptr, якщо формат невідомий.
@@ -23,9 +24,11 @@ MadPlayerApp::MadPlayerApp(String path) : App("MadPlayer") {
     setCore(1);
     fileName = path;
 
-    widgetId = AppManager::getInstance()->addWidget(
-        [this](lilka::Canvas* canvas) { return drawWidget(canvas); }, lilka::ALIGN_START, 24
-    );
+    auto statusBar = static_cast<StatusBarApp*>(AppManager::getInstance()->getPanel());
+    if (statusBar) {
+        widgetId =
+            statusBar->addWidget([this](lilka::Canvas* canvas) { return drawWidget(canvas); }, lilka::ALIGN_START, 24);
+    }
 }
 
 int MadPlayerApp::drawWidget(lilka::Canvas* canvas) {
@@ -128,7 +131,10 @@ void MadPlayerApp::run() {
     delete sound;
     sound = nullptr;
 
-    AppManager::getInstance()->removeWidget(widgetId);
+    auto statusBar = static_cast<StatusBarApp*>(AppManager::getInstance()->getPanel());
+    if (statusBar) {
+        statusBar->removeWidget(widgetId);
+    }
 }
 
 void MadPlayerApp::mainWindow() {
