@@ -16,6 +16,7 @@ Lua API
     gpio
     util
     buzzer
+    audio
     sdcard
     state
     wifi

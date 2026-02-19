@@ -1,5 +1,6 @@
 #include "keira/appmanager.h"
 #include <lilka/default_splash.h>
+#include "apps/statusbar/statusbar.h"
 
 AppManager* AppManager::instance = NULL;
 
@@ -19,6 +20,11 @@ AppManager* AppManager::getInstance() {
         instance = new AppManager();
     }
     return instance;
+}
+
+// Get the panel app.
+App* AppManager::getPanel() {
+    return panel;
 }
 
 /// Set the panel app.
@@ -47,6 +53,9 @@ App* AppManager::removeTopApp() {
     App* topApp = apps.back();
     apps.pop_back();
     delete topApp;
+    // Give IDLE task time to free the deleted app's task stack
+    // (vTaskDelete defers stack cleanup to IDLE, and taskYIELD in loop() doesn't yield to lower-priority tasks)
+    vTaskDelay(pdMS_TO_TICKS(10));
     if (apps.size() == 0) {
         // Panic! No apps left
         lilka::serial.err("appmanager: no apps left! Panic!");

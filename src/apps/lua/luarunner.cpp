@@ -22,6 +22,8 @@
 #include "lualilka_http.h"
 #include "lualilka_ui.h"
 #include "lualilka_crypto.h"
+#include "lualilka_audio.h"
+#include "keira/ksound/sound.h"
 #define SERIAL_DELAY 1000
 
 jmp_buf stopjmp;
@@ -172,6 +174,8 @@ void AbstractLuaRunnerApp::luaSetup(const char* dir) {
     lualilka_UI_register_alert(L);
     lualilka_UI_register_progress(L);
     lualilka_crypto_register(L);
+    lualilka_audio_register(L);
+    lualilka_state_register(L);
 
     // lilka::serial.log("lua: init canvas");
     // lilka::Canvas* canvas = new lilka::Canvas();
@@ -182,6 +186,10 @@ void AbstractLuaRunnerApp::luaSetup(const char* dir) {
     lilka::serial.log("lua: init memory for images");
     lua_newtable(L);
     lua_setfield(L, LUA_REGISTRYINDEX, "images");
+
+    lilka::serial.log("lua: init memory for sounds");
+    lua_newtable(L);
+    lua_setfield(L, LUA_REGISTRYINDEX, "sounds");
 
     // Set global "lilka" table for user stuff
     lua_newtable(L);
@@ -202,6 +210,17 @@ void AbstractLuaRunnerApp::luaTeardown() {
         delete image;
         lua_pop(L, 1);
     }
+
+    // Stop audio playback and free sounds from registry
+    lualilka_audio_cleanup();
+    lua_getfield(L, LUA_REGISTRYINDEX, "sounds");
+    lua_pushnil(L);
+    while (lua_next(L, -2) != 0) {
+        lilka::Sound* sound = static_cast<lilka::Sound*>(lua_touserdata(L, -1));
+        delete sound;
+        lua_pop(L, 1);
+    }
+    lua_pop(L, 1);
 
     // Free canvas from registry
     // lilka::Canvas* canvas = (lilka::Canvas*)lua_touserdata(L, lua_getfield(L, LUA_REGISTRYINDEX, "canvas"));
@@ -303,6 +322,9 @@ void LuaFileRunnerApp::run() {
 
     // Load state from file (file name is "path" with .lua replaced with .state)
     String statePath = path.substring(0, path.lastIndexOf('.')) + ".state";
+    // Store state path in registry for state.save() and state.reset()
+    lua_pushstring(L, statePath.c_str());
+    lua_setfield(L, LUA_REGISTRYINDEX, "state_path");
     // Check if state file exists
     if (access(statePath.c_str(), F_OK) != -1) {
         lilka::serial.log("lua: found state file %s", statePath.c_str());

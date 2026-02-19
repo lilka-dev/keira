@@ -1,0 +1,214 @@
+//
+// MadPlayer – програвач аудіо-файлів на базі бібліотеки ESP8266Audio для Lilka зі звуковим модулем PCM5102.
+// Підтримувані формати: MOD, WAV, MP3, AAC, FLAC.
+// Автори: Олексій "Alder" Деркач (https://github.com/alder) та Андрій "and3rson" Дунай (https://github.com/and3rson)
+//
+
+#include "keira/appmanager.h"
+#include "apps/statusbar/statusbar.h"
+#include "madplayer.h"
+
+// Визначає тип аудіо за розширенням файлу. Повертає nullptr, якщо формат невідомий.
+static const char* detectAudioType(const String& path) {
+    String lower = path;
+    lower.toLowerCase();
+    if (lower.endsWith(".mod")) return "mod";
+    if (lower.endsWith(".wav")) return "wav";
+    if (lower.endsWith(".mp3")) return "mp3";
+    if (lower.endsWith(".aac")) return "aac";
+    if (lower.endsWith(".flac")) return "flac";
+    return nullptr;
+}
+
+MadPlayerApp::MadPlayerApp(String path) : App("MadPlayer") {
+    setCore(1);
+    fileName = path;
+
+    auto statusBar = static_cast<StatusBarApp*>(AppManager::getInstance()->getPanel());
+    if (statusBar) {
+        widgetId =
+            statusBar->addWidget([this](lilka::Canvas* canvas) { return drawWidget(canvas); }, lilka::ALIGN_START, 24);
+    }
+}
+
+int MadPlayerApp::drawWidget(lilka::Canvas* canvas) {
+    lilka::AudioPlayer* player = &lilka::audioPlayer;
+    if (player->isFinished()) {
+        //draw stop icon
+        canvas->drawRect(4, 4, 16, 16, lilka::colors::Red);
+    } else if (player->isPaused()) {
+        //draw pause icon
+        canvas->drawRect(4, 4, 6, 16, lilka::colors::Yellow);
+        canvas->drawRect(14, 4, 6, 16, lilka::colors::Yellow);
+    } else {
+        //draw play icon
+        int16_t x0 = 4, y0 = 4, x1 = 20, y1 = 12, x2 = 4, y2 = 20;
+        canvas->drawLine(x0, y0, x1, y1, lilka::colors::Green);
+        canvas->drawLine(x1, y1, x2, y2, lilka::colors::Green);
+        canvas->drawLine(x2, y2, x0, y0, lilka::colors::Green);
+    }
+    return 24;
+}
+
+void MadPlayerApp::run() {
+    // Detect audio type by extension
+    const char* audioType = detectAudioType(fileName);
+    if (!audioType) {
+        alert("Помилка", "Непідтримуваний формат аудіо");
+        return;
+    }
+
+    // Read file into memory
+    FILE* file = fopen(fileName.c_str(), "rb");
+    if (!file) {
+        alert("Помилка", "Не вдалося відкрити файл");
+        return;
+    }
+    fseek(file, 0, SEEK_END);
+    size_t fileSize = ftell(file);
+    fseek(file, 0, SEEK_SET);
+
+    if (fileSize == 0) {
+        fclose(file);
+        alert("Помилка", "Аудіо-файл порожній");
+        return;
+    }
+
+    uint8_t* fileData = new (std::nothrow) uint8_t[fileSize];
+    if (!fileData) {
+        fclose(file);
+        alert("Помилка", "Недостатньо пам'яті");
+        return;
+    }
+    size_t bytesRead = fread(fileData, 1, fileSize, file);
+    fclose(file);
+    if (bytesRead != fileSize) {
+        delete[] fileData;
+        alert("Помилка", "Не вдалося прочитати файл");
+        return;
+    }
+
+    // Create Sound (takes ownership of fileData)
+    sound = new lilka::Sound(fileData, fileSize, audioType);
+
+    // Create I2S output and analyzer (owned by this app)
+    i2sOutput = new AudioOutputI2S();
+    i2sOutput->SetPinout(LILKA_I2S_BCLK, LILKA_I2S_LRCK, LILKA_I2S_DOUT);
+    analyzer = new lilka::AudioOutputAnalyzer(i2sOutput);
+
+    // Start playback via AudioPlayer
+    lilka::AudioPlayer* player = &lilka::audioPlayer;
+    player->play(sound, analyzer);
+
+    while (1) {
+        mainWindow();
+
+        lilka::State state = lilka::controller.getState();
+        if (state.a.justPressed) {
+            if (player->isPaused()) {
+                player->resume();
+            } else {
+                player->pause();
+            }
+        }
+        if (state.b.justPressed) {
+            player->stop();
+            break;
+        }
+        if (state.up.justPressed) {
+            player->setGain(player->getGain() + 0.25f);
+        }
+        if (state.down.justPressed) {
+            player->setGain(player->getGain() - 0.25f);
+        }
+    }
+
+    // Cleanup
+    delete analyzer;
+    analyzer = nullptr;
+    delete i2sOutput;
+    i2sOutput = nullptr;
+    delete sound;
+    sound = nullptr;
+
+    auto statusBar = static_cast<StatusBarApp*>(AppManager::getInstance()->getPanel());
+    if (statusBar) {
+        statusBar->removeWidget(widgetId);
+    }
+}
+
+void MadPlayerApp::mainWindow() {
+    canvas->fillScreen(lilka::colors::Black);
+
+    lilka::AudioPlayer* player = &lilka::audioPlayer;
+    bool shouldDrawAnalyzer = !player->isPaused() && !player->isFinished();
+    if (shouldDrawAnalyzer) {
+        int16_t analyzerBuffer[ANALYZER_BUFFER_SIZE];
+        analyzer->readBuffer(analyzerBuffer);
+        int16_t head = analyzer->getBufferHead();
+        float gain = player->getGain();
+
+        int16_t prevX, prevY;
+        int16_t width = canvas->width();
+        int16_t height = canvas->height();
+
+        constexpr int16_t HUE_SPEED_DIV = 4;
+        constexpr int16_t HUE_SCALE = 4;
+        int16_t yCenter = height * 5 / 7;
+
+        int64_t time = millis();
+
+        for (int i = 0; i < ANALYZER_BUFFER_SIZE; i += 4) {
+            int x = i * width / ANALYZER_BUFFER_SIZE;
+            int index = (i + head) % ANALYZER_BUFFER_SIZE;
+            float amplitude = static_cast<float>(analyzerBuffer[index]) / 32768 * fmaxf(gain, 1.0f);
+            int y = yCenter + static_cast<int>(amplitude * height / 2);
+            if (i > 0) {
+                int16_t hue = (time / HUE_SPEED_DIV + i / HUE_SCALE) % 360;
+                canvas->drawLine(prevX, prevY, x, y, lilka::display.color565hsv(hue, 100, 100));
+            }
+            prevX = x;
+            prevY = y;
+        }
+    }
+
+    float currentGain = player->getGain();
+    bool currentFinished = player->isFinished();
+
+    canvas->setFont(FONT_9x15);
+    canvas->setTextBound(32, 32, canvas->width() - 64, canvas->height() - 32);
+    canvas->setTextColor(lilka::colors::White);
+    canvas->setCursor(32, 32 + 15);
+    canvas->println("MadPlayer");
+    canvas->println("------------------------");
+    canvas->println("A - Відтворення / пауза");
+    canvas->setFont(FONT_9x15_SYMBOLS);
+    canvas->print("↑ / ↓");
+    canvas->setFont(FONT_9x15);
+    canvas->println(" - Гучність");
+    canvas->println("B - Вихід");
+    canvas->println("------------------------");
+    canvas->println("Гучність: " + String(currentGain));
+    if (currentFinished) canvas->println("Трек закінчився");
+
+    lilka::Canvas titleCanvas(canvas->width(), 20);
+    titleCanvas.fillScreen(lilka::colors::Black);
+    titleCanvas.setFont(FONT_9x15);
+    titleCanvas.setTextColor(lilka::display.color565hsv((millis() * 30) % 360, 100, 100));
+    titleCanvas.drawTextAligned(
+        fileName.c_str(), titleCanvas.width() / 2, titleCanvas.height() / 2, lilka::ALIGN_CENTER, lilka::ALIGN_CENTER
+    );
+    const uint16_t* titleCanvasFB = titleCanvas.getFramebuffer();
+    uint16_t yOffset = canvas->height() - titleCanvas.height() - 8;
+    float time = millis() / 1500.0f;
+    for (int16_t x = 0; x < titleCanvas.width(); x++) {
+        int16_t yShift = sinf(time + x / 25.0f) * 4 + yOffset;
+        for (int16_t y = 0; y < titleCanvas.height(); y++) {
+            uint16_t color = titleCanvasFB[x + y * titleCanvas.width()];
+            if (color) {
+                canvas->drawPixel(x, y + yShift, color);
+            }
+        }
+    }
+    queueDraw();
+}
