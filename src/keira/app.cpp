@@ -108,6 +108,24 @@ void App::setCore(int appCore) {
 }
 
 void App::setFlags(AppFlags flags) {
+    if (this->flags == flags) return;
+
+    // if flags isn't fullscreen, but app is already fullscreen, or vice versa, we need to recreate canvases with correct size and position
+    if ((flags & APP_FLAG_FULLSCREEN) != (this->flags & APP_FLAG_FULLSCREEN)) {
+        if (flags & APP_FLAG_FULLSCREEN) {
+            // switch to fullscreen
+            delete this->canvas;
+            delete this->backCanvas;
+            this->canvas = new lilka::Canvas(0, 0, lilka::display.width(), lilka::display.height());
+            this->backCanvas = new lilka::Canvas(0, 0, lilka::display.width(), lilka::display.height());
+        } else {
+            // switch to windowed mode with previous size and position
+            delete this->canvas;
+            delete this->backCanvas;
+            this->canvas = new lilka::Canvas(0, 24, lilka::display.width(), lilka::display.height() - 24);
+            this->backCanvas = new lilka::Canvas(0, 24, lilka::display.width(), lilka::display.height() - 24);
+        }
+    }
     this->flags = flags;
 }
 

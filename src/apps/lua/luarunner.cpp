@@ -196,6 +196,9 @@ void AbstractLuaRunnerApp::luaSetup(const char* dir) {
     // Add show_fps attribute to lilka table that defaults to false
     lua_pushboolean(L, false);
     lua_setfield(L, -2, "show_fps");
+    // Add fullscreen attribute to lilka table that defaults to true
+    lua_pushboolean(L, true);
+    lua_setfield(L, -2, "fullscreen");
     lua_setglobal(L, "lilka");
 }
 
@@ -262,6 +265,7 @@ int AbstractLuaRunnerApp::execute() {
 
         // Check if lilka.update function exists and call it
         const uint32_t perfectDelta = 1000 / 30;
+        bool prevFullscreen = true;
         uint32_t delta = perfectDelta; // Delta for first frame is always 1/30
         while (true) {
             uint32_t now = millis();
@@ -278,6 +282,15 @@ int AbstractLuaRunnerApp::execute() {
                 canvas->setCursor(24, 24);
                 canvas->setTextColor(0xFFFF, 0);
                 canvas->print(String("FPS: ") + (1000 / (delta > 0 ? delta : 1)) + "  ");
+            }
+            lua_pop(L, 1);
+
+            // Check fullscreen flag and update app flags only when changed
+            lua_getfield(L, -1, "fullscreen");
+            bool curFullscreen = lua_toboolean(L, -1);
+            if (curFullscreen != prevFullscreen) {
+                setFlags(curFullscreen ? AppFlags::APP_FLAG_FULLSCREEN : AppFlags::APP_FLAG_NONE);
+                prevFullscreen = curFullscreen;
             }
             lua_pop(L, 1);
             queueDraw();
