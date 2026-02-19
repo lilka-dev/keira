@@ -702,7 +702,7 @@ bool FileManagerApp::isCopyOrMoveCouldBeDone(const String& src, const String& ds
 
     // it's already here
     if (src == dst) {
-        FM_DBG lilka::serial.log("[FM] Can't copy %s => %s. SRC == DST", src.c_str(), dst._c_str());
+        FM_DBG lilka::serial.log("[FM] Can't copy %s => %s. SRC == DST", src.c_str(), dst.c_str());
         return false;
     }
 
