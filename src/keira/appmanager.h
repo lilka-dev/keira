@@ -8,6 +8,7 @@
 class AppManager {
 public:
     ~AppManager();
+    App* getPanel();
     void setPanel(App* app);
     // adds app to appsToRun list, actuall runing happens
     // inside loop

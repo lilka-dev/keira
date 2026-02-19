@@ -1,5 +1,6 @@
 #include "keira/appmanager.h"
 #include <lilka/default_splash.h>
+#include "apps/statusbar/statusbar.h"
 
 AppManager* AppManager::instance = NULL;
 
@@ -19,6 +20,11 @@ AppManager* AppManager::getInstance() {
         instance = new AppManager();
     }
     return instance;
+}
+
+// Get the panel app.
+App* AppManager::getPanel() {
+    return panel;
 }
 
 /// Set the panel app.

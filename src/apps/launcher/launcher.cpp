@@ -25,6 +25,7 @@
 #include "apps/tests/callbacktest/callbacktest.h"
 #include "apps/tests/combo/combo.h"
 // Apps
+#include "apps/statusbar/statusbar.h"
 #include "apps/wificonfig/wificonfig.h"
 #include "apps/letris/letris.h"
 #include "apps/gpiomanager/gpiomanager.h"
@@ -142,19 +143,25 @@ void LauncherApp::run() {
             ITEM::SUBMENU(
                 K_S_SETTINGS,
                 {
-                    ITEM::MENU(
-                        K_S_LAUNCHER_WIFI_ADAPTER,
-                        [this]() { this->wifiToggle(); },
-                        nullptr,
-                        lilka::colors::White,
-                        [this](void* item) {
-                            lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
-                            menuItem->postfix = networkService->getEnabled() ? K_S_ON : K_S_OFF;
-                        }
-                    ),
-                    ITEM::MENU(K_S_LAUNCHER_WIFI_NETWORKS, [this]() { this->wifiManager(); }),
-                    ITEM::MENU(K_S_LAUNCHER_WIFI_TX_POWER, [this]() { this->setWiFiTxPower(); }),
-                    ITEM::MENU(K_S_LAUNCHER_SPI_SD_SPEED, [this]() { this->setSpiSDSpeed(); }),
+                    ITEM::SUBMENU(K_S_LAUNCHER_WIFI, {
+                        ITEM::MENU(
+                            K_S_LAUNCHER_WIFI_ADAPTER,
+                            [this]() { this->wifiToggle(); },
+                            nullptr,
+                            lilka::colors::White,
+                            [this](void* item) {
+                                    lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
+                                    menuItem->postfix = networkService->getEnabled() ? K_S_ON : K_S_OFF;
+                            }
+                        ),
+                        ITEM::MENU(K_S_LAUNCHER_WIFI_NETWORKS, [this]() { this->wifiManager(); }),
+                        ITEM::MENU(K_S_LAUNCHER_WIFI_TX_POWER, [this]() { this->setWiFiTxPower(); }),
+                    }),
+                    ITEM::SUBMENU(K_S_LAUNCHER_SD, {
+                        ITEM::MENU(K_S_PARTITION_TABLE, [this]() { this->partitions(); }),
+                        ITEM::MENU(K_S_LAUNCHER_SD_FORMAT, [this]() { this->formatSD(); }),
+                        ITEM::MENU(K_S_LAUNCHER_SD_SPEED, [this]() { this->setSpiSDSpeed(); }),
+                    }),
                     ITEM::MENU(K_S_LAUNCHER_SOUND, [this]() { this->runApp<SoundConfigApp>(); }),
                     ITEM::SUBMENU(K_S_LAUNCHER_SERVICES, {
                         ITEM::SUBMENU(K_S_LAUNCHER_WEB, {
@@ -247,12 +254,121 @@ void LauncherApp::run() {
                                             menuItem->postfix = ftpService->getPassword();
                                 }
                             ),
+                            ITEM::MENU(
+                                K_S_LAUNCHER_FTP_IP,
+                                nullptr,
+                                nullptr,
+                                lilka::colors::White,
+                                [this](void* item) {
+                                            lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
+                                            menuItem->postfix = networkService->getIpAddr();
+                                }
+                            ),
                         }),
+                    }),
+                    ITEM::SUBMENU(K_S_LAUNCHER_STATUSBAR, {
+                        ITEM::MENU(
+                            K_S_LAUNCHER_CLOCK,
+                            [this]() {
+                                    auto statusBar = static_cast<StatusBarApp*>(AppManager::getInstance()->getPanel());
+                                    statusBar->setClockMode((statusBar->getClockMode() + 1));
+                            },
+                            nullptr,
+                            lilka::colors::White,
+                            [this](void* item) {
+                                    lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
+                                    auto statusBar = static_cast<StatusBarApp*>(AppManager::getInstance()->getPanel());
+                                    switch (statusBar->getClockMode()) {
+                                        case 0:
+                                            menuItem->postfix = K_S_LAUNCHER_CLOCK_0;
+                                            break;
+                                        case 1:
+                                            menuItem->postfix = K_S_LAUNCHER_CLOCK_1;
+                                            break;
+                                        case 2:
+                                            menuItem->postfix = K_S_LAUNCHER_CLOCK_2;
+                                            break;
+                                        default:
+                                            menuItem->postfix = K_S_LAUNCHER_CLOCK_3;
+                                            break;
+                                    }
+                            }
+                        ),
+                        ITEM::MENU(
+                            K_S_LAUNCHER_MEM,
+                            [this]() {
+                                    auto statusBar = static_cast<StatusBarApp*>(AppManager::getInstance()->getPanel());
+                                    statusBar->setMemMode((statusBar->getMemMode() + 1));
+                            },
+                            nullptr,
+                            lilka::colors::White,
+                            [this](void* item) {
+                                    lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
+                                    auto statusBar = static_cast<StatusBarApp*>(AppManager::getInstance()->getPanel());
+                                    switch (statusBar->getMemMode()) {
+                                        case 0:
+                                            menuItem->postfix = K_S_LAUNCHER_MEM_0;
+                                            break;
+                                        case 1:
+                                            menuItem->postfix = K_S_LAUNCHER_MEM_1;
+                                            break;
+                                        default:
+                                            menuItem->postfix = K_S_LAUNCHER_MEM_2;
+                                            break;
+                                    }
+                            }
+                        ),
+                        ITEM::MENU(
+                            K_S_LAUNCHER_NETWORK,
+                            [this]() {
+                                    auto statusBar = static_cast<StatusBarApp*>(AppManager::getInstance()->getPanel());
+                                    statusBar->setNetworkMode((statusBar->getNetworkMode() + 1));
+                            },
+                            nullptr,
+                            lilka::colors::White,
+                            [this](void* item) {
+                                    lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
+                                    auto statusBar = static_cast<StatusBarApp*>(AppManager::getInstance()->getPanel());
+                                    switch (statusBar->getNetworkMode()) {
+                                        case 0:
+                                            menuItem->postfix = K_S_LAUNCHER_NETWORK_0;
+                                            break;
+                                        default:
+                                            menuItem->postfix = K_S_LAUNCHER_NETWORK_1;
+                                            break;
+                                    }
+                            }
+                        ),
+                        ITEM::MENU(
+                            K_S_LAUNCHER_BATTERY,
+                            [this]() {
+                                    auto statusBar = static_cast<StatusBarApp*>(AppManager::getInstance()->getPanel());
+                                    statusBar->setBatteryMode((statusBar->getBatteryMode() + 1));
+                            },
+                            nullptr,
+                            lilka::colors::White,
+                            [this](void* item) {
+                                    lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
+                                    auto statusBar = static_cast<StatusBarApp*>(AppManager::getInstance()->getPanel());
+                                    switch (statusBar->getBatteryMode()) {
+                                        case 0:
+                                            menuItem->postfix = K_S_LAUNCHER_BATTERY_0;
+                                            break;
+                                        case 1:
+                                            menuItem->postfix = K_S_LAUNCHER_BATTERY_1;
+                                            break;
+                                        case 2:
+                                            menuItem->postfix = K_S_LAUNCHER_BATTERY_2;
+                                            break;
+                                        default:
+                                            menuItem->postfix = K_S_LAUNCHER_BATTERY_3;
+                                            break;
+                                    }
+                            }
+                        ),
                     }),
                     ITEM::MENU(K_S_LAUNCHER_ABOUT_SYSTEM, [this]() { this->about(); }),
                     ITEM::MENU(K_S_LAUNCHER_DEVICE_INFO, [this]() { this->info(); }),
-                    ITEM::MENU(K_S_PARTITION_TABLE, [this]() { this->partitions(); }),
-                    ITEM::MENU(K_S_LAUNCHER_SD_FORMAT, [this]() { this->formatSD(); }),
                     ITEM::MENU(K_S_LAUNCHER_LIGHT_SLEEP, []() {
                             lilka::board.enablePowerSavingMode();
                             esp_light_sleep_start();
@@ -372,7 +488,7 @@ void LauncherApp::setSpiSDSpeed() {
     };
 
     lilka::Menu setSpiSDSpeedMenu;
-    setSpiSDSpeedMenu.setTitle(K_S_LAUNCHER_SPI_SD_SPEED);
+    setSpiSDSpeedMenu.setTitle(K_S_LAUNCHER_SD_SPEED);
     setSpiSDSpeedMenu.addActivationButton(K_BTN_BACK); // Exit
 
     // Add frequencies to menu
