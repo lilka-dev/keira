@@ -108,6 +108,24 @@ void App::setCore(int appCore) {
 }
 
 void App::setFlags(AppFlags flags) {
+    if (this->flags == flags) return;
+
+    // if flags isn't fullscreen, but app is already fullscreen, or vice versa, we need to recreate canvases
+    if ((flags & APP_FLAG_FULLSCREEN) != (this->flags & APP_FLAG_FULLSCREEN)) {
+        acquireBackCanvas();
+        auto oldCanvas = canvas;
+        auto oldBackCanvas = backCanvas;
+        if (flags & APP_FLAG_FULLSCREEN) {
+            this->canvas = new lilka::Canvas(0, 0, lilka::display.width(), lilka::display.height());
+            this->backCanvas = new lilka::Canvas(0, 0, lilka::display.width(), lilka::display.height());
+        } else {
+            this->canvas = new lilka::Canvas(0, 24, lilka::display.width(), lilka::display.height() - 24);
+            this->backCanvas = new lilka::Canvas(0, 24, lilka::display.width(), lilka::display.height() - 24);
+        }
+        delete oldCanvas;
+        delete oldBackCanvas;
+        releaseBackCanvas();
+    }
     this->flags = flags;
 }
 
