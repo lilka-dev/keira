@@ -72,8 +72,7 @@
 #define K_S_LAUNCHER_TAMAGOTCHI        "Tamagotchi"
 #define K_S_LAUNCHER_WEATHER           "Weather"
 #define K_S_LAUNCHER_PASTEBIN          "Pastebin"
-#define K_S_LAUNCHER_SD_BROWSER        "SD Browser"
-#define K_S_LAUNCHER_SPIFFS_BROWSER    "SPIFFS Browser"
+#define K_S_LAUNCHER_FMANAGER          "File Manager"
 #define K_S_LAUNCHER_DEV_MENU          "Development"
 #define K_S_LAUNCHER_LIVE_LUA          "Live Lua" // Lua live?
 #define K_S_LAUNCHER_LUA_REPL          "Lua REPL"
