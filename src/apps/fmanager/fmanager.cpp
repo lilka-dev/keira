@@ -287,6 +287,8 @@ FMEntry FileManagerApp::pathToEntry(const String& path) {
 void FileManagerApp::openCurrentEntry() {
     String path = lilka::fileutils.joinPath(currentEntry.path, currentEntry.name);
     FM_DBG lilka::serial.log("Opening path %s", path.c_str());
+
+    // TODO: no need to hold data in memory, do cleanups
     if (currentEntry.type == FT_DIR) {
         if (isCurrentDirSelected()) {
             if (currentPath != initalPath) {
@@ -389,6 +391,7 @@ void FileManagerApp::clearSelectedEntries() {
 }
 
 // FILE OPEN WITH MENU BELOW:
+// TODO: Unify openWith, make system-wide ui for that
 void FileManagerApp::fileOpenWithMenuShow() {
     FM_CHILD_DIALOG_CHECKV;
     while (!fileOpenWithMenu.isFinished()) {
@@ -399,279 +402,353 @@ void FileManagerApp::fileOpenWithMenuShow() {
 }
 
 void FileManagerApp::onFileOpenWithNESEmulator() {
-    FM_DBG lilka::serial.log("Enter onFileOpenWithNESEmulator");
-    auto button = fileOpenWithMenu.getButton();
-    if (button == FM_EXIT_BUTTON) return; // Exit
+    FM_DBG LEP;
+
+    FM_MENU_HANDLE_EXIT(fileOpenWithMenu);
 
     K_FT_NES_HANDLER(lilka::fileutils.joinPath(currentEntry.path, currentEntry.name));
+
+    FM_DBG LXP;
 }
 
 void FileManagerApp::onFileOpenWithMultiBootLoader() {
-    FM_DBG lilka::serial.log("Enter onFileOpenWithMultiBootLoader");
-    auto button = fileOpenWithMenu.getButton();
-    if (button == FM_EXIT_BUTTON) return; // Exit
+    FM_DBG LEP;
+
+    FM_MENU_HANDLE_EXIT(fileOpenWithMenu);
 
     FM_DEFAULT_FT_BIN_HANDLER(lilka::fileutils.joinPath(currentEntry.path, currentEntry.name));
+
+    FM_DBG LXP;
 }
 
 void FileManagerApp::onFileOpenWithLua() {
-    FM_DBG lilka::serial.log("Enter onFileOpenWithLua");
-    auto button = fileOpenWithMenu.getButton();
-    if (button == FM_EXIT_BUTTON) return; // Exit
+    FM_DBG LEP;
+
+    FM_MENU_HANDLE_EXIT(fileOpenWithMenu);
 
     K_FT_LUA_SCRIPT_HANDLER(lilka::fileutils.joinPath(currentEntry.path, currentEntry.name));
+
+    FM_DBG LXP;
 }
 
 void FileManagerApp::onFileOpenWithMJS() {
-    FM_DBG lilka::serial.log("Enter onFileOpenWithMJS");
-    auto button = fileOpenWithMenu.getButton();
-    if (button == FM_EXIT_BUTTON) return; // Exit
+    FM_DBG LEP;
+
+    FM_MENU_HANDLE_EXIT(fileOpenWithMenu);
 
     K_FT_JS_SCRIPT_HANDLER(lilka::fileutils.joinPath(currentEntry.path, currentEntry.name));
+
+    FM_DBG LXP;
 }
 
 void FileManagerApp::onFileOpenWithLilTracker() {
-    FM_DBG lilka::serial.log("Enter onFileOpenWithLilTracker");
-    auto button = fileOpenWithMenu.getButton();
-    if (button == FM_EXIT_BUTTON) return; // Exit
+    FM_DBG LEP;
+
+    FM_MENU_HANDLE_EXIT(fileOpenWithMenu);
 
     K_FT_LT_HANDLER(lilka::fileutils.joinPath(currentEntry.path, currentEntry.name));
+
+    FM_DBG LXP;
 }
 
 void FileManagerApp::onFileOpenWithMadPlayer() {
-    FM_DBG lilka::serial.log("Enter onFileOpenWithMadPlayer");
-    auto button = fileOpenWithMenu.getButton();
-    if (button == FM_EXIT_BUTTON) return; // Exit
+    FM_DBG LEP;
+
+    FM_MENU_HANDLE_EXIT(fileOpenWithMenu);
 
     K_FT_SOUND_HANDLER(lilka::fileutils.joinPath(currentEntry.path, currentEntry.name));
+
+    FM_DBG LXP;
 }
 
 // FILE SELECTION MENU BELOW:
 void FileManagerApp::onFileSelectionOptionsMenuCopy() {
-    auto button = fileSelectionOptionsMenu.getButton();
-    if (button == FM_OKAY_BUTTON) {
-        for (const auto& entry : selectedDirEntries) {
-            auto src = lilka::fileutils.joinPath(entry.path, entry.name);
-            auto dst = lilka::fileutils.joinPath(currentPath, entry.name);
-            if (!copyPath(src, dst)) {
-                clearSelectedEntries();
-                return;
-            }
-        }
-        clearSelectedEntries();
-        changeMode(FM_MODE_RELOAD);
-    } else if (button != FM_EXIT_BUTTON) fileSelectionOptionsMenu.isFinished();
+    FM_DBG LEP;
+
+    FM_MENU_HANDLE_EXIT(fileSelectionOptionsMenu);
+
+    // do copy
+    for (const auto& entry : selectedDirEntries) {
+        auto src = lilka::fileutils.joinPath(entry.path, entry.name);
+        auto dst = lilka::fileutils.joinPath(currentPath, entry.name);
+        // TODO: Allow to skip, proceed to next
+        if (!copyPath(src, dst)) break; // fail fast
+    }
+    // cleanup
+    clearSelectedEntries();
+    changeMode(FM_MODE_RELOAD);
+
+    FM_DBG LXP;
 }
 
 void FileManagerApp::onFileSelectionOptionsMenuMove() {
-    auto button = fileSelectionOptionsMenu.getButton();
-    if (button == FM_OKAY_BUTTON) {
-        for (const auto& entry : selectedDirEntries) {
-            auto src = lilka::fileutils.joinPath(entry.path, entry.name);
-            auto dst = lilka::fileutils.joinPath(currentPath, entry.name);
-            if (!movePath(src, dst)) {
-                clearSelectedEntries();
-                return;
-            }
-        }
-        clearSelectedEntries();
-        changeMode(FM_MODE_RELOAD);
-    } else if (button != FM_EXIT_BUTTON) fileSelectionOptionsMenu.isFinished();
+    FM_DBG LEP;
+
+    FM_MENU_HANDLE_EXIT(fileSelectionOptionsMenu);
+
+    // do move
+    for (const auto& entry : selectedDirEntries) {
+        auto src = lilka::fileutils.joinPath(entry.path, entry.name);
+        auto dst = lilka::fileutils.joinPath(currentPath, entry.name);
+        if (!movePath(src, dst)) break; // fail fast
+    }
+    // cleanup
+    clearSelectedEntries();
+    changeMode(FM_MODE_RELOAD);
+
+    FM_DBG LXP;
 }
 
 void FileManagerApp::onFileSelectionOptionsMenuDelete() {
-    auto button = fileSelectionOptionsMenu.getButton();
-    if (button == FM_OKAY_BUTTON) {
-        lilka::Alert checkAlert(
-            "Ви впевнені?",
-            String("Ця операція видалить ") + String(selectedDirEntries.size()) + " файл(ів)" +
-                "\nПродовжити: START\nВихід: B"
-        );
-        checkAlert.addActivationButton(FM_CONFIRM_BUTTON);
-        checkAlert.addActivationButton(FM_EXIT_BUTTON);
-        while (!checkAlert.isFinished()) {
-            checkAlert.update();
-            checkAlert.draw(canvas);
-            queueDraw();
-        }
-        if (checkAlert.getButton() == FM_CONFIRM_BUTTON) {
-            for (const auto& entry : selectedDirEntries)
-                deleteEntry(entry, true);
-            clearSelectedEntries();
-            changeMode(FM_MODE_RELOAD);
-        } else {
-            clearSelectedEntries(); // clear selection anyways
-            return;
-        }
-    } else if (button != FM_EXIT_BUTTON) fileSelectionOptionsMenu.isFinished();
+    FM_DBG LEP;
+
+    FM_MENU_HANDLE_EXIT(fileSelectionOptionsMenu);
+
+    // Absolute copy of onFileOptionsMenuDelete
+    // Ensure same logics, if change it
+    if (confirm(
+            K_S_FMANAGER_ARE_YOU_SURE_ALERT,
+            StringFormat(K_S_FMANAGER_THIS_OP_WOULD_DELETE_COUNT_FILES_FMT, selectedDirEntries.size())
+        )) {
+        // Do delete
+        for (const auto& entry : selectedDirEntries)
+            deleteEntry(entry); // nofail, huh?
+        // Cleanup
+        clearSelectedEntries();
+        changeMode(FM_MODE_RELOAD);
+
+        FM_DBG LXP;
+        return;
+    }
+
+    clearSelectedEntries(); // clear selection anyways
+
+    FM_DBG LXP;
 }
 
 void FileManagerApp::onFileSelectionOptionsMenuClearSelection() {
-    auto button = fileSelectionOptionsMenu.getButton();
-    if (button == FM_OKAY_BUTTON) {
-        clearSelectedEntries();
-    } else if (button != FM_EXIT_BUTTON) fileSelectionOptionsMenu.isFinished();
+    FM_DBG LEP;
+
+    FM_MENU_HANDLE_EXIT(fileSelectionOptionsMenu);
+
+    clearSelectedEntries();
+
+    FM_DBG LXP;
 }
 
 // FILE OPTIONS MENU BELOW:
+
+// fileOptionsMenu drawing loop burried here
 void FileManagerApp::fileOptionsMenuShow() {
-    FM_DBG lilka::serial.log("Enter fileOptionsMenuShow");
+    FM_DBG LEP;
+    // Always reset cursor for fileOptions menu
     fileOptionsMenu.setCursor(0);
+
     while (!fileOptionsMenu.isFinished()) {
         fileOptionsMenu.update();
         fileOptionsMenu.draw(canvas);
         queueDraw();
     }
+
+    FM_DBG LXP;
 }
 
 void FileManagerApp::onFileOptionsMenuOpen() {
-    auto button = fileOptionsMenu.getButton();
-    FM_DBG lilka::serial.log("Enter onFileOptionsMenuOpen");
-    if (button == FM_OKAY_BUTTON) {
-        if (isCurrentDirSelected()) {
-            FM_UI_CANT_DO_OP;
-            fileOptionsMenu.isFinished(); // do not allow to rename current dir
-            return;
-        }
-        openCurrentEntry();
-    } else if (button != FM_EXIT_BUTTON) fileOptionsMenu.isFinished(); // do redraw
+    FM_DBG LEP;
+
+    FM_MENU_HANDLE_EXIT(fileOptionsMenu);
+
+    // Do not allow to open BACK menu entry
+    if (isCurrentDirSelected()) {
+        FM_UI_CANT_DO_OP;
+        fileOptionsMenu.isFinished(); // do not allow to rename current dir
+
+        FM_DBG LXP;
+        return;
+    }
+
+    // Let's open the box
+    openCurrentEntry();
+    FM_DBG LXP;
 }
 
 void FileManagerApp::onFileOptionsMenuOpenWith() {
-    auto button = fileOptionsMenu.getButton();
-    FM_DBG lilka::serial.log("Enter onFileOptionsMenuOpenWith");
-    if (button == FM_OKAY_BUTTON) {
-        if (isCurrentDirSelected()) {
-            FM_UI_CANT_DO_OP;
-            fileOptionsMenu.isFinished(); // do not allow to rename current dir
-            return;
-        }
-        fileOpenWithMenuShow();
+    FM_DBG LEP;
 
-    } else if (button != FM_EXIT_BUTTON) fileOpenWithMenu.isFinished(); // do redraw
+    FM_MENU_HANDLE_EXIT(fileOptionsMenu);
+
+    // Do not allow to open BACK menu entry
+    if (isCurrentDirSelected()) {
+        FM_UI_CANT_DO_OP;
+        fileOptionsMenu.isFinished(); // do not allow to rename current dir
+
+        FM_DBG LXP;
+        return;
+    }
+
+    // Proceed to openWithMenu drawing loop
+    fileOpenWithMenuShow();
+    FM_DBG LXP;
 }
 
 void FileManagerApp::onFileOptionsMenuMKDir() {
-    auto button = fileOptionsMenu.getButton();
-    FM_DBG lilka::serial.log("Enter onFileOptionsMenuMKDir");
-    if (button == FM_OKAY_BUTTON) {
-        mkdirInput.setValue(FM_DEFAULT_NEW_FOLDER_NAME);
-        while (!mkdirInput.isFinished()) {
-            mkdirInput.update();
-            mkdirInput.draw(canvas);
-            queueDraw();
-        }
-        auto dirName = mkdirInput.getValue();
-        if (dirName != "") {
-            if (mkdir(lilka::fileutils.joinPath(currentEntry.path, dirName).c_str(), FM_MKDIR_MODE) == 0) {
-                FM_UI_SUCCESS_OP;
-                changeMode(FM_MODE_RELOAD);
-            } else {
-                FM_UI_CANT_DO_OP;
-                FM_DBG lilka::serial.err(
-                    "Can't make dir in %s with name %s. %d: %s",
-                    currentEntry.path,
-                    dirName.c_str(),
-                    errno,
-                    strerror(errno)
-                );
-            }
-            exitChildDialogs = true;
-        }
-    } else if (button != FM_EXIT_BUTTON) fileOpenWithMenu.isFinished(); // do redraw
+    FM_DBG LEP;
+
+    FM_MENU_HANDLE_EXIT(fileOptionsMenu);
+
+    // TODO: input dialog()
+    // Ask user for a new name
+    mkdirInput.setValue(FM_DEFAULT_NEW_FOLDER_NAME);
+    while (!mkdirInput.isFinished()) {
+        mkdirInput.update();
+        mkdirInput.draw(canvas);
+        queueDraw();
+    }
+
+    auto dirName = mkdirInput.getValue();
+
+    // Check new Name validness
+    if (dirName == "") {
+        FM_DBG LXP;
+        return;
+    }
+
+    // Try to Make a new directory
+    if (mkdir(lilka::fileutils.joinPath(currentEntry.path, dirName).c_str(), FM_MKDIR_MODE) == 0) {
+        FM_UI_SUCCESS_OP;
+        changeMode(FM_MODE_RELOAD);
+    } else {
+        FM_UI_CANT_DO_OP;
+        FM_DBG lilka::serial.err(
+            "Can't make dir in %s with name %s. %d: %s", currentEntry.path, dirName.c_str(), errno, strerror(errno)
+        );
+    }
+    exitChildDialogs = true;
+
+    FM_DBG LXP;
 }
 
 void FileManagerApp::onFileOptionsMenuDelete() {
-    auto button = fileOptionsMenu.getButton();
-    FM_DBG lilka::serial.log("Enter onFileOptionsMenuDelete");
-    if (button == FM_OKAY_BUTTON) {
-        if (mode == FM_MODE_SELECT) {
-            lilka::Alert checkAlert(
+    FM_DBG LEP;
+
+    FM_MENU_HANDLE_EXIT(fileOptionsMenu);
+
+    // Multiple files delete
+    if (mode == FM_MODE_SELECT) {
+        // Absolute copy of onFileSectionsOptionsMenuDelete
+        // Ensure same logics, if change it
+        if (confirm(
                 K_S_FMANAGER_ARE_YOU_SURE_ALERT,
                 StringFormat(K_S_FMANAGER_THIS_OP_WOULD_DELETE_COUNT_FILES_FMT, selectedDirEntries.size())
-            );
-            checkAlert.addActivationButton(FM_EXIT_BUTTON);
-            checkAlert.addActivationButton(FM_CONFIRM_BUTTON);
-            while (!checkAlert.isFinished()) {
-                checkAlert.update();
-                checkAlert.draw(canvas);
-                queueDraw();
-            }
-            if (checkAlert.getButton() == FM_CONFIRM_BUTTON) {
-                for (const auto& entry : selectedDirEntries) {
-                    deleteEntry(entry, true);
-                }
-                clearSelectedEntries();
-                changeMode(FM_MODE_RELOAD);
-            } else return;
-        } else {
-            if (isCurrentDirSelected()) {
-                FM_UI_CANT_DO_OP;
-                fileOptionsMenu.isFinished(); // do not allow to rename current dir
-                return;
-            }
-            deleteEntry(currentEntry);
+            )) {
+            // Do delete
+            for (const auto& entry : selectedDirEntries)
+                deleteEntry(entry); // nofail, huh?
+
+            // Cleanup
+            clearSelectedEntries();
             changeMode(FM_MODE_RELOAD);
+
+            FM_DBG LXP;
+            return; // Exit
         }
-    } else if (button != FM_EXIT_BUTTON) fileOpenWithMenu.isFinished(); // do redraw
+
+        clearSelectedEntries(); // clear selection anyways
+
+        FM_DBG LXP;
+        return; // Exit
+    }
+
+    // Do not to allow on menu Back selected
+    if (isCurrentDirSelected()) {
+        FM_UI_CANT_DO_OP;
+        fileOptionsMenu.isFinished(); // do not allow to rename current dir
+
+        FM_DBG LXP;
+        return;
+    }
+
+    // Single file
+    if (confirm(
+            K_S_FMANAGER_ARE_YOU_SURE_ALERT,
+            StringFormat(
+                K_S_FMANAGER_THIS_OP_WOULD_DELETE_FILE_FMT,
+                lilka::fileutils.joinPath(currentEntry.path, currentEntry.name).c_str()
+            )
+        )) {
+        deleteEntry(currentEntry);
+        changeMode(FM_MODE_RELOAD);
+    }
+
+    FM_DBG LXP;
 }
 
 void FileManagerApp::onFileOptionsMenuRename() {
-    auto button = fileOptionsMenu.getButton();
-    FM_DBG lilka::serial.log("Enter onFileOptionsMenuRename");
-    if (button == FM_OKAY_BUTTON) {
-        if (isCurrentDirSelected()) {
-            FM_UI_CANT_DO_OP;
-            fileOptionsMenu.isFinished(); // do not allow to rename current dir
-            return;
-        }
+    FM_DBG LEP;
 
-        renameInput.setValue(currentEntry.name); // pass old name
-        while (!renameInput.isFinished()) {
-            renameInput.update();
-            renameInput.draw(canvas);
-            queueDraw();
-        }
+    FM_MENU_HANDLE_EXIT(fileOptionsMenu);
 
-        auto newName = renameInput.getValue();
+    if (isCurrentDirSelected()) {
+        FM_UI_CANT_DO_OP;
+        fileOptionsMenu.isFinished(); // do not allow to rename current dir
 
-        // Skip empty and same names
-        if (newName == "" || (strcmp(newName.c_str(), currentEntry.name) == 0)) {
-            exitChildDialogs = true;
-            return;
-        }
+        FM_DBG LXP;
+        return;
+    }
 
-        auto path = lilka::fileutils.joinPath(currentEntry.path, currentEntry.name);
-        auto newPath = lilka::fileutils.joinPath(currentEntry.path, newName);
+    // TODO: app->input()
+    renameInput.setValue(currentEntry.name); // pass old name
+    while (!renameInput.isFinished()) {
+        renameInput.update();
+        renameInput.draw(canvas);
+        queueDraw();
+    }
 
-        // Try rename
-        if (rename(path.c_str(), newPath.c_str()) == 0) {
-            FM_UI_SUCCESS_OP;
-            changeMode(FM_MODE_RELOAD);
+    auto newName = renameInput.getValue();
 
-        } else {
-            FM_DBG lilka::serial.err(
-                "Can't rename %s to %s. %d: %s", path.c_str(), newPath.c_str(), errno, strerror(errno)
-            );
-            FM_UI_CANT_DO_OP;
-        }
+    // Skip empty and same names
+    if (newName == "" || (strcmp(newName.c_str(), currentEntry.name) == 0)) {
         exitChildDialogs = true;
-    } else if (button != FM_EXIT_BUTTON) fileOpenWithMenu.isFinished(); // do redraw
+
+        FM_DBG LXP;
+        return;
+    }
+
+    auto path = lilka::fileutils.joinPath(currentEntry.path, currentEntry.name);
+    auto newPath = lilka::fileutils.joinPath(currentEntry.path, newName);
+
+    // Try rename
+    if (rename(path.c_str(), newPath.c_str()) == 0) {
+        FM_UI_SUCCESS_OP;
+        changeMode(FM_MODE_RELOAD);
+
+    } else {
+        FM_DBG lilka::serial.err(
+            "Can't rename %s to %s. %d: %s", path.c_str(), newPath.c_str(), errno, strerror(errno)
+        );
+        FM_UI_CANT_DO_OP;
+    }
+    exitChildDialogs = true;
+
+    FM_DBG LXP;
 }
 
 void FileManagerApp::onFileOptionsMenuInfo() {
-    auto button = fileOptionsMenu.getButton();
-    FM_DBG lilka::serial.log("Enter onFileOptionsMenuRename");
-    if (button == FM_OKAY_BUTTON) {
-        fileInfoShowAlert();
-        exitChildDialogs = true;
-    } else if (button != FM_EXIT_BUTTON) fileOpenWithMenu.isFinished(); // do redraw
+    FM_DBG LEP;
+
+    FM_MENU_HANDLE_EXIT(fileOptionsMenu);
+
+    fileInfoShowAlert();
+    exitChildDialogs = true;
+
+    FM_DBG LXP;
 }
 
 void FileManagerApp::fileInfoShowAlert() {
     String info;
     // TODO: after adding something like long text viewer into ui,
     // add other possible data to show
+
     if (currentEntry.type == FT_DIR) {
         info = StringFormat(
             K_S_FMANAGER_ABOUT_DIR_FMT, lilka::fileutils.joinPath(currentEntry.path, currentEntry.name).c_str()
@@ -791,10 +868,13 @@ void FileManagerApp::fileLoadAsRom(const String& path) {
     }
 }
 
+// :D this looks too funky, still we need a valid pointer
 void FileManagerApp::onAnyMenuBack() {
-    FM_DBG lilka::serial.log("Enter onAnyMenuBack");
+    FM_DBG LEP;
+    FM_DBG LXP;
 }
 
+// FileSelectionsOptions drawing loop burried here
 void FileManagerApp::fileSelectionOptionsMenuShow() {
     fileSelectionOptionsMenu.setCursor(0);
     while (!fileSelectionOptionsMenu.isFinished()) {
@@ -818,6 +898,7 @@ bool FileManagerApp::fileListMenuLoadDir() {
     dirLoadProgress.setProgress(0);
     auto dirLength = 0;
     auto countLoaded = 0;
+    // TODO: doubleread? in statless()?
     while ((readdir(dir)) != NULL)
         dirLength++;
     rewinddir(dir);
@@ -851,6 +932,9 @@ bool FileManagerApp::fileListMenuLoadDir() {
                 newEntry = pathToEntry(lilka::fileutils.joinPath(currentPath, filename));
             }
             // I should refactor all that crap...
+
+            // Move into pathToEntry maybe
+            // pathToEntry without stat()? inplace maybe then
             if (getDirEntryIndex(selectedDirEntries, newEntry) != ENTRY_NOT_FOUND_INDEX) newEntry.selected = true;
             currentDirEntries.push_back(newEntry);
         }
@@ -940,7 +1024,7 @@ void FileManagerApp::fileListMenuShow() {
     }
 
     // TODO: restore old menu cursor.
-    // use std::queue to store cursor positions
+    // Maybe just store entry, seems logical
 }
 
 void FileManagerApp::onFileListMenuItem() {
@@ -948,6 +1032,7 @@ void FileManagerApp::onFileListMenuItem() {
     auto index = fileListMenu.getCursor();
     FM_DBG lilka::serial.log("Enter onFileListMenuItem");
 
+    // TODO: what did I smoke?
     if (fileListMenu.getCursor() == currentDirEntries.size()) {
         currentEntry = pathToEntry(lilka::fileutils.joinPath(currentPath, "."));
     } else currentEntry = currentDirEntries[fileListMenu.getCursor()];
@@ -1028,27 +1113,13 @@ void FileManagerApp::onFileListMenuItem() {
     }
 }
 
-void FileManagerApp::deleteEntry(const FMEntry& entry, bool force) {
+void FileManagerApp::deleteEntry(const FMEntry& entry) {
     FM_CHILD_DIALOG_CHECKV;
     // TODO: Add exit code, or rework without recursion
     // Can't FM_MODE_RESET here cause of recursive nature
     // could also fall here. exit gracefully
 
     auto path = lilka::fileutils.joinPath(entry.path, entry.name);
-    // Perform check on user sureness
-    if (!force) {
-        lilka::Alert checkAlert(
-            K_S_FMANAGER_ARE_YOU_SURE_ALERT, StringFormat(K_S_FMANAGER_THIS_OP_WOULD_DELETE_FILE_FMT, path.c_str())
-        );
-        checkAlert.addActivationButton(FM_EXIT_BUTTON);
-        checkAlert.addActivationButton(FM_CONFIRM_BUTTON);
-        while (!checkAlert.isFinished()) {
-            checkAlert.update();
-            checkAlert.draw(canvas);
-            queueDraw();
-        }
-        if (checkAlert.getButton() != FM_CONFIRM_BUTTON) return; //Exit
-    }
 
     // Do job
     if (entry.type == FT_DIR) { // Directory
@@ -1062,8 +1133,9 @@ void FileManagerApp::deleteEntry(const FMEntry& entry, bool force) {
         const struct dirent* dirEntry;
         while ((dirEntry = readdir(dir)) != NULL) {
             String filename = dirEntry->d_name;
+            // TODO: lol, we no need to perform stat() call here
             FMEntry fEntry = pathToEntry(lilka::fileutils.joinPath(path, filename));
-            deleteEntry(fEntry, true); // recursive
+            deleteEntry(fEntry); // recursive
         }
         closedir(dir);
         // Delete dir itself
