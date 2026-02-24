@@ -267,8 +267,10 @@ void App::initCanvas() {
         uint16_t bh = backCanvas->height();
 
         // how to make it less ugly ? :D
-        if ((cx == bx) && (cy == by) && (cw == bw) && (ch == bh) && (cy == y) && (cx == x) && (cw == w) && (ch == h))
+        if ((cx == bx) && (cy == by) && (cw == bw) && (ch == bh) && (cy == y) && (cx == x) && (cw == w) && (ch == h)) {
+            releaseBackCanvas();
             return;
+        }
     }
 
     // Create canvases
