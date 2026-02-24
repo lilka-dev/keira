@@ -11,7 +11,7 @@ public:
 
 private:
     void run() override;
-    void onStop() override;
+    void onExit() override;
 
     bool initUSBMSC();
     void deinitUSBMSC();
