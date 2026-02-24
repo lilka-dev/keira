@@ -346,6 +346,6 @@ void USBDriveApp::run() {
     }
 }
 
-void USBDriveApp::onStop() {
+void USBDriveApp::onExit() {
     deinitUSBMSC();
 }
