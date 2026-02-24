@@ -101,8 +101,7 @@ bool callDraw(lua_State* L) {
     return true;
 }
 
-AbstractLuaRunnerApp::AbstractLuaRunnerApp(const char* appName) :
-    App(appName, 0, 0, lilka::display.width(), lilka::display.height()), L(NULL) {
+AbstractLuaRunnerApp::AbstractLuaRunnerApp(const char* appName) : App(appName), L(NULL) {
     setFlags(AppFlags::APP_FLAG_FULLSCREEN);
 }
 
@@ -291,9 +290,9 @@ int AbstractLuaRunnerApp::execute() {
             if (fullscreen != prevFullscreen) {
                 auto flags = getFlags();
                 if (fullscreen) {
-                    flags = static_cast<AppFlags>(flags | AppFlags::APP_FLAG_FULLSCREEN);
+                    flags = flags | AppFlags::APP_FLAG_FULLSCREEN;
                 } else {
-                    flags = static_cast<AppFlags>(flags & ~AppFlags::APP_FLAG_FULLSCREEN);
+                    flags = flags & ~AppFlags::APP_FLAG_FULLSCREEN;
                 }
                 setFlags(flags);
                 prevFullscreen = fullscreen;

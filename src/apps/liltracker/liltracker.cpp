@@ -74,8 +74,7 @@ typedef enum : uint8_t {
     VISUALIZER_MODE_COUNT,
 } visualizer_mode_t;
 
-LilTrackerApp::LilTrackerApp() :
-    App("LilTracker", 0, 0, lilka::display.width(), lilka::display.height()), sequencer(NULL) {
+LilTrackerApp::LilTrackerApp() : App("LilTracker"), sequencer(NULL) {
     this->setFlags(APP_FLAG_FULLSCREEN);
     this->setCore(1);
     this->setStackSize(16384);

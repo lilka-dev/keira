@@ -220,7 +220,7 @@ void KeiraSystem::setup() {
 
     // Run first apps
     appManager->setPanel(new StatusBarApp());
-    appManager->runApp(new LauncherApp());
+    appManager->runApp(new LauncherApp(), false);
 }
 
 // TODO: To be run in separate KeiraThread[TO_IMPLEMENT]

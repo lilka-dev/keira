@@ -15,7 +15,8 @@
 #include "services/network/network.h"
 #include "Preferences.h"
 
-StatusBarApp::StatusBarApp() : App("StatusBar", 0, 0, lilka::display.width(), 24) {
+StatusBarApp::StatusBarApp() : App("StatusBar") {
+    setFlags(AppFlags::APP_FLAG_STATUSBAR);
     loadSettings();
     initSystemWidgets();
 }
