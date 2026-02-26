@@ -3,7 +3,7 @@
 
 #include <Preferences.h>
 #include <esp_wifi.h>
-
+#include "keira/ksystem.h"
 #include "network.h"
 
 // Macro magic used to convert decimal constant to char[] constant
@@ -30,8 +30,8 @@ NetworkService::NetworkService() :
 void NetworkService::run() {
     // Loading settings from NVS
 
-    bool enabled = getEnabled();
-
+    bool getEnabled = getEnabled();
+    NVS_LOCK;
     Preferences prefs;
     prefs.begin(WIFI_KEIRA_NAMESPACE, true);
     // Set transmit power
@@ -40,7 +40,7 @@ void NetworkService::run() {
     WiFi.setTxPower(txPower);
 
     prefs.end();
-
+    NVS_UNLOCK;
     // Setting Lilka hostname
     // Take LILKA_HOSTNAME_PREFIX as a prefix and append MAC to it
     // This value should be random enough to avoid potential conflicts
@@ -63,6 +63,7 @@ void NetworkService::run() {
                 setNetworkState(NETWORK_STATE_ONLINE);
                 Preferences prefs;
                 String connectedSSID = String(info.wifi_sta_connected.ssid, info.wifi_sta_connected.ssid_len);
+                NVS_LOCK;
                 prefs.begin(WIFI_KEIRA_NAMESPACE, false);
                 if (!prefs.isKey("last_ssid") || !String(prefs.getString("last_ssid")).equals(connectedSSID)) {
                     // Set current SSID as last connected
@@ -70,8 +71,10 @@ void NetworkService::run() {
                     lilka::serial.log("NetworkService: last SSID set to  %s", connectedSSID.c_str());
                 }
                 prefs.end();
+                NVS_UNLOCK;
                 String ssidHash = hash(connectedSSID);
                 String savedPassword = getPassword(connectedSSID);
+                NVS_LOCK;
                 prefs.begin(WIFI_KEIRA_NAMESPACE, false);
                 if (savedPassword != lastPassword) {
                     // Save password for the connected network
@@ -79,6 +82,7 @@ void NetworkService::run() {
                     lilka::serial.log("NetworkService: password for %s saved", connectedSSID.c_str());
                 }
                 prefs.end();
+                NVS_UNLOCK;
                 break;
             }
             case ARDUINO_EVENT_WIFI_STA_DISCONNECTED: {
@@ -177,6 +181,7 @@ void NetworkService::autoConnect() {
     WiFi.mode(WIFI_STA);
 
     // Check if there is a known network to connect to
+    NVS_LOCK;
     Preferences prefs;
     prefs.begin(WIFI_KEIRA_NAMESPACE, true);
     if (!prefs.isKey("last_ssid")) {
@@ -192,6 +197,7 @@ void NetworkService::autoConnect() {
         }
     }
     prefs.end();
+    NVS_UNLOCK;
 }
 
 NetworkState NetworkService::getNetworkState() {
@@ -224,6 +230,7 @@ void NetworkService::connect(String ssid, String password) {
 }
 
 String NetworkService::getPassword(String ssid) {
+    NVS_LOCK;
     Preferences prefs;
     prefs.begin(WIFI_KEIRA_NAMESPACE, true);
     String ssidHash = hash(ssid);
@@ -234,6 +241,7 @@ String NetworkService::getPassword(String ssid) {
         result = prefs.getString(String(ssidHash + "_pw").c_str());
     }
     prefs.end();
+    NVS_UNLOCK;
     return result;
 }
 

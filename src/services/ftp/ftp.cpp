@@ -1,18 +1,20 @@
 #include "ftp.h"
-#include "keira/servicemanager.h"
+#include "keira/ksystem.h"
 #include "services/network/network.h"
 
 FTPService::FTPService() : Service("ftp") {
+    NVS_LOCK;
     Preferences prefs;
     prefs.begin(name, true);
     password = prefs.getString("password", "");
     prefs.end();
+    NVS_UNLOCK;
 
     if (password.isEmpty()) {
         createPassword();
     }
 
-    networkService = ServiceManager::getInstance()->getService<NetworkService>("network");
+    networkService = reinterpret_cast<NetworkService*>(ksystem.services["network"]);
     lilka::fileutils.initSD();
 }
 
@@ -65,11 +67,12 @@ void FTPService::createPassword() {
         pwd[i] = random(0, 2) == 0 ? random(48, 57) : random(97, 122);
     }
     pwd[FTP_PASSWORD_LENGTH] = 0;
-
+    NVS_LOCK;
     Preferences prefs;
     prefs.begin(name, false);
     prefs.putString("password", pwd);
     prefs.end();
+    NVS_UNLOCK;
 
     password = String(pwd);
 

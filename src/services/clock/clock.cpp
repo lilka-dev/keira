@@ -1,13 +1,12 @@
 #include "clock.h"
 #include "services/network/network.h"
-#include "keira/servicemanager.h"
-
+#include "keira/ksystem.h"
 ClockService::ClockService() : Service("clock") {
 }
 
 void ClockService::run() {
     while (1) {
-        NetworkService* network = ServiceManager::getInstance()->getService<NetworkService>("network");
+        NetworkService* network = reinterpret_cast<NetworkService*>(ksystem.services["network"]);
         if (network == NULL) {
             vTaskDelay(1000 / portTICK_PERIOD_MS);
             continue;

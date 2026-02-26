@@ -1,6 +1,7 @@
 #include <EscapeCodes.h>
 
 #include "telnet.h"
+#include "keira/ksystem.h"
 
 #define STR_HELPER(x) #x
 #define STR(x)        STR_HELPER(x)
@@ -133,6 +134,7 @@ Command commands[] = {
                 }
                 String ns = args[1];
                 String key = args[2];
+                NVS_LOCK;
                 Preferences prefs;
                 prefs.begin(ns.c_str(), true);
                 if (!prefs.isKey(key.c_str())) {
@@ -213,12 +215,14 @@ Command commands[] = {
                     telnet->println();
                 }
                 prefs.end();
+                NVS_UNLOCK;
             } else if (subcommand == "rm") {
                 if (args.size() != 2 && args.size() != 3) {
                     telnet->println("Помилка: невірна кількість параметрів");
                     return;
                 }
                 String ns = args[1];
+                NVS_LOCK;
                 Preferences prefs;
                 prefs.begin(ns.c_str(), false);
                 if (args.size() == 2) {
@@ -236,6 +240,7 @@ Command commands[] = {
                     }
                 }
                 prefs.end();
+                NVS_UNLOCK;
             } else {
                 telnet->println("Помилка: невідома підкоманда");
             }
@@ -310,7 +315,7 @@ void TelnetService::setupEventHandlers() {
 }
 
 void TelnetService::run() {
-    NetworkService* network = ServiceManager::getInstance()->getService<NetworkService>("network");
+    NetworkService* network = static_cast<NetworkService*>(ksystem.services["network"]);
 
     bool wasOnline = false;
     while (1) {

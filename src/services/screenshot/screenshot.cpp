@@ -2,8 +2,8 @@
 
 #include "services/screenshot/screenshot.h"
 #include "keira/appmanager.h"
-#include "keira/servicemanager.h"
 #include "services/clock/clock.h"
+#include "keira/ksystem.h"
 
 #if !defined(KEIRA_SCREENSHOT_BMP) && !defined(KEIRA_SCREENSHOT_PNG)
 // Uncomment one of the following lines to choose the screenshot format
@@ -141,7 +141,7 @@ bool ScreenshotService::saveScreenshot(lilka::Canvas* canvas) {
 
 bool ScreenshotService::writeScreenshot(uint8_t* buffer, uint32_t length, const char* ext) {
     // Generate filename
-    struct tm time = ServiceManager::getInstance()->getService<ClockService>("clock")->getTime();
+    struct tm time = reinterpret_cast<ClockService*>(ksystem.services["clock"])->getTime();
     char filename[64];
     snprintf(
         filename,

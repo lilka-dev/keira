@@ -1,12 +1,17 @@
+#include "keira/ksystem.h"
+#include "weather.h"
+
+// Libraries:
 #include <map>
+#include <Preferences.h>
 #include <HTTPClient.h>
 #include <lilka/config.h>
 
-#include "Preferences.h"
-#include "keira/servicemanager.h"
+// Services:
 #include "services/clock/clock.h"
 #include "utils/json.h"
-#include "weather.h"
+
+// Icons:
 #include "icons/weather_icons.h"
 
 typedef struct {
@@ -204,7 +209,7 @@ void WeatherApp::run() {
                     wind = data["current"]["wind_speed_10m"];
                     uint8_t code = data["current"]["weather_code"];
                     const icon_t* icon = icons[code];
-                    ClockService* clockService = ServiceManager::getInstance()->getService<ClockService>("clock");
+                    ClockService* clockService = static_cast<ClockService*>(ksystem.services["clock"]);
                     struct tm time = clockService->getTime();
                     if (time.tm_hour >= 6 && time.tm_hour < 18) {
                         iconData = &icon->day;
@@ -315,10 +320,12 @@ bool WeatherApp::runSettings() {
     }
     if (saveSettings) {
         Preferences prefs;
+        NVS_LOCK;
         prefs.begin("keira", false);
         prefs.putFloat("lat", settings.lat);
         prefs.putFloat("lon", settings.lon);
         prefs.end();
+        NVS_UNLOCK;
         return true;
     }
     return false;
@@ -327,6 +334,7 @@ bool WeatherApp::runSettings() {
 settings_t WeatherApp::getSettings() {
     Preferences prefs;
     settings_t settings = {false, 0, 0};
+    NVS_LOCK;
     prefs.begin("keira", false);
     if (prefs.isKey("lat") && prefs.isKey("lon")) {
         settings.lat = prefs.getFloat("lat", settings.lat);
@@ -334,5 +342,6 @@ settings_t WeatherApp::getSettings() {
         settings.isConfigured = true;
     }
     prefs.end();
+    NVS_UNLOCK;
     return settings;
 }

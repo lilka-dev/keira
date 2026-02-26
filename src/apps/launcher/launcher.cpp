@@ -56,8 +56,10 @@
 #include <Preferences.h>
 #include <lilka/spi.h>
 
+#include "keira/ksystem.h"
+
 LauncherApp::LauncherApp() : App("Launcher") {
-    networkService = static_cast<NetworkService*>(ServiceManager::getInstance()->getService<NetworkService>("network"));
+    networkService = static_cast<NetworkService*>(ksystem.services["network"]);
     setStackSize(8192); // Yeah, this one is heavy as fuck
 }
 
@@ -163,8 +165,7 @@ void LauncherApp::run() {
                             ITEM::MENU(
                                 K_S_STATUS,
                                 [this]() {
-                                            WebService* webService = static_cast<WebService*>(
-                                                ServiceManager::getInstance()->getService<WebService>("web")
+                                            WebService* webService = static_cast<WebService*>(ksystem.services["web"]
                                             );
                                             webService->setEnabled(!webService->getEnabled());
                                 },
@@ -173,7 +174,7 @@ void LauncherApp::run() {
                                 [this](void* item) {
                                             lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
                                             WebService* webService = static_cast<WebService*>(
-                                                ServiceManager::getInstance()->getService<WebService>("web")
+                                               ksystem.services["web"]
                                             );
                                             menuItem->postfix = webService->getEnabled() ? K_S_ON : K_S_OFF;
                                 }
@@ -184,7 +185,7 @@ void LauncherApp::run() {
                                 K_S_STATUS,
                                 [this]() {
                                             TelnetService* telnetService = static_cast<TelnetService*>(
-                                                ServiceManager::getInstance()->getService<TelnetService>("telnet")
+                                                ksystem.services["telnet"]
                                             );
                                             telnetService->setEnabled(!telnetService->getEnabled());
                                 },
@@ -193,7 +194,7 @@ void LauncherApp::run() {
                                 [this](void* item) {
                                             lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
                                             TelnetService* telnetService = static_cast<TelnetService*>(
-                                                ServiceManager::getInstance()->getService<TelnetService>("telnet")
+                                                ksystem.services["telnet"]
                                             );
                                             menuItem->postfix = telnetService->getEnabled() ? K_S_ON : K_S_OFF;
                                 }
@@ -204,7 +205,7 @@ void LauncherApp::run() {
                                 K_S_STATUS,
                                 [this]() {
                                             FTPService* ftpService = static_cast<FTPService*>(
-                                                ServiceManager::getInstance()->getService<FTPService>("ftp")
+                                                ksystem.services["ftp"]
                                             );
                                             ftpService->setEnabled(!ftpService->getEnabled());
                                 },
@@ -213,7 +214,7 @@ void LauncherApp::run() {
                                 [this](void* item) {
                                             lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
                                             FTPService* ftpService = static_cast<FTPService*>(
-                                                ServiceManager::getInstance()->getService<FTPService>("ftp")
+                                                ksystem.services["ftp"]
                                             );
                                             menuItem->postfix = ftpService->getEnabled() ? K_S_ON : K_S_OFF;
                                 }
@@ -226,7 +227,7 @@ void LauncherApp::run() {
                                 [this](void* item) {
                                             lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
                                             FTPService* ftpService = static_cast<FTPService*>(
-                                                ServiceManager::getInstance()->getService<FTPService>("ftp")
+                                                ksystem.services["ftp"]
                                             );
                                             menuItem->postfix = ftpService->getUser();
                                 }
@@ -235,7 +236,7 @@ void LauncherApp::run() {
                                 K_S_LAUNCHER_FTP_PASSWORD,
                                 [this]() {
                                             FTPService* ftpService = static_cast<FTPService*>(
-                                                ServiceManager::getInstance()->getService<FTPService>("ftp")
+                                                ksystem.services["ftp"]
                                             );
                                             ftpService->createPassword();
                                 },
@@ -244,7 +245,7 @@ void LauncherApp::run() {
                                 [this](void* item) {
                                             lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
                                             FTPService* ftpService = static_cast<FTPService*>(
-                                                ServiceManager::getInstance()->getService<FTPService>("ftp")
+                                                ksystem.services["ftp"]
                                             );
                                             menuItem->postfix = ftpService->getPassword();
                                 }
@@ -467,10 +468,12 @@ void LauncherApp::setWiFiTxPower() {
     WiFi.setTxPower(values[index]);
 
     // Save value to NVS
+    NVS_LOCK;
     Preferences prefs;
     prefs.begin(WIFI_KEIRA_NAMESPACE, false);
     prefs.putInt("txPower", static_cast<int>(values[index]));
     prefs.end();
+    NVS_UNLOCK;
 }
 
 void LauncherApp::setSpiSDSpeed() {
@@ -503,11 +506,13 @@ void LauncherApp::setSpiSDSpeed() {
     auto index = setSpiSDSpeedMenu.getCursor();
 
     // store new frequency to NVS
+    NVS_LOCK;
     Preferences prefs;
     prefs.begin(LILKA_SPI_NVS_NAMESPACE, false);
     uint32_t sdFrequency = sdFrequencies[index];
     prefs.putUInt(LILKA_SPI_NVS_SD_FREQUENCY_KEY, sdFrequency);
     prefs.end();
+    NVS_UNLOCK;
 
     alert("", K_S_CHANGE_ON_NEXT_BOOT);
 }

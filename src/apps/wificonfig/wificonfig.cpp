@@ -1,9 +1,11 @@
+#include "keira/ksystem.h"
+#include "apps/wificonfig/wificonfig.h"
+// Libraries:
 #include <WiFi.h>
 #include "keira/keira.h"
-#include "apps/wificonfig/wificonfig.h"
-#include "keira/servicemanager.h"
+// Services:
 #include "services/network/network.h"
-
+// Icons:
 #include "apps/icons/wifi_0.h"
 #include "apps/icons/wifi_1.h"
 #include "apps/icons/wifi_2.h"
@@ -41,8 +43,7 @@ void WiFiConfigApp::run() {
     buffer.begin();
     buffer.fillScreen(0);
 
-    NetworkService* networkService =
-        static_cast<NetworkService*>(ServiceManager::getInstance()->getService<NetworkService>("network"));
+    NetworkService* networkService = static_cast<NetworkService*>(ksystem.services["network"]);
     // TODO: use dynamic_cast and assert networkService != nullptr
 
     buffer.fillScreen(lilka::colors::Black);

@@ -1,6 +1,8 @@
 #include "web.h"
 #include "esp_http_server.h"
-#include <keira/servicemanager.h>
+#include "keira/ksystem.h"
+
+// TODO: html to header generator with compression
 
 // Modern CSS styles inspired by catalog.lilka.dev and lilka-dev.github.io/flasher
 static const char cssStyles[] = R"rawliteral(
@@ -1604,7 +1606,7 @@ static void startWebServer() {
 }
 
 WebService::WebService() : Service("web") {
-    networkService = ServiceManager::getInstance()->getService<NetworkService>("network");
+    networkService = static_cast<NetworkService*>(ksystem.services["network"]);
 }
 
 WebService::~WebService() {
