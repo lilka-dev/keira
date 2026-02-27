@@ -321,7 +321,7 @@ bool WeatherApp::runSettings() {
     if (saveSettings) {
         Preferences prefs;
         NVS_LOCK;
-        prefs.begin("keira", false);
+        prefs.begin(getName(), false);
         prefs.putFloat("lat", settings.lat);
         prefs.putFloat("lon", settings.lon);
         prefs.end();
@@ -335,7 +335,7 @@ settings_t WeatherApp::getSettings() {
     Preferences prefs;
     settings_t settings = {false, 0, 0};
     NVS_LOCK;
-    prefs.begin("keira", false);
+    prefs.begin(getName(), false);
     if (prefs.isKey("lat") && prefs.isKey("lon")) {
         settings.lat = prefs.getFloat("lat", settings.lat);
         settings.lon = prefs.getFloat("lon", settings.lon);

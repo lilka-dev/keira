@@ -1,6 +1,4 @@
 #pragma once
-#include "keira/service.h"
-#include "keira/thread.h"
 #include "keira/threadmanager.h"
 
 // TODO: Fully unloadable/loadable/reloadable services

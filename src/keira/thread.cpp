@@ -5,14 +5,24 @@
 //  Thread Constructors and destructors
 //=============================================================================
 KeiraThread::KeiraThread(
-    KeiraCallback clbk, const char* name, uint32_t stackSize, KeiraCallbackData data, KeiraThreadPriority prio,
-    int cpuCore
+    KeiraCallback clbk, const char* ktName, uint32_t ktStackSize, KeiraCallbackData data, KeiraThreadPriority ktPrio,
+    int ktCore
 ) {
     if (clbk) setupOnEntryCallback(clbk, data);
-    setName(name);
-    setStackSize(stackSize);
-    setCore(cpuCore);
-    setPriority(prio);
+    if (ktName) setName(ktName);
+    setStackSize(ktStackSize);
+    setCore(ktCore);
+    setPriority(ktPrio);
+
+    KT_DBG lilka::serial.log(
+        "Initialized thread %s with [clbk:%p, stack:%d, data:%p, ktPrio:%d, cpu:%d]",
+        this->ktName,
+        clbk,
+        ktStackSize,
+        data,
+        ktPrio,
+        ktCore
+    );
 }
 //-----------------------------------------------------------------------------
 KeiraThread::~KeiraThread() {
@@ -23,82 +33,88 @@ KeiraThread::~KeiraThread() {
 //=============================================================================
 //  Thread settings:
 //=============================================================================
-void KeiraThread::setPriority(KeiraThreadPriority prio) {
-    this->prio = prio;
-    if (taskHandle) vTaskPrioritySet(taskHandle, prio);
+void KeiraThread::setPriority(KeiraThreadPriority ktPrio) {
+    this->ktPrio = ktPrio;
+    if (ktTaskHandle) vTaskPrioritySet(ktTaskHandle, ktPrio);
+    KT_DBG lilka::serial.log("Changed ktPriority for task %s to %d", ktName, ktPrio);
 }
 //-----------------------------------------------------------------------------
-void KeiraThread::setStackSize(uint32_t stackSize) {
-    if (taskHandle != NULL) {
-        KT_DBG lilka::serial.err("Can't readjust stackSize for thread %s. Thread is already runing", name);
+void KeiraThread::setStackSize(uint32_t ktStackSize) {
+    if (ktTaskHandle != NULL) {
+        KT_DBG lilka::serial.err("Can't readjust ktStackSize for thread %s. Thread is already runing", ktName);
         return;
     }
-    this->stackSize = stackSize;
+    this->ktStackSize = ktStackSize;
 }
 //-----------------------------------------------------------------------------
-void KeiraThread::setCore(int core) {
-    if ((core != tskNO_AFFINITY) && (core > portNUM_PROCESSORS || core < 0)) {
+void KeiraThread::setCore(int ktCore) {
+    if ((ktCore != tskNO_AFFINITY) && (ktCore > portNUM_PROCESSORS || ktCore < 0)) {
         KT_DBG lilka::serial.err(
-            "Can't pin thread %s to CPUCore %d. Max CPUCores is %d", name, core, portNUM_PROCESSORS
+            "Can't pin thread %s to CPUCore %d. Max CPUCores is %d", ktName, ktCore, portNUM_PROCESSORS
         );
         return;
     }
 
-    this->core = core;
+    this->ktCore = ktCore;
 
-    // TODO:    if (taskHandle)  vTaskSetAffinity(core);
+    KT_DBG lilka::serial.log("Set core for thread %s to %d", getName(), ktCore);
+
+    // TODO:    if (ktTaskHandle)  vTaskSetAffinity(ktCore);
 }
 //-----------------------------------------------------------------------------
 KeiraThreadPriority KeiraThread::getPriority() {
-    return prio;
+    return ktPrio;
 }
 //-----------------------------------------------------------------------------
 uint32_t KeiraThread::getStackSize() {
-    return stackSize;
+    return ktStackSize;
 }
 //-----------------------------------------------------------------------------
 int KeiraThread::getCore() {
-    return core;
+    return ktCore;
 }
 ///////////////////////////////////////////////////////////////////////////////
 
 //=============================================================================
-//  Thread stats/states/information
+//  Thread stats/ktStates/information
 //=============================================================================
 const KeiraThreadState KeiraThread::getState() {
-    if (taskHandle == NULL) return KTS_INVALID;
+    if (ktTaskHandle == NULL) return KTS_INVALID;
 
-    if (state == KTS_EXITING) return KTS_EXITING;
+    if (ktState == KTS_EXITING) return KTS_EXITING;
 
-    state = static_cast<KeiraThreadState>(eTaskGetState(taskHandle));
+    ktState = static_cast<KeiraThreadState>(eTaskGetState(ktTaskHandle));
 
-    return state;
+    return ktState;
 }
 //-----------------------------------------------------------------------------
 const char* KeiraThread::getName() {
-    return name;
+    return ktName;
 }
 //-----------------------------------------------------------------------------
-void KeiraThread::setName(const char* name) {
-    if (strlen(name) > KT_NAME_MAX - 1) {
-        KT_DBG lilka::serial.err("Thread name shouldn't be longer than KT_MAX");
-    } else strcpy(this->name, name);
+void KeiraThread::setName(const char* ktName) {
+    if (strlen(ktName) > KT_NAME_MAX - 1) {
+        KT_DBG lilka::serial.err("Thread ktName shouldn't be longer than KT_MAX");
+        return;
+    }
+    KT_DBG lilka::serial.log("Changing thread ktName from %s to %s", this->ktName, ktName);
+    strcpy(this->ktName, ktName);
 }
 //-----------------------------------------------------------------------------
 const KeiraThreadType KeiraThread::getType() {
-    return type;
+    return ktType;
 }
 //-----------------------------------------------------------------------------
-void KeiraThread::setType(KeiraThreadType type) {
-    this->type = type;
+void KeiraThread::setType(KeiraThreadType ktType) {
+    this->ktType = ktType;
 }
 //-----------------------------------------------------------------------------
 TaskHandle_t KeiraThread::getTaskHandle() {
-    return taskHandle;
+    return ktTaskHandle;
 }
 ///////////////////////////////////////////////////////////////////////////////
-#define LAUNCH_CALLBACKS(CLBK_TYPE)  \
-    for (auto& callback : clbkTable) \
+#define LAUNCH_CALLBACKS(CLBK_TYPE)    \
+    for (auto& callback : ktClbkTable) \
         if (callback.type == CLBK_TYPE) callback.clbk(callback.data);
 // Our wrapper arround users run()
 void KeiraThread::_run() {
@@ -120,13 +136,14 @@ void KeiraThread::exit() {
     }
     // Impossible  (^_^) == \~
     // vTaskDelete(NULL);
+    KT_DBG lilka::serial.log("Exiting thread %s", ktName);
 }
 //=============================================================================
 //  FreeRTOS task management to be done from system task
 //=============================================================================
 void KeiraThread::start() {
-    if (taskHandle != NULL) {
-        KT_DBG lilka::serial.log("Thread %s already runing", name);
+    if (ktTaskHandle != NULL) {
+        KT_DBG lilka::serial.log("Thread %s already runing", ktName);
         return;
     }
 
@@ -137,15 +154,23 @@ void KeiraThread::start() {
 
     // Time to launch FreeRTOS task
     if (xTaskCreatePinnedToCore(
-            reinterpret_cast<TaskFunction_t>(&KeiraThread::_run), name, stackSize, this, prio, &taskHandle, core
+            reinterpret_cast<TaskFunction_t>(&KeiraThread::_run),
+            ktName,
+            ktStackSize,
+            this,
+            ktPrio,
+            &ktTaskHandle,
+            ktCore
         ) != pdPASS) {
-        KT_DBG lilka::serial.err("Not enough heap to allocate stack for %s thread", name);
+        KT_DBG lilka::serial.err("Not enough heap to allocate stack for %s thread", ktName);
     }
+
+    KT_DBG lilka::serial.log("Started thread %s", ktName);
 }
 //-----------------------------------------------------------------------------
 void KeiraThread::suspend() {
-    if (taskHandle == NULL) {
-        KT_DBG lilka::serial.err("Thread %s is not running, cannot suspend", name);
+    if (ktTaskHandle == NULL) {
+        KT_DBG lilka::serial.err("Thread %s is not running, cannot suspend", ktName);
         return;
     }
 
@@ -154,14 +179,15 @@ void KeiraThread::suspend() {
     // Launch overrided virtual method
     onSuspend();
 
-    //    KT_DBG lilka::serial.log("Suspending thread %s (state = %s)", name, getState());
+    //    KT_DBG lilka::serial.log("Suspending thread %s (ktState = %s)", ktName, getState());
 
-    vTaskSuspend(taskHandle);
+    vTaskSuspend(ktTaskHandle);
+    KT_DBG lilka::serial.log("Suspended thread %s", ktName);
 }
 //-----------------------------------------------------------------------------
 void KeiraThread::resume() {
-    if (taskHandle == NULL) {
-        KT_DBG lilka::serial.err("Thread %s is not running, cannot resume", name);
+    if (ktTaskHandle == NULL) {
+        KT_DBG lilka::serial.err("Thread %s is not running, cannot resume", ktName);
         return;
     }
 
@@ -170,12 +196,14 @@ void KeiraThread::resume() {
     // Launch overrided virtual method
     onResume();
 
-    vTaskResume(taskHandle);
+    vTaskResume(ktTaskHandle);
+
+    KT_DBG lilka::serial.log("Resumed thread %s", ktName);
 }
 //-----------------------------------------------------------------------------
 void KeiraThread::stop() {
-    if (taskHandle == NULL) {
-        KT_DBG lilka::serial.err("Thread %s is not running, cannot stop", name);
+    if (ktTaskHandle == NULL) {
+        KT_DBG lilka::serial.err("Thread %s is not running, cannot stop", ktName);
         return;
     }
 
@@ -184,13 +212,14 @@ void KeiraThread::stop() {
     // Launch overrided virtual method
     onStop();
 
-    vTaskDelete(taskHandle);
+    vTaskDelete(ktTaskHandle);
+    KT_DBG lilka::serial.log("Deleted thread %s", ktName);
 
-    taskHandle = NULL;
+    ktTaskHandle = NULL;
 }
 #undef LAUNCH_CALLBACKS
 ///////////////////////////////////////////////////////////////////////////////
 
 void KeiraThread::clearCallbacks() {
-    clbkTable.clear();
+    ktClbkTable.clear();
 }

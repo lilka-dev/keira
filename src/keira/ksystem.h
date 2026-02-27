@@ -8,10 +8,9 @@
 //////////////////////////////////////////////////////////////////////////////
 
 // System Managers:
+#include "keira/threadmanager.h"
 #include "keira/servicemanager.h"
 #include "keira/appmanager.h"
-#include "keira/threadmanager.h"
-
 // Libraries
 #include <lilka.h>
 //#include <vector>
@@ -59,7 +58,7 @@ public:
     //  Publicly acessible managers to control different types of threads
     //========================================================================
     ThreadManager threads;
-    AppManager* apps = NULL;
+    AppManager apps;
     ServiceManager services;
     //////////////////////////////////////////////////////////////////////////
     // Yeah, we've to do that cause it doesn't support multithreading

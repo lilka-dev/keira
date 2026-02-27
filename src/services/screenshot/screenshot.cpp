@@ -175,13 +175,12 @@ void ScreenshotService::run() {
             activated = true;
 
             // Take screenshot
-            AppManager* appManager = AppManager::getInstance();
-            appManager->renderToCanvas(&canvas);
+            ksystem.apps.renderToCanvas(&canvas);
 
             if (saveScreenshot(&canvas)) {
-                AppManager::getInstance()->startToast(K_S_SCREENSHOT_SAVED);
+                ksystem.apps.startToast(K_S_SCREENSHOT_SAVED);
             } else {
-                AppManager::getInstance()->startToast(K_S_SCREENSHOT_SAVE_ERROR);
+                ksystem.apps.startToast(K_S_SCREENSHOT_SAVE_ERROR);
             }
         } else if (!state.select.pressed || !state.start.pressed) {
             activated = false;

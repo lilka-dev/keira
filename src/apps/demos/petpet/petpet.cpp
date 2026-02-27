@@ -1,17 +1,15 @@
-#include <AnimatedGIF.h>
 
 #include "petpet.h"
 #include "petpet_gif.h"
 #include "utils/defer.h"
 
 // Idea by @imbirWIthSugar
-
 PetPetApp::PetPetApp() : App("PetPet") {
 }
 
-void GIFDraw(GIFDRAW* pDraw) {
+void PetPetApp::GIFDraw(GIFDRAW* pDraw) {
+    auto app = static_cast<PetPetApp*>(pDraw->pUser);
     // Called once per line
-    PetPetApp* app = static_cast<PetPetApp*>(pDraw->pUser);
     if (pDraw->y == 0) {
         // First line of the frame
         app->canvas->fillScreen(lilka::colors::Black);

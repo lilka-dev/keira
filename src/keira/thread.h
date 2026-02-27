@@ -36,19 +36,16 @@
 #include <stdint.h>
 
 //============================================================================
-//  Keira Thread managers
-//============================================================================
-class ThreadManager;
-class AppManager;
-class ServiceManager;
-//////////////////////////////////////////////////////////////////////////////
-
-//============================================================================
 //  Keira Thread casts
 //============================================================================
 #define KT_CLBK_CAST(X)      reinterpret_cast<KeiraCallback>(X)
 #define KT_CLBK_DATA_CAST(X) reinterpret_cast<KeiraCallbackData>(X)
 //////////////////////////////////////////////////////////////////////////////
+
+class ThreadManager;
+class AppManager;
+class ServiceManager;
+class KeiraSystem;
 
 //============================================================================
 //  Keira Thread types
@@ -69,12 +66,12 @@ typedef enum {
 //  Keira Thread states
 //============================================================================
 typedef enum {
-    KTS_RUNING = 0,
-    KTS_READY,
-    KTS_BLOCKED,
-    KTS_SUSPENDED,
-    KTS_DELETED,
-    KTS_INVALID,
+    KTS_RUNING = eRunning,
+    KTS_READY = eReady,
+    KTS_BLOCKED = eBlocked,
+    KTS_SUSPENDED = eSuspended,
+    KTS_DELETED = eDeleted,
+    KTS_INVALID = eInvalid,
     KTS_EXITING
 } KeiraThreadState; // FreeRTOS eTaskState + one additional state
 //////////////////////////////////////////////////////////////////////////////
@@ -88,18 +85,18 @@ typedef enum { KT_PRIO_IDLE, KT_PRIO_DEFAULT, KT_PRIO_MAX } KeiraThreadPriority;
 //////////////////////////////////////////////////////////////////////////////
 
 class KeiraThread {
-    // Allow thread managers to call any private method
     friend ThreadManager;
-    //    friend AppManager;
+    friend AppManager;
     friend ServiceManager;
+    friend KeiraSystem;
 
 public:
     //=======================================================================
     //  Thread Constructors and destructors
     //=======================================================================
     KeiraThread(
-        KeiraCallback clbk = NULL, const char* name = KT_DEFAULT_NAME, uint32_t stackSize = KT_DEFAULT_STACK,
-        KeiraCallbackData data = NULL, KeiraThreadPriority prio = KT_PRIO_DEFAULT, int cpuCore = KT_DEFAULT_CORE
+        KeiraCallback clbk = NULL, const char* ktName = NULL, uint32_t ktStackSize = KT_DEFAULT_STACK,
+        KeiraCallbackData data = NULL, KeiraThreadPriority ktPrio = KT_PRIO_DEFAULT, int ktCore = KT_DEFAULT_CORE
     );
     ~KeiraThread();
     //////////////////////////////////////////////////////////////////////////
@@ -107,11 +104,11 @@ public:
     //  Thread settings
     //=======================================================================
     // Setups priority of current thread
-    void setPriority(KeiraThreadPriority prio);
+    void setPriority(KeiraThreadPriority ktPrio);
     // Setups stack size of current thread. Not applyable in thread runtime
-    void setStackSize(uint32_t stackSize);
+    void setStackSize(uint32_t ktStackSize);
     // Setups CPU core to be pinned to. Not applyable in thread runtime
-    void setCore(int core);
+    void setCore(int ktCore);
     // Retrives priority of current thread
     KeiraThreadPriority getPriority();
     // Retrives stack size of current thread
@@ -126,11 +123,11 @@ public:
     // Get current thread name
     const char* getName();
     // Set current thread name. Not applyable in thread runtime
-    void setName(const char* name);
+    void setName(const char* ktName);
     // Get current thread type
     const KeiraThreadType getType();
     // Set current thread type
-    void setType(KeiraThreadType type);
+    void setType(KeiraThreadType ktType);
     // Get FreeRTOS task handle
     TaskHandle_t getTaskHandle();
     //-----------------------------------------------------------------------
@@ -194,20 +191,20 @@ private:
     //=======================================================================
     //  KeiraThread options and data
     //=======================================================================
-    std::vector<KeiraThreadCallbackInternal> clbkTable;
-    KeiraThreadType type = KT_THREAD;
-    SemaphoreHandle_t lock = xSemaphoreCreateMutex();
+    std::vector<KeiraThreadCallbackInternal> ktClbkTable;
+    KeiraThreadType ktType = KT_THREAD;
+    SemaphoreHandle_t ktLock = xSemaphoreCreateMutex();
     /////////////////////////////////////////////////////////////////////////
 
     //=======================================================================
     //  FreeRTOS options and data:
     //=======================================================================
-    TaskHandle_t taskHandle = NULL;
-    char name[KT_NAME_MAX] = {KT_DEFAULT_NAME};
-    uint32_t stackSize;
-    int core = KT_DEFAULT_CORE;
-    KeiraThreadPriority prio = KT_PRIO_DEFAULT;
-    KeiraThreadState state = KTS_INVALID;
+    TaskHandle_t ktTaskHandle = NULL;
+    char ktName[KT_NAME_MAX] = {KT_DEFAULT_NAME};
+    uint32_t ktStackSize;
+    int ktCore = KT_DEFAULT_CORE;
+    KeiraThreadPriority ktPrio = KT_PRIO_DEFAULT;
+    KeiraThreadState ktState = KTS_INVALID;
     /////////////////////////////////////////////////////////////////////////
     //=======================================================================
     // TODO: STDIO File streams. Might be useful for pipes? :D

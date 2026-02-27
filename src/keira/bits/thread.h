@@ -80,6 +80,6 @@ struct KeiraThreadCallbackInternal {
         KT_DBG lilka::serial.log(                                                                                  \
             "[KThread|%p] Registered %s callback %p, data: %p", this, KEIRA_CLBK_TYPE_ACSTR[CLBK_TYPE], clbk, data \
         );                                                                                                         \
-        clbkTable.push_back({.type = CLBK_TYPE, .clbk = clbk, .data = data});                                      \
+        ktClbkTable.push_back({.type = CLBK_TYPE, .clbk = clbk, .data = data});                                    \
     }
 //////////////////////////////////////////////////////////////////////////////

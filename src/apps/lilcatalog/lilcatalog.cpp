@@ -30,7 +30,7 @@ void LilCatalogApp::run() {
                 mainMenu.update();
                 mainMenu.draw(canvas);
                 if (lilka::controller.peekState().b.justPressed) {
-                    stop();
+                    exit();
                     return;
                 }
                 break;
@@ -982,7 +982,7 @@ void LilCatalogApp::showMainMenu() {
         K_S_LILCATALOG_EMPTY,
         [](void* ctx) {
             LilCatalogApp* app = static_cast<LilCatalogApp*>(ctx);
-            app->stop();
+            app->exit();
         },
         this
     );

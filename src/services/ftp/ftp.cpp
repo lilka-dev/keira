@@ -5,7 +5,7 @@
 FTPService::FTPService() : Service("ftp") {
     NVS_LOCK;
     Preferences prefs;
-    prefs.begin(name, true);
+    prefs.begin(getName(), true);
     password = prefs.getString("password", "");
     prefs.end();
     NVS_UNLOCK;
@@ -69,7 +69,7 @@ void FTPService::createPassword() {
     pwd[FTP_PASSWORD_LENGTH] = 0;
     NVS_LOCK;
     Preferences prefs;
-    prefs.begin(name, false);
+    prefs.begin(getName(), false);
     prefs.putString("password", pwd);
     prefs.end();
     NVS_UNLOCK;

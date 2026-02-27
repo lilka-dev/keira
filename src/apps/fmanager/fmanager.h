@@ -111,7 +111,7 @@
 // /sd/1 => /sd/1122/1
 // no need with status bar
 #define MAKE_SANDWICH(X) \
-    if (0) AppManager::getInstance()->startToast(X)
+    if (0) ksystem.apps.startToast(X)
 
 // Uncomment this line to get some debuging information
 #define FMANAGER_DEBUG

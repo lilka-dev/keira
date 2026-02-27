@@ -30,7 +30,7 @@ NetworkService::NetworkService() :
 void NetworkService::run() {
     // Loading settings from NVS
 
-    bool getEnabled = getEnabled();
+    bool enabled = getEnabled();
     NVS_LOCK;
     Preferences prefs;
     prefs.begin(WIFI_KEIRA_NAMESPACE, true);
@@ -266,9 +266,9 @@ void NetworkService::setNetworkState(NetworkState state) {
     if (this->state != state) {
         this->state = state;
         if (state == NETWORK_STATE_OFFLINE) {
-            AppManager::getInstance()->startToast(K_S_NET_OFFLINE, 2000);
+            ksystem.apps.startToast(K_S_NET_OFFLINE, 2000);
         } else if (state == NETWORK_STATE_ONLINE) {
-            AppManager::getInstance()->startToast(K_S_NET_ONLINE, 2000);
+            ksystem.apps.startToast(K_S_NET_ONLINE, 2000);
         }
     }
 }

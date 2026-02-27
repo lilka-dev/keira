@@ -3,15 +3,11 @@
 #include "apps/statusbar/statusbar.h"
 #include "lilka/controller.h"
 
-AppManager* AppManager::instance = NULL;
+#define MAX_FPS 60
 
-// TODO: integrate in ksystem
-AppManager* AppManager::getInstance() {
-    // TODO: Not thread-safe, but is first called in static context before any tasks are created
-    if (instance == NULL) {
-        instance = new AppManager();
-    }
-    return instance;
+AppManager::AppManager() {
+    setPriority(KT_PRIO_MAX);
+    setCore(0);
 }
 
 // Get the panel app.
@@ -28,117 +24,100 @@ void AppManager::setPanel(App* app) {
     xSemaphoreGive(lock);
 }
 
-/// Spawn a new app
-void AppManager::runApp(App* app, bool autoSuspend) {
-    // Retrieve current task handle
-    TaskHandle_t currentTask = xTaskGetCurrentTaskHandle();
+#define GET_BACK(X) X.empty() ? NULL : X.back()
+void AppManager::threadsRun() {
+    xSemaphoreTake(ThreadManager::lock, portMAX_DELAY);
 
-    xSemaphoreTake(lock, portMAX_DELAY);
+    // Launch new threads
+    for (auto& thread : threadsToRun) {
+        // Suspend previous thread(app)
+        auto topThread = GET_BACK(threads);
+        if (topThread) topThread->suspend();
+        // Launch new one
+        thread->start();
+        threads.push_back(thread);
+    }
+    threadsToRun.clear();
 
-    // Add new app to launch
-    appsToRun.push_back(app);
-
-    xSemaphoreGive(lock);
-
-    K_AMG_DBG lilka::serial.log("Added app %s in appsToRun", app->getName());
-
-    // Suspend current task immediately.
-    // Wait for wakeup in loop()
-    if (autoSuspend) vTaskSuspend(currentTask);
+    xSemaphoreGive(ThreadManager::lock);
 }
 
 /// Performs Apps Run/Stop/Suspend/Draw if necessary
-void AppManager::loop() {
-#define GET_BACK(X) X.empty() ? NULL : X.back()
-    xSemaphoreTake(lock, portMAX_DELAY);
+void AppManager::run() {
+    K_AMG_DBG lilka::serial.log("Starting apps update loop");
+    while (1) {
+        threadsClean();
 
-    // Retrieve top app
-    App* topApp = GET_BACK(apps);
+        threadsRun();
 
-    // Terminate old apps
-    while (topApp && topApp->getExiting()) {
-        // Terminate main app thread
-        topApp->stop();
-        K_AMG_DBG lilka::serial.log("Terminating app %s", topApp->getName());
+        /// LOCK THREADS LIST
+        xSemaphoreTake(ThreadManager::lock, portMAX_DELAY);
 
-        // Cleanup app related data
-        delete topApp;
+        // Retrieve top app[Thread]
+        App* topApp = APP_PCAST(GET_BACK(threads));
 
-        // Switch to next app
-        apps.pop_back();
-        topApp = GET_BACK(apps);
-    }
+        // Ensure topApp still exists
+        if (!topApp) {
+            // shit happened
+            K_AMG_DBG lilka::serial.err("No apps to draw");
 
-    // Spawn new apps
-    if (!appsToRun.empty()) {
-        for (auto& appToRun : appsToRun) {
-            topApp = GET_BACK(apps);
+            // Not sure it would help to restore state :D
+            /// UNLOCK THREADS LIST
+            xSemaphoreGive(ThreadManager::lock);
+            return;
+        }
 
-            if (topApp) {
-                topApp->suspend();
+        // Ensure topApp not sleeping
+        if (topApp->getState() == KTS_SUSPENDED) {
+            // Wake up Neo
+            topApp->resume();
+
+            panel->setRedraw(true);
+        }
+
+        // Draw panel and top app
+        for (App* app : {panel, topApp}) {
+            if (app == panel) {
+                // Check if topApp is fullscreen. If it is, don't draw the panel
+                if (topApp->getFlags() & AppFlags::APP_FLAG_FULLSCREEN) {
+                    continue;
+                }
             }
 
-            // Launch new app
-            topApp = appToRun;
-            apps.push_back(appToRun);
-            topApp->start();
-            K_AMG_DBG lilka::serial.log("Launching app %s", topApp->getName());
-        }
-        appsToRun.clear();
-    }
+            /// LOCK APP CANVAS
+            xSemaphoreTake(app->canvasMutex, portMAX_DELAY);
 
-    // Ensure topApp still exists
-    if (!topApp) {
-        // shit happened
-        K_AMG_DBG lilka::serial.err("No apps to draw");
-
-        // Not sure it would help to restore state :D
-        xSemaphoreGive(lock);
-        return;
-    }
-
-    // Ensure topApp not sleeping
-    if (topApp->getState() == eSuspended) {
-        // Wake up Neo
-        topApp->resume();
-
-        panel->forceRedraw();
-
-        K_AMG_DBG lilka::serial.log("Resuming app %s", topApp->getName());
-    }
-
-    // Draw panel and top app
-    for (App* app : {panel, topApp}) {
-        if (app == panel) {
-            // Check if topApp is fullscreen. If it is, don't draw the panel
-            if (topApp->getFlags() & AppFlags::APP_FLAG_FULLSCREEN) {
-                continue;
+            // Draw toast message on app's canvas to prevent flickering
+            if (millis() < toastEndTime) {
+                renderToast(topApp->backCanvas);
             }
-        }
-        app->acquireBackCanvas();
-        // Draw toast message on app's canvas to prevent flickering
-        if (millis() < toastEndTime) {
-            renderToast(topApp->backCanvas);
-        }
-        if (app->needsRedraw()) {
-            if (app->flags & AppFlags::APP_FLAG_INTERLACED) {
-                lilka::display.drawCanvasInterlaced(app->backCanvas, app->frame % 2);
-            } else {
-                lilka::display.drawCanvas(app->backCanvas);
+            // Redraw app
+            if (app->getRedraw()) {
+                if (app->flags & AppFlags::APP_FLAG_INTERLACED) {
+                    lilka::display.drawCanvasInterlaced(app->backCanvas, app->frame % 2);
+                } else {
+                    lilka::display.drawCanvas(app->backCanvas);
+                }
+                app->setRedraw(false);
             }
-            app->markClean();
+            /// UNLOCK APP CANVAS
+            xSemaphoreGive(app->canvasMutex);
         }
+        /// UNLOCK THREADS LIST
+        xSemaphoreGive(ThreadManager::lock);
 
-        app->releaseBackCanvas();
+        vTaskDelayUntil(&lastAwake, pdMS_TO_TICKS(1000 / MAX_FPS));
+        //        K_AMG_DBG lilka::serial.log("Last awake = %d", lastAwake);
+        //vTaskDelay(pdMS_TO_TICKS(10));
     }
-
-    xSemaphoreGive(lock);
-
-    // Switch to a next thread[task]
-    taskYIELD();
+}
 #undef GET_BACK
+
+void AppManager::spawn(App* app, bool autoSuspend) {
+    ThreadManager::spawn(app, autoSuspend);
 }
 
+// TODO: toasts to be moved in ksystem
 void AppManager::renderToast(lilka::Canvas* canvas) {
     int16_t x, y;
     uint16_t w, h;
@@ -175,13 +154,14 @@ void AppManager::renderToast(lilka::Canvas* canvas) {
 /// Useful for taking screenshots.
 void AppManager::renderToCanvas(lilka::Canvas* canvas) {
     xSemaphoreTake(lock, portMAX_DELAY);
-
+    //    App *topApp =
+    /*
     // Draw panel and top app
-    for (App* app : {panel, apps.back()}) {
-        app->acquireBackCanvas();
+    for (App* app : {panel, threads.back()}) {
+        xSemaphoreTake(app->canvasMutex, portMAX_DELAY);
         canvas->drawCanvas(app->backCanvas);
-        app->releaseBackCanvas();
-    }
+        xSemaphoreGive(app->canvasMutex);
+    }*/
 
     xSemaphoreGive(lock);
 }
@@ -189,8 +169,10 @@ void AppManager::renderToCanvas(lilka::Canvas* canvas) {
 /// Display a toast message.
 void AppManager::startToast(String message, uint64_t duration) {
     xSemaphoreTake(lock, portMAX_DELAY);
+    /*
     toastMessage = message;
     toastStartTime = millis();
     toastEndTime = millis() + duration;
+*/
     xSemaphoreGive(lock);
 }

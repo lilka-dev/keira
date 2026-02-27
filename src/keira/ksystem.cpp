@@ -208,9 +208,6 @@ void KeiraSystem::setup() {
     // Register VFS
     registerFileSystems();
 
-    // Launch appManager
-    this->apps = AppManager::getInstance();
-
     // Send greetings to serial
     showWelcomeMessage();
 
@@ -218,8 +215,17 @@ void KeiraSystem::setup() {
     launchServices();
 
     // Run first apps
-    apps->setPanel(new StatusBarApp());
-    apps->runApp(new LauncherApp(), false);
+    apps.setPanel(new StatusBarApp());
+    apps.spawn(new LauncherApp(), false);
+
+    // Run thread managers
+    apps.start();
+
+    services.start();
+
+    threads.start();
+
+    vTaskDelete(NULL);
 }
 
 // TODO: To be run in separate KeiraThread[TO_IMPLEMENT]
@@ -230,11 +236,10 @@ void KeiraSystem::loop() {
     // Due to no check on NULL in most apps while interacting to services
     // We've to specify it before appManager
     //   services.update();
-    apps->loop();
     // TODO: services and apps managers to be based on a thread manager
-
+    vTaskDelete(NULL);
     // Delay system updates
-    vTaskDelay(pdMS_TO_TICKS(10));
+    //    vTaskDelay(pdMS_TO_TICKS(10));
 }
 
 KeiraSystem ksystem;

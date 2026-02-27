@@ -1606,6 +1606,7 @@ static void startWebServer() {
 }
 
 WebService::WebService() : Service("web") {
+    setStackSize(8192);
     networkService = static_cast<NetworkService*>(ksystem.services["network"]);
 }
 
@@ -1614,7 +1615,6 @@ WebService::~WebService() {
 
 void WebService::run() {
     bool wasOnline = false;
-    setStackSize(16384);
 
     while (true) {
         if (pendingRestart) {

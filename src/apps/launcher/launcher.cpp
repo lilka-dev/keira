@@ -266,14 +266,14 @@ void LauncherApp::run() {
                         ITEM::MENU(
                             K_S_LAUNCHER_CLOCK,
                             [this]() {
-                                    auto statusBar = static_cast<StatusBarApp*>(AppManager::getInstance()->getPanel());
+                                    auto statusBar = static_cast<StatusBarApp*>(ksystem.apps.getPanel());
                                     statusBar->setClockMode((statusBar->getClockMode() + 1));
                             },
                             nullptr,
                             lilka::colors::White,
                             [this](void* item) {
                                     lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
-                                    auto statusBar = static_cast<StatusBarApp*>(AppManager::getInstance()->getPanel());
+                                    auto statusBar = static_cast<StatusBarApp*>(ksystem.apps.getPanel());
                                     switch (statusBar->getClockMode()) {
                                         case 0:
                                             menuItem->postfix = K_S_LAUNCHER_CLOCK_0;
@@ -293,14 +293,14 @@ void LauncherApp::run() {
                         ITEM::MENU(
                             K_S_LAUNCHER_MEM,
                             [this]() {
-                                    auto statusBar = static_cast<StatusBarApp*>(AppManager::getInstance()->getPanel());
+                                    auto statusBar = static_cast<StatusBarApp*>(ksystem.apps.getPanel());
                                     statusBar->setMemMode((statusBar->getMemMode() + 1));
                             },
                             nullptr,
                             lilka::colors::White,
                             [this](void* item) {
                                     lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
-                                    auto statusBar = static_cast<StatusBarApp*>(AppManager::getInstance()->getPanel());
+                                    auto statusBar = static_cast<StatusBarApp*>(ksystem.apps.getPanel());
                                     switch (statusBar->getMemMode()) {
                                         case 0:
                                             menuItem->postfix = K_S_LAUNCHER_MEM_0;
@@ -317,14 +317,14 @@ void LauncherApp::run() {
                         ITEM::MENU(
                             K_S_LAUNCHER_NETWORK,
                             [this]() {
-                                    auto statusBar = static_cast<StatusBarApp*>(AppManager::getInstance()->getPanel());
+                                    auto statusBar = static_cast<StatusBarApp*>(ksystem.apps.getPanel());
                                     statusBar->setNetworkMode((statusBar->getNetworkMode() + 1));
                             },
                             nullptr,
                             lilka::colors::White,
                             [this](void* item) {
                                     lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
-                                    auto statusBar = static_cast<StatusBarApp*>(AppManager::getInstance()->getPanel());
+                                    auto statusBar = static_cast<StatusBarApp*>(ksystem.apps.getPanel());
                                     switch (statusBar->getNetworkMode()) {
                                         case 0:
                                             menuItem->postfix = K_S_LAUNCHER_NETWORK_0;
@@ -338,14 +338,14 @@ void LauncherApp::run() {
                         ITEM::MENU(
                             K_S_LAUNCHER_BATTERY,
                             [this]() {
-                                    auto statusBar = static_cast<StatusBarApp*>(AppManager::getInstance()->getPanel());
+                                    auto statusBar = static_cast<StatusBarApp*>(ksystem.apps.getPanel());
                                     statusBar->setBatteryMode((statusBar->getBatteryMode() + 1));
                             },
                             nullptr,
                             lilka::colors::White,
                             [this](void* item) {
                                     lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
-                                    auto statusBar = static_cast<StatusBarApp*>(AppManager::getInstance()->getPanel());
+                                    auto statusBar = static_cast<StatusBarApp*>(ksystem.apps.getPanel());
                                     switch (statusBar->getBatteryMode()) {
                                         case 0:
                                             menuItem->postfix = K_S_LAUNCHER_BATTERY_0;
@@ -426,7 +426,7 @@ void LauncherApp::showMenu(const char* title, ITEM_LIST& list, bool back) {
 }
 template <typename T, typename... Args>
 void LauncherApp::runApp(Args&&... args) {
-    AppManager::getInstance()->runApp(new T(std::forward<Args>(args)...));
+    ksystem.apps.spawn(new T(std::forward<Args>(args)...));
 }
 void LauncherApp::setWiFiTxPower() {
     String names[] = {
@@ -525,7 +525,7 @@ void LauncherApp::wifiManager() {
         alert(K_S_ERROR, K_S_LAUNCHER_ENABLE_WIFI_FIRST);
         return;
     }
-    AppManager::getInstance()->runApp(new WiFiConfigApp());
+    ksystem.apps.spawn(new WiFiConfigApp());
 }
 void LauncherApp::about() {
     alert(K_S_OS_NAME, K_S_OS_DESCRIPTION);

@@ -26,7 +26,7 @@
 
 #include "keira/bits/threadmanager.h"
 // Uncomment to get debug information
-//#define KEIRA_THREADMANAGER_DEBUG
+#define KEIRA_THREADMANAGER_DEBUG
 
 #define KT_PCAST(X) reinterpret_cast<KeiraThread*>(X)
 
@@ -40,7 +40,10 @@ public:
     // Seek thread by name
     KeiraThread* operator[](const char* name);
 
-    // Performs actual thread updates. run in a separate thread
+    virtual void threadsClean();
+    virtual void threadsRun();
+
+    // Performs launch of thread updates. run in a separate thread
     void run() override;
 
 protected:
