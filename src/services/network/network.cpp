@@ -110,12 +110,12 @@ void NetworkService::run() {
 
     if (enabled) {
         lilka::serial.log("NetworkService: WiFi is enabled, starting auto connection");
-        setNetworkState(NETWORK_STATE_OFFLINE);
+        setnetworkState(NETWORK_STATE_OFFLINE);
         WiFi.mode(WIFI_STA);
         autoConnect();
     } else {
         lilka::serial.log("NetworkService: WiFi is disabled, not starting auto connection");
-        setNetworkState(NETWORK_STATE_DISABLED);
+        setnetworkState(NETWORK_STATE_DISABLED);
         WiFi.disconnect(true, true);
         WiFi.mode(WIFI_OFF);
     }
@@ -206,18 +206,18 @@ bool NetworkService::connect(String ssid) {
 
 // Attempt to connect to a given network with a given password.
 void NetworkService::connect(String ssid, String password) {
-    xSemaphoreTake(mtxNetwork, portMAX_DELAY);
+    KMTX_LOCK(mtxNetwork);
 
     lilka::serial.log("NetworkService: connecting to %s", ssid.c_str());
     lastPassword = password;
     WiFi.disconnect();
     WiFi.begin(ssid.c_str(), password.c_str());
 
-    xSemaphoreGive(mtxNetwork);
+    KMTX_UNLOCK(mtxNetwork);
 }
 
 String NetworkService::getPassword(String ssid) {
-    xSemaphoreTake(mtxNetwork, portMAX_DELAY);
+    KMTX_LOCK(mtxNetwork);
 
     NVS_LOCK;
     Preferences prefs;
@@ -232,7 +232,7 @@ String NetworkService::getPassword(String ssid) {
     prefs.end();
     NVS_UNLOCK;
 
-    xSemaphoreGive(mtxNetwork);
+    KMTX_UNLOCK(mtxNetwork);
 
     return result;
 }

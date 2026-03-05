@@ -91,7 +91,7 @@ int logprint(const char* string) {
 
 int osd_init() {
     xSoundMutex = xSemaphoreCreateMutex();
-    xSemaphoreGive(xSoundMutex);
+    KMTX_UNLOCK(xSoundMutex);
     nofrendo_log_chain_logfunc(logprint);
     osd_init_sound();
     return 0;

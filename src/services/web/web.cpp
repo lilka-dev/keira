@@ -1606,7 +1606,7 @@ static void startWebServer() {
 }
 
 WebService::WebService() : Service("web") {
-    setStackSize(8192);
+    setktStackSize(8192);
     networkService = static_cast<NetworkService*>(ksystem.services["network"]);
 }
 
@@ -1694,7 +1694,7 @@ void WebService::run() {
             continue;
         }
 
-        bool isOnline = networkService->getNetworkState() == NetworkState::NETWORK_STATE_ONLINE;
+        bool isOnline = networkService->getnetworkState() == NetworkState::NETWORK_STATE_ONLINE;
 
         if (getEnabled() && isOnline && !wasOnline) {
             startWebServer();

@@ -3,7 +3,7 @@
 char TASK_STATE_TO_STR[][8] = {"Running", "Ready", "Blocked", "Suspend", "Deleted", "Invalid"};
 
 WatchdogService::WatchdogService() : Service("watchdog") {
-    setStackSize(8192);
+    setktStackSize(8192);
 }
 
 const String WatchdogService::taskTypeToString(TaskType type) {
@@ -25,7 +25,7 @@ const String WatchdogService::affinityToString(BaseType_t affinity) {
 }
 
 void WatchdogService::addTask(const TaskHandle_t& handle, TaskType type) {
-    xSemaphoreTake(xStats, portMAX_DELAY);
+    KMTX_LOCK(xStats);
     WatchdogTaskData wtData = {};
     wtData.type = type;
     wtData.handle = handle;
@@ -35,7 +35,7 @@ void WatchdogService::addTask(const TaskHandle_t& handle, TaskType type) {
     wtData.affinity = xTaskGetAffinity(handle);
     lilka::serial.log("Adding task %s to watchdog", wtData.name.c_str());
     taskStats.push_back(wtData);
-    xSemaphoreGive(xStats);
+    KMTX_UNLOCK(xStats);
 }
 
 void WatchdogService::addCurrentTask(TaskType type) {
@@ -49,7 +49,7 @@ void WatchdogService::run() {
         lilka::serial.log("====================== WATCHDOG DATA ==========================");
         lilka::serial.log("CurFree\tMinFree\tType\tPrio\tCore\tState\tName");
         lilka::serial.log("===============================================================");
-        xSemaphoreTake(xStats, portMAX_DELAY); // lock unlock
+        KMTX_LOCK(xStats); // lock unlock
 
         for (auto ts = taskStats.begin(); ts < taskStats.end();) {
             auto taskState = ts->handle ? eTaskGetState(ts->handle) : eDeleted;
@@ -80,7 +80,7 @@ void WatchdogService::run() {
                 ts = taskStats.erase(ts);
             } else ts++;
         }
-        xSemaphoreGive(xStats);
+        KMTX_UNLOCK(xStats);
 
         // Get free RAM
 

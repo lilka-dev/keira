@@ -11,7 +11,7 @@
 //  Thread Constructors and destructors
 //=============================================================================
 KeiraThread::KeiraThread(
-    KeiraCallback clbk, const char* ktName, uint32_t ktStackSize, KeiraCallbackData data, KeiraThreadPriority ktPrio,
+    KeiraCallback clbk, const char* ktName, uint32_t ktStackSize, KeiraCallbackData data, KeiraThreadPriority ktPriority,
     int ktCore
 ) {
     if (clbk) setupOnEntryCallback(clbk, data);
@@ -19,9 +19,9 @@ KeiraThread::KeiraThread(
     if (ktName) setName(ktName);
     else setName(KT_DEFAULT_NAME);
 
-    setStackSize(ktStackSize);
-    setCore(ktCore);
-    setPriority(ktPrio);
+    setktStackSize(ktStackSize);
+    setktCore(ktCore);
+    setktPriority(ktPriority);
 }
 //-----------------------------------------------------------------------------
 KeiraThread::~KeiraThread() {
@@ -86,34 +86,7 @@ void KeiraThread::setName(const char* ktName) {
 
     KMTX_UNLOCK(ktLock);
 }
-//-----------------------------------------------------------------------------
-const KeiraThreadType KeiraThread::getType() {
-    KMTX_LOCK(ktLock);
 
-    auto tmpType = ktType;
-
-    KMTX_UNLOCK(ktLock);
-
-    return tmpType;
-}
-//-----------------------------------------------------------------------------
-void KeiraThread::setType(KeiraThreadType ktType) {
-    KMTX_LOCK(ktLock);
-
-    this->ktType = ktType;
-
-    KMTX_UNLOCK(ktLock);
-}
-//-----------------------------------------------------------------------------
-TaskHandle_t KeiraThread::getTaskHandle() {
-    KMTX_LOCK(ktLock);
-
-    auto tmpHandle = ktTaskHandle;
-
-    KMTX_UNLOCK(ktLock);
-
-    return tmpHandle;
-}
 ///////////////////////////////////////////////////////////////////////////////
 #define LAUNCH_CALLBACKS(CLBK_TYPE)                                   \
     KMTX_LOCK(ktLock);                                                \
@@ -176,7 +149,7 @@ void KeiraThread::start() {
             ktName,
             ktStackSize,
             this,
-            ktPrio,
+            ktPriority,
             &ktTaskHandle,
             ktCore
         ) != pdPASS) {

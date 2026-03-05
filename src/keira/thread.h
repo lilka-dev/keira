@@ -100,7 +100,7 @@ public:
     //=======================================================================
     explicit KeiraThread(
         KeiraCallback clbk = NULL, const char* ktName = NULL, uint32_t ktStackSize = KT_DEFAULT_STACK,
-        KeiraCallbackData data = NULL, KeiraThreadPriority ktPrio = KT_PRIO_DEFAULT, int ktCore = KT_DEFAULT_CORE
+        KeiraCallbackData data = NULL, KeiraThreadPriority ktPriority = KT_PRIO_DEFAULT, int ktCore = KT_DEFAULT_CORE
     );
     ~KeiraThread();
     //////////////////////////////////////////////////////////////////////////
@@ -108,7 +108,7 @@ public:
     //  Thread settings
     //=======================================================================
     // Setups/Retrieves priority of current thread
-    KMTX_SETER_GETER(KeiraThreadPriority, ktPrio, ktLock);
+    KMTX_SETER_GETER(KeiraThreadPriority, ktPriority, ktLock);
     // Setups/Retrieves stack size of current thread. Not applyable in thread
     // runtime
     KMTX_SETER_GETER(uint32_t, ktStackSize, ktLock);
@@ -118,18 +118,14 @@ public:
     //=======================================================================
     //  Thread stats/states/information
     //=======================================================================
-    // Get current thread state
+    // Retrieves current thread state
     const KeiraThreadState getState();
-    // Get current thread name
+    // Retrieves current thread name
     const char* getName();
-    // Set current thread name. Not applyable in thread runtime
+    // Setups current thread name. Not applyable in thread runtime
     void setName(const char* ktName);
-
+    // Setups/Retrives Keira thread type
     KMTX_SETER_GETER(KeiraThreadType, ktType, ktLock);
-    // Get current thread type
-    const KeiraThreadType getType();
-    // Set current thread type
-    void setType(KeiraThreadType ktType);
     // Get FreeRTOS task handle
     KMTX_GETER(TaskHandle_t, ktTaskHandle, ktLock);
     //-----------------------------------------------------------------------
@@ -205,7 +201,7 @@ private:
     char ktName[KT_NAME_MAX] = {};
     uint32_t ktStackSize;
     int ktCore = KT_DEFAULT_CORE;
-    KeiraThreadPriority ktPrio = KT_PRIO_DEFAULT;
+    KeiraThreadPriority ktPriority = KT_PRIO_DEFAULT;
     KeiraThreadState ktState = KTS_INVALID;
     /////////////////////////////////////////////////////////////////////////
     //=======================================================================

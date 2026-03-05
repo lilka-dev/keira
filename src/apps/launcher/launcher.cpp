@@ -60,7 +60,7 @@
 
 LauncherApp::LauncherApp() : App("Launcher") {
     networkService = static_cast<NetworkService*>(ksystem.services["network"]);
-    setStackSize(8192); // Yeah, this one is heavy as fuck
+    setktStackSize(8192); // Yeah, this one is heavy as fuck
 }
 
 void LauncherApp::run() {

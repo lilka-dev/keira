@@ -9,7 +9,7 @@ FileManagerApp::FileManagerApp(const String& path) :
     mkdirInput(K_S_FMANAGER_ENTER_NEW_FOLDER_NAME),
     renameInput(K_S_FMANAGER_ENTER_NEW_NAME) {
     // MISC APP OPTIONS:
-    setStackSize(8192);
+    setktStackSize(8192);
     // FILE OPTIONS MENU SETUP:
     fileOptionsMenu.setTitle(K_S_FMANAGER_OPTIONS);
     fileOptionsMenu.addItem(

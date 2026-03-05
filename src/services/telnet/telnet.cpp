@@ -323,7 +323,7 @@ void TelnetService::run() {
             vTaskDelay(1000 / portTICK_PERIOD_MS);
             continue;
         }
-        bool isOnline = network->getNetworkState() == NetworkState::NETWORK_STATE_ONLINE;
+        bool isOnline = network->getnetworkState() == NetworkState::NETWORK_STATE_ONLINE;
         if ((getEnabled() && isOnline) && !wasOnline) {
             wasOnline = true;
             // Start telnet server

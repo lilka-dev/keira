@@ -11,7 +11,7 @@ void ClockService::run() {
             vTaskDelay(1000 / portTICK_PERIOD_MS);
             continue;
         }
-        if (network->getNetworkState() == NetworkState::NETWORK_STATE_ONLINE) {
+        if (network->getnetworkState() == NetworkState::NETWORK_STATE_ONLINE) {
             lilka::serial.log("ClockService: Setting time from NTP server");
             configTzTime(MYTZ, "ua.pool.ntp.org", "pool.ntp.org");
             // Delay for 12 hours

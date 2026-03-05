@@ -20,7 +20,7 @@ static const char* detectAudioType(const String& path) {
 }
 
 MadPlayerApp::MadPlayerApp(String path) : App("MadPlayer") {
-    setCore(1);
+    setktCore(1);
     fileName = path;
 
     auto statusBar = static_cast<StatusBarApp*>(ksystem.apps.getPanel());

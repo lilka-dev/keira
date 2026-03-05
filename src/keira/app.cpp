@@ -12,9 +12,9 @@
 App::App(const char* name) {
     if (name) setName(name);
     else setName(APP_DEFAULT_NAME);
-    setStackSize(APP_DEFAULT_STACK);
-    setPriority(APP_DEFAULT_PRIO);
-    setCore(APP_DEFAULT_CORE);
+    setktStackSize(APP_DEFAULT_STACK);
+    setktPriority(APP_DEFAULT_PRIO);
+    setktCore(APP_DEFAULT_CORE);
 
     // Set inital drawing flags
     if (!(flags & APP_DRAWING_FLAGS)) {
@@ -23,12 +23,12 @@ App::App(const char* name) {
 }
 //-----------------------------------------------------------------------------
 App::~App() {
-    xSemaphoreTake(canvasMutex, portMAX_DELAY);
+    KMTX_LOCK(canvasMutex);
 
     if (canvas) delete canvas;
     if (backCanvas) delete backCanvas;
 
-    xSemaphoreGive(canvasMutex);
+    KMTX_UNLOCK(canvasMutex);
 }
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -93,7 +93,7 @@ void App::setRedraw(bool redraw) {
 }
 //-----------------------------------------------------------------------------
 void App::initCanvas() {
-    xSemaphoreTake(canvasMutex, portMAX_DELAY);
+    KMTX_LOCK(canvasMutex);
 
     auto oldCanvas = canvas;
     auto oldBackCanvas = backCanvas;
@@ -135,7 +135,7 @@ void App::initCanvas() {
 
         // how to make it less ugly ? :D
         if ((cx == bx) && (cy == by) && (cw == bw) && (ch == bh) && (cy == y) && (cx == x) && (cw == w) && (ch == h)) {
-            xSemaphoreGive(canvasMutex);
+            KMTX_UNLOCK(canvasMutex);
             return;
         }
     }
@@ -152,11 +152,11 @@ void App::initCanvas() {
     if (oldCanvas) delete oldCanvas;
     if (oldBackCanvas) delete oldBackCanvas;
 
-    xSemaphoreGive(canvasMutex);
+    KMTX_UNLOCK(canvasMutex);
 }
 //-----------------------------------------------------------------------------
 void App::queueDraw() {
-    xSemaphoreTake(canvasMutex, portMAX_DELAY);
+    KMTX_LOCK(canvasMutex);
 
     // Detect if frame was skipped. Need to readjust priorities in this case
     KAPP_DBG if (frame && redraw) {
@@ -175,5 +175,5 @@ void App::queueDraw() {
 
     setRedraw(true);
 
-    xSemaphoreGive(canvasMutex);
+    KMTX_UNLOCK(canvasMutex);
 }

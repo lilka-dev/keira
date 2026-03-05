@@ -2,12 +2,12 @@
 
 ThreadManager::ThreadManager() {
     //    setName(KEIRA_THREADMANAGER_NAME);
-    setPriority(KEIRA_THREADMANAGER_PRIORITY);
-    setCore(KEIRA_THREADMANAGER_CPU);
+    setktPriority(KEIRA_THREADMANAGER_PRIORITY);
+    setktCore(KEIRA_THREADMANAGER_CPU);
 }
 
 void ThreadManager::spawn(KeiraThread* thread, bool autoSuspend) {
-    KMTX_LOCK(lock, portMAX_DELAY);
+    KMTX_LOCK(lock);
     // Add new thread to launch
     threadsToRun.push_back(thread);
 

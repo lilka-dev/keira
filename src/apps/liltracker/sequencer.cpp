@@ -16,8 +16,8 @@ Sequencer::Sequencer(Sink* sink) :
     playstate.eventIndex = 0;
     playstate.track = NULL;
 
-    xSemaphoreGive(xMutex);
-    xSemaphoreGive(xPlaying);
+    KMTX_UNLOCK(xMutex);
+    KMTX_UNLOCK(xPlaying);
 
     memset(audioBufferCopy, 0, sizeof(int16_t) * SYNTH_BUFFER_SIZE);
     for (uint8_t channelIndex = 0; channelIndex < CHANNEL_COUNT; channelIndex++) {
@@ -43,7 +43,7 @@ void Sequencer::play(Track* track, uint16_t pageIndex, int8_t channelIndex, uint
         }
     }
 
-    xSemaphoreTake(xPlaying, portMAX_DELAY);
+    KMTX_LOCK(xPlaying);
     playstate.track = track;
     playstate.pageIndex = pageIndex;
     playstate.channelIndex = channelIndex;
@@ -56,7 +56,7 @@ void Sequencer::play(Track* track, uint16_t pageIndex, int8_t channelIndex, uint
             [](void* pvParameters) {
                 Sequencer* sequencer = static_cast<Sequencer*>(pvParameters);
                 sequencer->singleEventTask();
-                xSemaphoreGive(sequencer->xPlaying);
+                KMTX_UNLOCK(sequencer->xPlaying);
                 vTaskDelete(NULL);
             },
             "sequencerTask",
@@ -67,7 +67,7 @@ void Sequencer::play(Track* track, uint16_t pageIndex, int8_t channelIndex, uint
             0
         ) != pdPASS) {
         lilka::serial.log("Failed to create sequencer task");
-        xSemaphoreGive(xPlaying);
+        KMTX_UNLOCK(xPlaying);
     }
 }
 
@@ -79,7 +79,7 @@ void Sequencer::play(Track* track, uint16_t pageIndex, bool loopTrack) {
         }
     }
 
-    xSemaphoreTake(xPlaying, portMAX_DELAY);
+    KMTX_LOCK(xPlaying);
     playstate.track = track;
     playstate.pageIndex = pageIndex;
     playstate.channelIndex = -1;
@@ -92,7 +92,7 @@ void Sequencer::play(Track* track, uint16_t pageIndex, bool loopTrack) {
             [](void* pvParameters) {
                 Sequencer* sequencer = static_cast<Sequencer*>(pvParameters);
                 sequencer->multiEventTask();
-                xSemaphoreGive(sequencer->xPlaying);
+                KMTX_UNLOCK(sequencer->xPlaying);
                 vTaskDelete(NULL);
             },
             "sequencerTask",
@@ -103,7 +103,7 @@ void Sequencer::play(Track* track, uint16_t pageIndex, bool loopTrack) {
             0
         ) != pdPASS) {
         lilka::serial.log("Failed to create sequencer task");
-        xSemaphoreGive(xPlaying);
+        KMTX_UNLOCK(xPlaying);
     }
 }
 

@@ -6,6 +6,7 @@
 #include <AudioOutputI2S.h>
 
 #include <lilka.h>
+#include "keira/mutex.h"
 
 #include "audioplayer.h"
 
@@ -96,40 +97,40 @@ void AudioPlayer::audioTaskFunc(void* arg) {
                     if (self->generator) {
                         self->generator->stop();
                     }
-                    xSemaphoreTake(self->mutex, portMAX_DELAY);
+                    KMTX_LOCK(self->mutex);
                     self->playing = false;
                     self->paused = false;
                     self->finished = true;
-                    xSemaphoreGive(self->mutex);
+                    KMTX_UNLOCK(self->mutex);
                     // Suspend instead of self-delete — let stopInternal() delete us
                     // so the task stack is freed immediately by the caller
                     vTaskSuspend(NULL);
                     return;
                 case AUDIO_CMD_PAUSE:
-                    xSemaphoreTake(self->mutex, portMAX_DELAY);
+                    KMTX_LOCK(self->mutex);
                     self->paused = true;
-                    xSemaphoreGive(self->mutex);
+                    KMTX_UNLOCK(self->mutex);
                     break;
                 case AUDIO_CMD_RESUME:
-                    xSemaphoreTake(self->mutex, portMAX_DELAY);
+                    KMTX_LOCK(self->mutex);
                     self->paused = false;
-                    xSemaphoreGive(self->mutex);
+                    KMTX_UNLOCK(self->mutex);
                     break;
                 case AUDIO_CMD_SET_GAIN:
-                    xSemaphoreTake(self->mutex, portMAX_DELAY);
+                    KMTX_LOCK(self->mutex);
                     self->gain = cmd.gain;
                     if (self->gain < 0) self->gain = 0;
                     if (self->gain > 4) self->gain = 4;
-                    xSemaphoreGive(self->mutex);
+                    KMTX_UNLOCK(self->mutex);
                     self->output->SetGain(self->gain);
                     break;
             }
         }
 
-        xSemaphoreTake(self->mutex, portMAX_DELAY);
+        KMTX_LOCK(self->mutex);
         bool currentPaused = self->paused;
         bool currentFinished = self->finished;
-        xSemaphoreGive(self->mutex);
+        KMTX_UNLOCK(self->mutex);
 
         if (currentFinished) {
             vTaskSuspend(NULL);
@@ -140,10 +141,10 @@ void AudioPlayer::audioTaskFunc(void* arg) {
             if (!self->generator->loop()) {
                 // Track finished
                 self->generator->stop();
-                xSemaphoreTake(self->mutex, portMAX_DELAY);
+                KMTX_LOCK(self->mutex);
                 self->playing = false;
                 self->finished = true;
-                xSemaphoreGive(self->mutex);
+                KMTX_UNLOCK(self->mutex);
                 // Suspend instead of self-delete — let stopInternal() delete us
                 vTaskSuspend(NULL);
                 return;

@@ -3,9 +3,9 @@
 #include "keira/ksystem.h"
 Service::Service(const char* name) {
     setName(name);
-    setStackSize(4096);
-    setPriority(KT_PRIO_IDLE);
-    setType(KT_SERVICE);
+    setktStackSize(4096);
+    setktPriority(KT_PRIO_IDLE);
+    setktType(KT_SERVICE);
     NVS_LOCK;
     Preferences prefs;
     prefs.begin(getName(), true);

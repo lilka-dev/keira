@@ -6,8 +6,8 @@
 #define MAX_FPS 60
 
 AppManager::AppManager() {
-    setPriority(KT_PRIO_MAX);
-    setCore(0);
+    setktPriority(KT_PRIO_MAX);
+    setktCore(0);
 }
 
 // Get the panel app.
