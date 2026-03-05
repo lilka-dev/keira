@@ -11,4 +11,7 @@ public:
     Service(const char* name);
     bool getEnabled();
     void setEnabled(bool enabled);
+
+private:
+    bool enabled = false;
 };

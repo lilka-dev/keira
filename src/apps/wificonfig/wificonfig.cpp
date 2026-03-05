@@ -180,23 +180,23 @@ void WiFiConfigApp::run() {
         queueDraw();
 
         // // Wait for the adapter to start connecting
-        // while (networkService->getNetworkState() != NETWORK_STATE_CONNECTING &&
-        //        networkService->getNetworkState() != NETWORK_STATE_ONLINE) {
+        // while (networkService->getnetworkState() != NETWORK_STATE_CONNECTING &&
+        //        networkService->getnetworkState() != NETWORK_STATE_ONLINE) {
         //     taskYIELD();
         // }
         // // Wait for the adapter to finish connecting
-        // while (networkService->getNetworkState() == NETWORK_STATE_CONNECTING) {
+        // while (networkService->getnetworkState() == NETWORK_STATE_CONNECTING) {
         //     taskYIELD();
         // }
         // Wait for the adapter to start connecting (it can briefly enter DISCONNECTED state)
         vTaskDelay(1000 / portTICK_PERIOD_MS);
         // Wait for the adapter to finish connecting
-        while (networkService->getNetworkState() == NETWORK_STATE_CONNECTING) {
+        while (networkService->getnetworkState() == NETWORK_STATE_CONNECTING) {
             taskYIELD();
         }
 
         lilka::Alert alert("", "");
-        bool success = networkService->getNetworkState() == NETWORK_STATE_ONLINE;
+        bool success = networkService->getnetworkState() == NETWORK_STATE_ONLINE;
         if (success) {
             alert.setTitle(K_S_SUCCESS);
             alert.setMessage(StringFormat(K_S_WIFI_CONFIG_CONNECTED_TO_NETWORK_FMT, ssid.c_str()));

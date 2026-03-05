@@ -3,7 +3,7 @@
 #include <WiFi.h>
 #include "keira/service.h"
 
-#define WIFI_KEIRA_NAMESPACE "kwifi"
+#include "keira/mutex.h"
 
 enum NetworkState {
     NETWORK_STATE_DISABLED,
@@ -15,24 +15,32 @@ enum NetworkState {
 class NetworkService : public Service {
 public:
     NetworkService();
-    // void configure(String ssid, String password);
-    NetworkState getNetworkState();
-    int getSignalStrength();
     bool connect(String ssid);
     void connect(String ssid, String password);
+    // This one is special, cause takes stuff from NVS
     String getPassword(String ssid);
-    String getIpAddr();
+    KMTX_GETER(NetworkState, networkState, mtxNetwork);
+    KMTX_GETER(int8_t, signalStrength, mtxNetwork);
+    KMTX_GETER(String, ipAddr, mtxNetwork);
 
 private:
+    // util
+    static String hash(String input);
+
     void run() override;
     void autoConnect();
-    String hash(String input);
-    void setNetworkState(NetworkState state);
 
-    SemaphoreHandle_t mutex;
-    NetworkState state;
-    int reason;
-    int8_t signalStrength; // Value in range [0,3]
-    String lastPassword;
-    String ipAddr;
+    KMTX_SETER(NetworkState, networkState, mtxNetwork);
+    KMTX_SETER(int, disconnectReason, mtxNetwork);
+    KMTX_SETER(int8_t, signalStrength, mtxNetwork);
+    KMTX_SETER(String, lastPassword, mtxNetwork);
+    KMTX_SETER(String, ipAddr, mtxNetwork);
+
+    SemaphoreHandle_t mtxNetwork = xSemaphoreCreateMutex();
+
+    NetworkState networkState = NETWORK_STATE_OFFLINE;
+    int disconnectReason = 0;
+    int8_t signalStrength = 0; // Value in range [0,3]
+    String lastPassword = ""; // wtf is that
+    String ipAddr = "";
 };

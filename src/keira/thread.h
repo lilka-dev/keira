@@ -25,6 +25,7 @@
 // Uncomment this line to get debugging information
 #define KEIRA_THREAD_DEBUG
 #include "keira/bits/thread.h"
+#include "keira/mutex.h"
 
 // TODO: move to keira/bits/thread
 // TODO: check max RTOS thread name length
@@ -84,6 +85,9 @@ typedef enum { KT_PRIO_IDLE, KT_PRIO_DEFAULT, KT_PRIO_MAX } KeiraThreadPriority;
 // TODO: portPRIVELEGE_BIT ?
 //////////////////////////////////////////////////////////////////////////////
 
+// Thread name type
+typedef const char* threadNameType_t;
+
 class KeiraThread {
     friend ThreadManager;
     friend AppManager;
@@ -94,7 +98,7 @@ public:
     //=======================================================================
     //  Thread Constructors and destructors
     //=======================================================================
-    KeiraThread(
+    explicit KeiraThread(
         KeiraCallback clbk = NULL, const char* ktName = NULL, uint32_t ktStackSize = KT_DEFAULT_STACK,
         KeiraCallbackData data = NULL, KeiraThreadPriority ktPrio = KT_PRIO_DEFAULT, int ktCore = KT_DEFAULT_CORE
     );
@@ -103,18 +107,14 @@ public:
     //=======================================================================
     //  Thread settings
     //=======================================================================
-    // Setups priority of current thread
-    void setPriority(KeiraThreadPriority ktPrio);
-    // Setups stack size of current thread. Not applyable in thread runtime
-    void setStackSize(uint32_t ktStackSize);
-    // Setups CPU core to be pinned to. Not applyable in thread runtime
-    void setCore(int ktCore);
-    // Retrives priority of current thread
-    KeiraThreadPriority getPriority();
-    // Retrives stack size of current thread
-    uint32_t getStackSize();
-    // Retrives current cpu core thread pinned to
-    int getCore();
+    // Setups/Retrieves priority of current thread
+    KMTX_SETER_GETER(KeiraThreadPriority, ktPrio, ktLock);
+    // Setups/Retrieves stack size of current thread. Not applyable in thread
+    // runtime
+    KMTX_SETER_GETER(uint32_t, ktStackSize, ktLock);
+    // Setups/Retrieves CPU core to be pinned to. Not applyable in thread
+    // runtime
+    KMTX_SETER_GETER(int, ktCore, ktLock);
     //=======================================================================
     //  Thread stats/states/information
     //=======================================================================
@@ -124,12 +124,14 @@ public:
     const char* getName();
     // Set current thread name. Not applyable in thread runtime
     void setName(const char* ktName);
+
+    KMTX_SETER_GETER(KeiraThreadType, ktType, ktLock);
     // Get current thread type
     const KeiraThreadType getType();
     // Set current thread type
     void setType(KeiraThreadType ktType);
     // Get FreeRTOS task handle
-    TaskHandle_t getTaskHandle();
+    KMTX_GETER(TaskHandle_t, ktTaskHandle, ktLock);
     //-----------------------------------------------------------------------
     // TODO: mem/etc...
     /////////////////////////////////////////////////////////////////////////
@@ -200,7 +202,7 @@ private:
     //  FreeRTOS options and data:
     //=======================================================================
     TaskHandle_t ktTaskHandle = NULL;
-    char ktName[KT_NAME_MAX] = {KT_DEFAULT_NAME};
+    char ktName[KT_NAME_MAX] = {};
     uint32_t ktStackSize;
     int ktCore = KT_DEFAULT_CORE;
     KeiraThreadPriority ktPrio = KT_PRIO_DEFAULT;

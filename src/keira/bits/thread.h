@@ -77,9 +77,11 @@ struct KeiraThreadCallbackInternal {
 // == Callback registration macro
 #define KT_REG_CLBK(CLBK_TYPE)                                                                                     \
     {                                                                                                              \
+        xSemaphoreTake(ktLock, portMAX_DELAY);                                                                     \
         KT_DBG lilka::serial.log(                                                                                  \
             "[KThread|%p] Registered %s callback %p, data: %p", this, KEIRA_CLBK_TYPE_ACSTR[CLBK_TYPE], clbk, data \
         );                                                                                                         \
         ktClbkTable.push_back({.type = CLBK_TYPE, .clbk = clbk, .data = data});                                    \
+        xSemaphoreGive(ktLock);                                                                                    \
     }
 //////////////////////////////////////////////////////////////////////////////

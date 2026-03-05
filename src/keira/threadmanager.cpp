@@ -1,5 +1,4 @@
 #include "threadmanager.h"
-#
 
 ThreadManager::ThreadManager() {
     //    setName(KEIRA_THREADMANAGER_NAME);
@@ -8,47 +7,47 @@ ThreadManager::ThreadManager() {
 }
 
 void ThreadManager::spawn(KeiraThread* thread, bool autoSuspend) {
-    xSemaphoreTake(lock, portMAX_DELAY);
+    KMTX_LOCK(lock, portMAX_DELAY);
     // Add new thread to launch
     threadsToRun.push_back(thread);
 
-    xSemaphoreGive(lock);
+    KMTX_UNLOCK(lock);
 
     K_TMG_DBG lilka::serial.log("Added thread %s in threadsToRun", thread->getName());
 };
 
 KeiraThread* ThreadManager::operator[](const char* name) {
-    xSemaphoreTake(lock, portMAX_DELAY);
+    KMTX_LOCK(lock);
     for (auto& thread : threads) {
         if (strcmp(thread->getName(), name) == 0) {
-            xSemaphoreGive(lock);
+            KMTX_UNLOCK(lock);
             return thread;
         }
     }
 
-    xSemaphoreGive(lock);
+    KMTX_UNLOCK(lock);
 
     return NULL;
 }
 
 void ThreadManager::threadsClean() {
-    xSemaphoreTake(lock, portMAX_DELAY);
+    KMTX_LOCK(lock);
 
     // Terminate exiting threads
     if (!threads.empty())
         for (auto thread = threads.begin(); thread < threads.end();) {
             if ((*thread)->getState() == KTS_EXITING) {
                 auto curThread = *thread;
-                threads.erase(thread);
+                thread = threads.erase(thread);
                 delete curThread;
             } else thread++;
         }
 
-    xSemaphoreGive(lock);
+    KMTX_UNLOCK(lock);
 }
 
 void ThreadManager::threadsRun() {
-    xSemaphoreTake(lock, portMAX_DELAY);
+    KMTX_LOCK(lock);
 
     // Launch new threads
     for (auto& thread : threadsToRun) {
@@ -57,7 +56,7 @@ void ThreadManager::threadsRun() {
     }
     threadsToRun.clear();
 
-    xSemaphoreGive(lock);
+    KMTX_UNLOCK(lock);
 }
 
 void ThreadManager::run() {

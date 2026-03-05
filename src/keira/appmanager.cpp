@@ -1,8 +1,8 @@
 #include "keira/appmanager.h"
 #include <lilka/default_splash.h>
 #include "apps/statusbar/statusbar.h"
-#include "lilka/controller.h"
-
+#include <lilka/controller.h>
+#include "keira/thread.h"
 #define MAX_FPS 60
 
 AppManager::AppManager() {
@@ -18,20 +18,21 @@ App* AppManager::getPanel() {
 /// Set the panel app.
 /// Panel app is drawn separately from the other apps on the top of the screen.
 void AppManager::setPanel(App* app) {
-    xSemaphoreTake(lock, portMAX_DELAY);
+    KMTX_LOCK(lock);
     panel = app;
     panel->start();
-    xSemaphoreGive(lock);
+    KMTX_UNLOCK(lock);
 }
 
 #define GET_BACK(X) X.empty() ? NULL : X.back()
 void AppManager::threadsRun() {
-    xSemaphoreTake(ThreadManager::lock, portMAX_DELAY);
+    KMTX_LOCK(ThreadManager::lock);
 
     // Launch new threads
     for (auto& thread : threadsToRun) {
         // Suspend previous thread(app)
         auto topThread = GET_BACK(threads);
+
         if (topThread) topThread->suspend();
         // Launch new one
         thread->start();
@@ -39,19 +40,19 @@ void AppManager::threadsRun() {
     }
     threadsToRun.clear();
 
-    xSemaphoreGive(ThreadManager::lock);
+    KMTX_UNLOCK(ThreadManager::lock);
 }
 
 /// Performs Apps Run/Stop/Suspend/Draw if necessary
 void AppManager::run() {
     K_AMG_DBG lilka::serial.log("Starting apps update loop");
     while (1) {
-        threadsClean();
-
         threadsRun();
 
+        threadsClean();
+
         /// LOCK THREADS LIST
-        xSemaphoreTake(ThreadManager::lock, portMAX_DELAY);
+        KMTX_LOCK(ThreadManager::lock);
 
         // Retrieve top app[Thread]
         App* topApp = APP_PCAST(GET_BACK(threads));
@@ -63,7 +64,7 @@ void AppManager::run() {
 
             // Not sure it would help to restore state :D
             /// UNLOCK THREADS LIST
-            xSemaphoreGive(ThreadManager::lock);
+            KMTX_UNLOCK(ThreadManager::lock);
             return;
         }
 
@@ -85,7 +86,7 @@ void AppManager::run() {
             }
 
             /// LOCK APP CANVAS
-            xSemaphoreTake(app->canvasMutex, portMAX_DELAY);
+            KMTX_LOCK(app->canvasMutex);
 
             // Draw toast message on app's canvas to prevent flickering
             if (millis() < toastEndTime) {
@@ -101,11 +102,11 @@ void AppManager::run() {
                 app->setRedraw(false);
             }
             /// UNLOCK APP CANVAS
-            xSemaphoreGive(app->canvasMutex);
+            KMTX_UNLOCK(app->canvasMutex);
         }
         /// UNLOCK THREADS LIST
-        xSemaphoreGive(ThreadManager::lock);
-
+        KMTX_UNLOCK(ThreadManager::lock);
+        //  taskYIELD();
         vTaskDelayUntil(&lastAwake, pdMS_TO_TICKS(1000 / MAX_FPS));
         //        K_AMG_DBG lilka::serial.log("Last awake = %d", lastAwake);
         //vTaskDelay(pdMS_TO_TICKS(10));
@@ -114,10 +115,27 @@ void AppManager::run() {
 #undef GET_BACK
 
 void AppManager::spawn(App* app, bool autoSuspend) {
-    ThreadManager::spawn(app, autoSuspend);
+    // Reset controller state on launch
+    app->setupOnEntryCallback(KT_CLBK_CAST(&lilka::Controller::resetState), KT_CLBK_DATA_CAST(&lilka::controller));
+    // Reset controler state on resume
+    app->setupOnResumeCallback(KT_CLBK_CAST(&lilka::Controller::resetState), KT_CLBK_DATA_CAST(&lilka::controller));
+    // Do spawn
+    // Here is a tradeoff, cause app launching is tightened a lot to
+    // redrawing(why shouldn't?), most of the time we may do an absolutely
+    // non-needed for us checks on existing apps, non-existing/existing toasts,
+    // while hardware still won't be able to process them effectively
+    // throwing away power of one of CPU cores.
+    //
+    // To reduce this effect, we limited FPS to MAX_FPS in a redrawing
+    if (!(this->operator[](app->getName()))) {
+        ThreadManager::spawn(app, autoSuspend);
+    } else {
+        // Delete app immediately
+        delete app;
+        K_AMG_DBG lilka::serial.err("Trying to launch already run app. Skipping...");
+    }
 }
 
-// TODO: toasts to be moved in ksystem
 void AppManager::renderToast(lilka::Canvas* canvas) {
     int16_t x, y;
     uint16_t w, h;
@@ -153,26 +171,26 @@ void AppManager::renderToast(lilka::Canvas* canvas) {
 /// Render panel and top app to the given canvas.
 /// Useful for taking screenshots.
 void AppManager::renderToCanvas(lilka::Canvas* canvas) {
-    xSemaphoreTake(lock, portMAX_DELAY);
+    KMTX_LOCK(lock);
     //    App *topApp =
     /*
     // Draw panel and top app
-    for (App* app : {panel, threads.back()}) {
-        xSemaphoreTake(app->canvasMutex, portMAX_DELAY);
+    for (App* app : {panel, APP_PCAST(threads.back())}) {
+        KMTX_LOCK(app->canvasMutex, portMAX_DELAY);
         canvas->drawCanvas(app->backCanvas);
-        xSemaphoreGive(app->canvasMutex);
+        KMTX_UNLOCK(app->canvasMutex);
     }*/
 
-    xSemaphoreGive(lock);
+    KMTX_UNLOCK(lock);
 }
 
 /// Display a toast message.
 void AppManager::startToast(String message, uint64_t duration) {
-    xSemaphoreTake(lock, portMAX_DELAY);
+    KMTX_LOCK(lock);
     /*
     toastMessage = message;
     toastStartTime = millis();
     toastEndTime = millis() + duration;
 */
-    xSemaphoreGive(lock);
+    KMTX_UNLOCK(lock);
 }

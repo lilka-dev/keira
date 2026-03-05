@@ -257,7 +257,7 @@ void LauncherApp::run() {
                                 lilka::colors::White,
                                 [this](void* item) {
                                             lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
-                                            menuItem->postfix = networkService->getIpAddr();
+                                            menuItem->postfix = networkService->getipAddr();
                                 }
                             ),
                         }),
@@ -470,7 +470,8 @@ void LauncherApp::setWiFiTxPower() {
     // Save value to NVS
     NVS_LOCK;
     Preferences prefs;
-    prefs.begin(WIFI_KEIRA_NAMESPACE, false);
+    // This is a bit dumb, stor somewhere
+    prefs.begin(ksystem.services["network"]->getName(), false);
     prefs.putInt("txPower", static_cast<int>(values[index]));
     prefs.end();
     NVS_UNLOCK;
@@ -540,7 +541,7 @@ void LauncherApp::info() {
             esp_get_idf_version(),
             ESP.getCpuFreqMHz(),
             ESP.getChipCores(),
-            networkService->getIpAddr().c_str()
+            networkService->getipAddr().c_str()
         )
     );
 }

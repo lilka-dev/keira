@@ -20,6 +20,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 // System components;
+#include "keira/mutex.h"
 #include "keira/thread.h"
 // Libraries:
 #include <vector>

@@ -54,10 +54,6 @@ void Sequencer::play(Track* track, uint16_t pageIndex, int8_t channelIndex, uint
 
     if (xTaskCreatePinnedToCore(
             [](void* pvParameters) {
-#ifdef KEIRA_WATCHDOG
-                auto wd = ServiceManager::getInstance()->getService<WatchdogService>("watchdog");
-                if (wd != NULL) wd->addCurrentTask(WATCHDOG_TASK_MISC);
-#endif
                 Sequencer* sequencer = static_cast<Sequencer*>(pvParameters);
                 sequencer->singleEventTask();
                 xSemaphoreGive(sequencer->xPlaying);
@@ -94,10 +90,6 @@ void Sequencer::play(Track* track, uint16_t pageIndex, bool loopTrack) {
 
     if (xTaskCreatePinnedToCore(
             [](void* pvParameters) {
-#ifdef KEIRA_WATCHDOG
-                auto wd = ServiceManager::getInstance()->getService<WatchdogService>("watchdog");
-                if (wd != NULL) wd->addCurrentTask(WATCHDOG_TASK_MISC);
-#endif
                 Sequencer* sequencer = static_cast<Sequencer*>(pvParameters);
                 sequencer->multiEventTask();
                 xSemaphoreGive(sequencer->xPlaying);

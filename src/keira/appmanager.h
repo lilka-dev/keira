@@ -1,8 +1,9 @@
 #pragma once
-
+// Libraries
 #include <Arduino.h>
 #include <lilka.h>
-
+// System components
+#include "keira/mutex.h"
 #include "keira/threadmanager.h"
 #include "keira/app.h"
 
@@ -18,29 +19,30 @@
 class AppManager : public ThreadManager {
 public:
     AppManager();
-
+    //========================================================================
+    //  Panel(StatusBar
+    //========================================================================
     App* getPanel();
     void setPanel(App* app);
-    // adds app to appsToRun list, actuall runing happens
-    // inside loop(). automatically suspends execution of current task
-    //   void runApp(App* app, bool autoSuspend = true);
+    //////////////////////////////////////////////////////////////////////////
 
     void run() override;
     void spawn(App* app, bool autoSuspend = true);
     void threadsRun() override;
+    //========================================================================
+    //  Toasts
+    //========================================================================
     void renderToCanvas(lilka::Canvas* canvas);
     void startToast(String message, uint64_t duration = 2500);
 
 private:
     void renderToast(lilka::Canvas* canvas);
-
-    App* panel = NULL;
-    static AppManager* instance;
-    TickType_t lastAwake = xTaskGetTickCount();
-    //    SemaphoreHandle_t lock = xSemaphoreCreateMutex();
-    // Using threads/threadsToRun from ThreadManager to store apps
-
     String toastMessage = "";
     uint64_t toastStartTime = 0;
     uint64_t toastEndTime = 0;
+    //////////////////////////////////////////////////////////////////////////
+
+    App* panel = NULL;
+    // Used for capping framerate to A
+    TickType_t lastAwake = xTaskGetTickCount();
 };

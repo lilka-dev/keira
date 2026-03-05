@@ -198,14 +198,14 @@ int StatusBarApp::drawMem(lilka::Canvas* canvas) {
 int StatusBarApp::drawNetwork(lilka::Canvas* canvas) {
     NetworkService* networkService = static_cast<NetworkService*>(ksystem.services["network"]);
     if (networkService != NULL) {
-        if (networkService->getNetworkState() == NETWORK_STATE_DISABLED) {
+        if (networkService->getnetworkState() == NETWORK_STATE_DISABLED) {
             canvas->draw16bitRGBBitmapWithTranColor(0, 0, wifi_disabled_img, 0, 24, 24);
-        } else if (networkService->getNetworkState() == NETWORK_STATE_OFFLINE) {
+        } else if (networkService->getnetworkState() == NETWORK_STATE_OFFLINE) {
             canvas->draw16bitRGBBitmapWithTranColor(0, 0, wifi_offline_img, 0, 24, 24);
-        } else if (networkService->getNetworkState() == NETWORK_STATE_CONNECTING) {
+        } else if (networkService->getnetworkState() == NETWORK_STATE_CONNECTING) {
             canvas->draw16bitRGBBitmapWithTranColor(0, 0, wifi_connecting_img, 0, 24, 24);
-        } else if (networkService->getNetworkState() == NETWORK_STATE_ONLINE) {
-            canvas->draw16bitRGBBitmapWithTranColor(0, 0, wifiIcons[networkService->getSignalStrength()], 0, 24, 24);
+        } else if (networkService->getnetworkState() == NETWORK_STATE_ONLINE) {
+            canvas->draw16bitRGBBitmapWithTranColor(0, 0, wifiIcons[networkService->getsignalStrength()], 0, 24, 24);
         }
     }
     return 24;

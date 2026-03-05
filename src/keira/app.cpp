@@ -23,8 +23,12 @@ App::App(const char* name) {
 }
 //-----------------------------------------------------------------------------
 App::~App() {
+    xSemaphoreTake(canvasMutex, portMAX_DELAY);
+
     if (canvas) delete canvas;
     if (backCanvas) delete backCanvas;
+
+    xSemaphoreGive(canvasMutex);
 }
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -158,7 +162,7 @@ void App::queueDraw() {
     KAPP_DBG if (frame && redraw) {
         skippedFrames++;
         float percentSkipped = skippedFrames * 100 / frame;
-        lilka::serial.log("Skipping frame %d. Skipped %f\%", frame);
+        lilka::serial.log("Skipping frame %d. Skipped %f", frame, percentSkipped);
     }
 
     // Flip canvas

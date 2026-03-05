@@ -1,6 +1,9 @@
 #include "watchdog.h"
 
+char TASK_STATE_TO_STR[][8] = {"Running", "Ready", "Blocked", "Suspend", "Deleted", "Invalid"};
+
 WatchdogService::WatchdogService() : Service("watchdog") {
+    setStackSize(8192);
 }
 
 const String WatchdogService::taskTypeToString(TaskType type) {
@@ -22,6 +25,7 @@ const String WatchdogService::affinityToString(BaseType_t affinity) {
 }
 
 void WatchdogService::addTask(const TaskHandle_t& handle, TaskType type) {
+    xSemaphoreTake(xStats, portMAX_DELAY);
     WatchdogTaskData wtData = {};
     wtData.type = type;
     wtData.handle = handle;
@@ -30,33 +34,51 @@ void WatchdogService::addTask(const TaskHandle_t& handle, TaskType type) {
     wtData.priority = uxTaskPriorityGet(handle);
     wtData.affinity = xTaskGetAffinity(handle);
     lilka::serial.log("Adding task %s to watchdog", wtData.name.c_str());
-    xSemaphoreTake(xStats, portMAX_DELAY);
     taskStats.push_back(wtData);
     xSemaphoreGive(xStats);
 }
+
 void WatchdogService::addCurrentTask(TaskType type) {
     addTask(xTaskGetCurrentTaskHandle(), type);
 }
+
 void WatchdogService::run() {
     while (1) {
         // Get free stack memory
 
-        lilka::serial.log("================= WATCHDOG DATA ======================");
-        lilka::serial.log("CurFree\tMinFree\tType\tPrio\tCore\tName");
-        lilka::serial.log("======================================================");
+        lilka::serial.log("====================== WATCHDOG DATA ==========================");
+        lilka::serial.log("CurFree\tMinFree\tType\tPrio\tCore\tState\tName");
+        lilka::serial.log("===============================================================");
         xSemaphoreTake(xStats, portMAX_DELAY); // lock unlock
-        for (auto& ts : taskStats) {
-            auto currentFreeStack = uxTaskGetStackHighWaterMark(ts.handle);
-            ts.minFreeStack = ts.minFreeStack > currentFreeStack ? currentFreeStack : ts.minFreeStack;
+
+        for (auto ts = taskStats.begin(); ts < taskStats.end();) {
+            auto taskState = ts->handle ? eTaskGetState(ts->handle) : eDeleted;
+
+            auto currentFreeStack = 0;
+
+            // Update stats
+            if (!(taskState == eInvalid && taskState == eDeleted)) {
+                currentFreeStack = uxTaskGetStackHighWaterMark(ts->handle);
+                ts->minFreeStack = ts->minFreeStack > currentFreeStack ? currentFreeStack : ts->minFreeStack;
+                ts->minFreeStack = uxTaskGetStackHighWaterMark(ts->handle);
+                ts->priority = uxTaskPriorityGet(ts->handle);
+                ts->affinity = xTaskGetAffinity(ts->handle);
+            }
+            // Display stats
             lilka::serial.log(
-                "%u\t%u\t%s\t%u\t%s\t%s",
+                "%u\t%u\t%s\t%u\t%s\t%s\t%s",
                 currentFreeStack,
-                ts.minFreeStack,
-                taskTypeToString(ts.type).c_str(),
-                ts.priority,
-                affinityToString(ts.affinity).c_str(),
-                ts.name
+                ts->minFreeStack,
+                taskTypeToString(ts->type).c_str(),
+                ts->priority,
+                affinityToString(ts->affinity).c_str(),
+                TASK_STATE_TO_STR[taskState],
+                ts->name
             );
+            // Cleanup not existing tasks
+            if ((!ts->handle) || taskState == eInvalid || taskState == eDeleted) {
+                ts = taskStats.erase(ts);
+            } else ts++;
         }
         xSemaphoreGive(xStats);
 
