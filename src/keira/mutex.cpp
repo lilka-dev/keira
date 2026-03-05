@@ -2,7 +2,7 @@
 // xSemaphoreCreateMutex
 #ifdef KEIRA_MUTEX_DEBUG
 
-AcquireMutex::AcquireMutex(SemaphoreHandle_t& mtx, const char* func_name, size_t line) {
+AcquireMutex::AcquireMutex(SemaphoreHandle_t& mtx, const char* funcName, size_t line) {
     // Lock keiraDebugMutexList
     xSemaphoreTake(keiraDebugMutexSemaphore, portMAX_DELAY);
 
@@ -10,18 +10,18 @@ AcquireMutex::AcquireMutex(SemaphoreHandle_t& mtx, const char* func_name, size_t
     for (auto& kmtx : keiraDebugMutexList) {
         if (kmtx->mtx == &mtx) {
             multiLock = true;
-            lilka::serial.log("Double lock %s:%d, first locked at %s:%d", func_name, line, kmtx.funcName, kmtx.line);
+            lilka::serial.log("Double lock %s:%d, first locked at %s:%d", funcName, line, kmtx.funcName, kmtx.line);
             break;
         }
     }
 
     // Create new mutex record
-    KeiraDebugMtx_t newMtxRecord = {.mtx = &mtx, .line = line};
-    strcpy(newMtxRecord.func_name, func_name);
+    KeiraDebugMtx_t newMtxRecord = {.mtx = &mtx, .line = line, .id = keiraDebugMutexLastId++};
+    strcpy(newMtxRecord.funcName, funcName);
 
     // Store mutexRecord
     keiraDebugMutexList.push_back(newMtxRecord);
-    pMutexRecord = keiraDebugMutexList.back();
+    mtxId = newMtxRecord.id;
 
     // lock mutex
     xSemaphoreTake(mtx, portMAX_DELAY);
@@ -34,13 +34,12 @@ void AcquireMutex::release() {
     xSemaphoreTake(keiraDebugMutexSemaphore, portMAX_DELAY);
     releasedByUser = true;
 
-    // Release mutex
-    xSemaphoreGive(*(this->pMutexRecord->mtx));
-
     // Remove mutex from table
     for (auto pkmtx = keiraDebugMutexList.begin(); pkmtx < keiraDebugMutexList.end(); pkmtx++) {
-        if (pMutexRecord == pkmtx) {
-            lilka::serial.log("Released %s:%d, Locked at %s:%d", func_name, line, pkmtx.funcName, pkmtx->line);
+        if (mtxId == pkmtx->id) {
+            // Release mutex
+            xSemaphoreGive(*(pkmtx.mtx));
+            lilka::serial.log("Released ID%d %s:%d", pkmtx.id, pkmtx.line, pkmtx.line);
             keiraDebugMutexList.erase(pkmtx);
         }
     }
@@ -49,13 +48,17 @@ void AcquireMutex::release() {
     xSemaphoreGive(keiraDebugMutexList);
 }
 
-void AcquireMutex::~AcquireMutex() {
+AcquireMutex::~AcquireMutex() {
     // Lock keiraDebugMutexList
     xSemaphoreTake(keiraDebugMutexSemaphore, portMAX_DELAY);
 
     // Validate mutexRelease
     if (!releasedByUser) {
-        lilka::serial.err("Mutex not released %s:%d", this->pMutexRecord.funcName, this->pMutexRecord.line);
+        for (auto pkmtx = keiraDebugMutexList.begin(); pkmtx < keiraDebugMutexList.end(); pkmtx++) {
+            if (mtxId == pkmtx->id) {
+                lilka::serial.err("Mutex not released %s:%d", pkmtx.funcName, pkmtx.line);
+            }
+        }
         // Auto release, seek for other mistakes
         this->release();
     }
