@@ -82,6 +82,6 @@ struct KeiraThreadCallbackInternal {
             "[KThread|%p] Registered %s callback %p, data: %p", this, KEIRA_CLBK_TYPE_ACSTR[CLBK_TYPE], clbk, data \
         );                                                                                                         \
         ktClbkTable.push_back({.type = CLBK_TYPE, .clbk = clbk, .data = data});                                    \
-        KMTX_UNLOCK(ktLock);                                                                                    \
+        xSemaphoreGive(ktLock);                                                                                    \
     }
 //////////////////////////////////////////////////////////////////////////////

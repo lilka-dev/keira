@@ -23,7 +23,7 @@ MadPlayerApp::MadPlayerApp(String path) : App("MadPlayer") {
     setktCore(1);
     fileName = path;
 
-    auto statusBar = static_cast<StatusBarApp*>(ksystem.apps.getPanel());
+    auto statusBar = static_cast<StatusBarApp*>(ksystem.apps.getpanel());
     if (statusBar) {
         widgetId =
             statusBar->addWidget([this](lilka::Canvas* canvas) { return drawWidget(canvas); }, lilka::ALIGN_START, 24);
@@ -130,7 +130,7 @@ void MadPlayerApp::run() {
     delete sound;
     sound = nullptr;
 
-    auto statusBar = static_cast<StatusBarApp*>(ksystem.apps.getPanel());
+    auto statusBar = static_cast<StatusBarApp*>(ksystem.apps.getpanel());
     if (statusBar) {
         statusBar->removeWidget(widgetId);
     }

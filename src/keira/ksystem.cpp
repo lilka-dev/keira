@@ -215,7 +215,7 @@ void KeiraSystem::setup() {
     launchServices();
 
     // Run first apps
-    apps.setPanel(new StatusBarApp());
+    apps.setpanel(new StatusBarApp());
     apps.spawn(new LauncherApp(), false);
 
     // Run thread managers
