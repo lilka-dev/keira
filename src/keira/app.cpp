@@ -176,4 +176,7 @@ void App::queueDraw() {
     setRedraw(true);
 
     KMTX_UNLOCK(canvasMutex);
+
+    // Switch to a drawing task
+    taskYIELD();
 }
