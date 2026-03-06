@@ -214,8 +214,12 @@ void KeiraSystem::setup() {
     // Time to launch services
     launchServices();
 
-    // Run first apps
-    apps.setpanel(new StatusBarApp());
+    // Launch Panel
+    auto panel = new StatusBarApp();
+    apps.setpanel(panel);
+    panel->start();
+
+    // Launch first app
     apps.spawn(new LauncherApp(), false);
 
     // Run thread managers

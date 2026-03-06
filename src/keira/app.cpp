@@ -11,10 +11,10 @@
 //=============================================================================
 App::App(const char* name) {
     if (name) setName(name);
-    else setName(APP_DEFAULT_NAME);
-    setktStackSize(APP_DEFAULT_STACK);
-    setktPriority(APP_DEFAULT_PRIO);
-    setktCore(APP_DEFAULT_CORE);
+    else setName(APP_NAME);
+    setktStackSize(APP_STACK);
+    setktPriority(APP_PRIO);
+    setktCore(APP_CORE);
 
     // Set inital drawing flags
     if (!(flags & APP_DRAWING_FLAGS)) {

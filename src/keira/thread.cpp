@@ -17,7 +17,7 @@ KeiraThread::KeiraThread(
     if (clbk) setupOnEntryCallback(clbk, data);
 
     if (ktName) setName(ktName);
-    else setName(KT_DEFAULT_NAME);
+    else setName(KT__NAME);
 
     setktStackSize(ktStackSize);
     setktCore(ktCore);

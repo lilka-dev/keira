@@ -22,21 +22,21 @@
 //============================================================================
 // == STACK SIZE
 #ifndef APP_STACK
-#    define APP_DEFAULT_STACK 4096
+#    define APP_STACK 4096
 #endif
 //----------------------------------------------------------------------------
 // == CPU CORE
-#ifndef APP_DEFAULT_CORE
-#    define APP_DEFAULT_CORE tskNO_AFFINITY
+#ifndef APP_CORE
+#    define APP_CORE tskNO_AFFINITY
 #endif
 //----------------------------------------------------------------------------
 // == THREAD NAME
-#ifndef APP_DEFAULT_NAME
-#    define APP_DEFAULT_NAME "App"
+#ifndef APP_NAME
+#    define APP_NAME "App"
 #endif
 //----------------------------------------------------------------------------
 // == PRIORITY
-#ifndef APP_DEFAULT_PRIO
-#    define APP_DEFAULT_PRIO KT_PRIO_DEFAULT
+#ifndef APP_PRIO
+#    define APP_PRIO KT_PRIO_DEFAULT
 #endif
 //////////////////////////////////////////////////////////////////////////////

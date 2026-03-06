@@ -1,13 +1,20 @@
-#include "keira/appmanager.h"
-#include <lilka/default_splash.h>
-#include "apps/statusbar/statusbar.h"
+// Libraries
 #include <lilka/controller.h>
+
+#include "keira/appmanager.h"
 #include "keira/thread.h"
+
+// Apps:
+#include "apps/statusbar/statusbar.h"
+#include "apps/launcher/launcher.h"
+
 #define MAX_FPS 60
 
 AppManager::AppManager() {
-    setktPriority(KT_PRIO_IDLE);
-    setktCore(0);
+    setName(APPMANAGER_NAME);
+    setktStackSize(APPMANAGER_STACK);
+    setktPriority(APPMANAGER_PRIO);
+    setktCore(APPMANAGER_CORE);
 }
 
 #define GET_BACK(X) X.empty() ? NULL : X.back()
@@ -43,8 +50,8 @@ void AppManager::run() {
         // Retrieve top app[Thread]
         App* topApp = APP_PCAST(GET_BACK(threads));
 
-        // Ensure topApp and panel exists
-        if (!(topApp && panel)) {
+        // Ensure topApp exists
+        if (!(topApp)) {
             // Absolutely possible situation and can happen
 
             /// UNLOCK THREADS LIST
@@ -56,8 +63,9 @@ void AppManager::run() {
         if (topApp->getState() == KTS_SUSPENDED) {
             // Wake up Neo
             topApp->resume();
-
+            KMTX_LOCK(panelMtx);
             panel->setRedraw(true);
+            KMTX_UNLOCK(panelMtx);
         }
 
         // Draw panel and top app
@@ -130,14 +138,9 @@ void AppManager::spawn(App* app, bool autoSuspend) {
     app->setupOnEntryCallback(KT_CLBK_CAST(&lilka::Controller::resetState), KT_CLBK_DATA_CAST(&lilka::controller));
     // Reset controler state on resume
     app->setupOnResumeCallback(KT_CLBK_CAST(&lilka::Controller::resetState), KT_CLBK_DATA_CAST(&lilka::controller));
+
     // Do spawn
-    // if (!(this->operator[](app->getName()))) {
     ThreadManager::spawn(app, autoSuspend);
-    // } else {
-    //     // Delete app immediately
-    //     delete app;
-    //     K_AMG_DBG lilka::serial.err("Trying to launch already run app. Skipping...");
-    // }
 }
 
 void AppManager::renderToast(lilka::Canvas* canvas) {

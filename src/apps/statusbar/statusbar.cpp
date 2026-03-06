@@ -197,17 +197,31 @@ int StatusBarApp::drawMem(lilka::Canvas* canvas) {
 
 int StatusBarApp::drawNetwork(lilka::Canvas* canvas) {
     NetworkService* networkService = static_cast<NetworkService*>(ksystem.services["network"]);
-    if (networkService != NULL) {
-        if (networkService->getnetworkState() == NETWORK_STATE_DISABLED) {
-            canvas->draw16bitRGBBitmapWithTranColor(0, 0, wifi_disabled_img, 0, 24, 24);
-        } else if (networkService->getnetworkState() == NETWORK_STATE_OFFLINE) {
-            canvas->draw16bitRGBBitmapWithTranColor(0, 0, wifi_offline_img, 0, 24, 24);
-        } else if (networkService->getnetworkState() == NETWORK_STATE_CONNECTING) {
-            canvas->draw16bitRGBBitmapWithTranColor(0, 0, wifi_connecting_img, 0, 24, 24);
-        } else if (networkService->getnetworkState() == NETWORK_STATE_ONLINE) {
-            canvas->draw16bitRGBBitmapWithTranColor(0, 0, wifiIcons[networkService->getsignalStrength()], 0, 24, 24);
-        }
+
+    const uint16_t* stateIcons[] = {
+        wifi_disabled_img, // NETWORK_STATE_DISABLED = 0
+        wifi_offline_img, // NETWORK_STATE_OFFLINE  = 1
+        wifi_connecting_img
+    };
+
+    // Check if network service is runing
+    if (networkService == NULL) {
+        canvas->draw16bitRGBBitmapWithTranColor(0, 0, stateIcons[NETWORK_STATE_DISABLED], 0, 24, 24);
+        return 24;
     }
+
+    // Determine current network state
+    auto netState = networkService->getnetworkState();
+
+    // Draw network state icon(Not online)
+    if (netState != NETWORK_STATE_ONLINE) {
+        canvas->draw16bitRGBBitmapWithTranColor(0, 0, stateIcons[netState], 0, 24, 24);
+        return 24;
+    }
+
+    // Draw signal strength
+    canvas->draw16bitRGBBitmapWithTranColor(0, 0, wifiIcons[networkService->getsignalStrength()], 0, 24, 24);
+
     return 24;
 }
 
