@@ -56,9 +56,6 @@ public:
     LauncherApp();
 
 private:
-    NetworkService* networkService;
-
-private:
     void run() override;
 
     void showMenu(const char* title, ITEM_LIST& menu, bool back = true);

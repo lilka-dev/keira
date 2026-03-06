@@ -59,7 +59,6 @@
 #include "keira/ksystem.h"
 
 LauncherApp::LauncherApp() : App("Launcher") {
-    networkService = static_cast<NetworkService*>(ksystem.services["network"]);
     setktStackSize(8192); // Yeah, this one is heavy as fuck
 }
 
@@ -148,6 +147,9 @@ void LauncherApp::run() {
                             lilka::colors::White,
                             [this](void* item) {
                                     lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
+                                    NetworkService* networkService = static_cast<NetworkService*>(
+                                        ksystem.services["network"]
+                                    );
                                     menuItem->postfix = networkService->getEnabled() ? K_S_ON : K_S_OFF;
                             }
                         ),
@@ -257,6 +259,9 @@ void LauncherApp::run() {
                                 lilka::colors::White,
                                 [this](void* item) {
                                             lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
+                                            NetworkService* networkService = static_cast<NetworkService*>(
+                                        ksystem.services["network"]
+                                    );
                                             menuItem->postfix = networkService->getipAddr();
                                 }
                             ),
@@ -519,9 +524,11 @@ void LauncherApp::setSpiSDSpeed() {
 }
 
 void LauncherApp::wifiToggle() {
+    NetworkService* networkService = static_cast<NetworkService*>(ksystem.services["network"]);
     networkService->setEnabled(!networkService->getEnabled());
 }
 void LauncherApp::wifiManager() {
+    NetworkService* networkService = static_cast<NetworkService*>(ksystem.services["network"]);
     if (!networkService->getEnabled()) {
         alert(K_S_ERROR, K_S_LAUNCHER_ENABLE_WIFI_FIRST);
         return;
@@ -532,6 +539,7 @@ void LauncherApp::about() {
     alert(K_S_OS_NAME, K_S_OS_DESCRIPTION);
 }
 void LauncherApp::info() {
+    NetworkService* networkService = static_cast<NetworkService*>(ksystem.services["network"]);
     alert(
         K_S_LAUNCHER_DEVICE_INFO,
         StringFormat(

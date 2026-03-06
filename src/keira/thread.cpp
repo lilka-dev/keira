@@ -62,7 +62,7 @@ const KeiraThreadState KeiraThread::getState() {
 
     auto tmpState = ktState;
 
-    KMTX_LOCK(ktLock);
+    KMTX_UNLOCK(ktLock);
 
     return tmpState;
 }

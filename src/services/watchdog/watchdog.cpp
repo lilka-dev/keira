@@ -57,7 +57,7 @@ void WatchdogService::run() {
             auto currentFreeStack = 0;
 
             // Update stats
-            if (!(taskState == eInvalid && taskState == eDeleted)) {
+            if (!(taskState == eInvalid || taskState == eDeleted)) {
                 currentFreeStack = uxTaskGetStackHighWaterMark(ts->handle);
                 ts->minFreeStack = ts->minFreeStack > currentFreeStack ? currentFreeStack : ts->minFreeStack;
                 ts->minFreeStack = uxTaskGetStackHighWaterMark(ts->handle);
