@@ -37,6 +37,8 @@ KeiraThread::~KeiraThread() {
     }
 
     KMTX_UNLOCK(ktLock);
+
+    vSemaphoreDelete(ktLock);
 }
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -190,8 +192,6 @@ void KeiraThread::suspend() {
 
     KMTX_LOCK(ktLock);
 
-    //    KT_DBG lilka::serial.log("Suspending thread %s (ktState = %s)", ktName, getState());
-
     vTaskSuspend(ktTaskHandle);
 
     KT_DBG lilka::serial.log("Suspended thread %s", ktName);
@@ -264,5 +264,5 @@ void KeiraThread::clearCallbacks() {
 
     ktClbkTable.clear();
 
-    KMTX_LOCK(ktLock);
+    KMTX_UNLOCK(ktLock);
 }

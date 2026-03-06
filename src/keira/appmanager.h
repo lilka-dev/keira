@@ -8,7 +8,7 @@
 #include "keira/app.h"
 
 // Uncomment to get debug information
-#define KEIRA_APPMANAGER_DEBUG
+// #define KEIRA_APPMANAGER_DEBUG
 
 #ifdef KEIRA_APPMANAGER_DEBUG
 #    define K_AMG_DBG if (1)

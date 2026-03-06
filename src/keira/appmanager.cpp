@@ -120,20 +120,13 @@ void AppManager::spawn(App* app, bool autoSuspend) {
     // Reset controler state on resume
     app->setupOnResumeCallback(KT_CLBK_CAST(&lilka::Controller::resetState), KT_CLBK_DATA_CAST(&lilka::controller));
     // Do spawn
-    // Here is a tradeoff, cause app launching is tightened a lot to
-    // redrawing(why shouldn't?), most of the time we may do an absolutely
-    // non-needed for us checks on existing apps, non-existing/existing toasts,
-    // while hardware still won't be able to process them effectively
-    // throwing away power of one of CPU cores.
-    //
-    // To reduce this effect, we limited FPS to MAX_FPS in a redrawing
-    if (!(this->operator[](app->getName()))) {
+    // if (!(this->operator[](app->getName()))) {
         ThreadManager::spawn(app, autoSuspend);
-    } else {
-        // Delete app immediately
-        delete app;
-        K_AMG_DBG lilka::serial.err("Trying to launch already run app. Skipping...");
-    }
+    // } else {
+    //     // Delete app immediately
+    //     delete app;
+    //     K_AMG_DBG lilka::serial.err("Trying to launch already run app. Skipping...");
+    // }
 }
 
 void AppManager::renderToast(lilka::Canvas* canvas) {

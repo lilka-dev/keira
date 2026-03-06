@@ -23,7 +23,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 // Uncomment this line to get debugging information
-#define KEIRA_THREAD_DEBUG
+// #define KEIRA_THREAD_DEBUG
 #include "keira/bits/thread.h"
 #include "keira/mutex.h"
 
@@ -102,7 +102,7 @@ public:
         KeiraCallback clbk = NULL, const char* ktName = NULL, uint32_t ktStackSize = KT_DEFAULT_STACK,
         KeiraCallbackData data = NULL, KeiraThreadPriority ktPriority = KT_PRIO_DEFAULT, int ktCore = KT_DEFAULT_CORE
     );
-    ~KeiraThread();
+    virtual ~KeiraThread();
     //////////////////////////////////////////////////////////////////////////
     //=======================================================================
     //  Thread settings
@@ -199,7 +199,7 @@ private:
     //=======================================================================
     TaskHandle_t ktTaskHandle = NULL;
     char ktName[KT_NAME_MAX] = {};
-    uint32_t ktStackSize;
+    uint32_t ktStackSize = KT_DEFAULT_STACK;
     int ktCore = KT_DEFAULT_CORE;
     KeiraThreadPriority ktPriority = KT_PRIO_DEFAULT;
     KeiraThreadState ktState = KTS_INVALID;
