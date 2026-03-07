@@ -6,7 +6,9 @@
 #    define K_AMG_DBG if (0)
 #endif
 
+// clang-format off
 #define KEIRA_TOAST_INITIALIZER {.message = "", .startTime = 0, .endTime = 0, .mtx = xSemaphoreCreateMutex()}
+// clang-format on
 
 //============================================================================
 //  THREAD SETTINGS
