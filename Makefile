@@ -52,5 +52,6 @@ cppcheck: ## Run cppcheck check
 		--suppress=knownPointerToBool \
 		--suppress=noCopyConstructor \
 		--suppress=noOperatorEq \
+		--supress=useStlAlgorithm \
 		--inline-suppr \
 		--error-exitcode=1

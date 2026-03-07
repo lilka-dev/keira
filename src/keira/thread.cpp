@@ -11,8 +11,8 @@
 //  Thread Constructors and destructors
 //=============================================================================
 KeiraThread::KeiraThread(
-    KeiraCallback clbk, const char* ktName, uint32_t ktStackSize, KeiraCallbackData data, KeiraThreadPriority ktPriority,
-    int ktCore
+    KeiraCallback clbk, const char* ktName, uint32_t ktStackSize, KeiraCallbackData data,
+    KeiraThreadPriority ktPriority, int ktCore
 ) {
     if (clbk) setupOnEntryCallback(clbk, data);
 

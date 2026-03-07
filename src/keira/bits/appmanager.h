@@ -8,7 +8,6 @@
 
 #define KEIRA_TOAST_INITIALIZER {.message = "", .startTime = 0, .endTime = 0, .mtx = xSemaphoreCreateMutex()}
 
-
 //============================================================================
 //  THREAD SETTINGS
 //============================================================================

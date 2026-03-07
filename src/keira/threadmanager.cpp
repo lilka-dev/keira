@@ -14,7 +14,7 @@ void ThreadManager::spawn(KeiraThread* thread, bool autoSuspend) {
     KMTX_UNLOCK(lock);
 
     K_TMG_DBG lilka::serial.log("Added thread %s in threadsToRun", thread->getName());
-    
+
     // Auto suspend if needed
     if (autoSuspend) {
         TaskHandle_t currentTask = xTaskGetCurrentTaskHandle();
