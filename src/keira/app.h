@@ -9,7 +9,7 @@
 #include "keira/bits/app.h"
 
 // Uncomment this line to get debug information
-#define KEIRA_APP_DEBUG
+// #define KEIRA_APP_DEBUG
 
 #define APP_CAST(X)  reinterpret_cast<App>(X)
 #define APP_PCAST(X) reinterpret_cast<App*>(X)

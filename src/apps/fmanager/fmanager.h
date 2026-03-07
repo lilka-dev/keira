@@ -114,7 +114,7 @@
     if (0) ksystem.apps.startToast(X)
 
 // Uncomment this line to get some debuging information
-#define FMANAGER_DEBUG
+// #define FMANAGER_DEBUG
 #ifdef FMANAGER_DEBUG
 #    define FM_DBG if (1)
 #else
