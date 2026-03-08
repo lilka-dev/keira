@@ -30,17 +30,17 @@ const char KEIRA_CLBK_TYPE_ACSTR[][10] = {"Thread", "onStart", "onSuspend", "onR
 // DEFAULT KeiraThread SETTINGS
 //============================================================================
 // == STACK SIZE
-#ifndef KT__STACK
-#    define KT__STACK 2048
+#ifndef KT_STACK
+#    define KT_STACK 2048
 #endif
 //----------------------------------------------------------------------------
 // == CPU CORE
-#ifndef KT__CORE
-#    define KT__CORE tskNO_AFFINITY
+#ifndef KT_CORE
+#    define KT_CORE tskNO_AFFINITY
 #endif
 //----------------------------------------------------------------------------
-#ifndef KT__NAME
-#    define KT__NAME "Thread"
+#ifndef KT_NAME
+#    define KT_NAME "Thread"
 #endif
 //////////////////////////////////////////////////////////////////////////////
 

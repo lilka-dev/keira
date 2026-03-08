@@ -99,8 +99,8 @@ public:
     //  Thread Constructors and destructors
     //=======================================================================
     explicit KeiraThread(
-        KeiraCallback clbk = NULL, const char* ktName = NULL, uint32_t ktStackSize = KT__STACK,
-        KeiraCallbackData data = NULL, KeiraThreadPriority ktPriority = KT_PRIO_DEFAULT, int ktCore = KT__CORE
+        KeiraCallback clbk = NULL, const char* ktName = NULL, uint32_t ktStackSize = KT_STACK,
+        KeiraCallbackData data = NULL, KeiraThreadPriority ktPriority = KT_PRIO_DEFAULT, int ktCore = KT_CORE
     );
     virtual ~KeiraThread();
     //////////////////////////////////////////////////////////////////////////
@@ -199,8 +199,8 @@ private:
     //=======================================================================
     TaskHandle_t ktTaskHandle = NULL;
     char ktName[KT_NAME_MAX] = {};
-    uint32_t ktStackSize = KT__STACK;
-    int ktCore = KT__CORE;
+    uint32_t ktStackSize = KT_STACK;
+    int ktCore = KT_CORE;
     KeiraThreadPriority ktPriority = KT_PRIO_DEFAULT;
     KeiraThreadState ktState = KTS_INVALID;
     /////////////////////////////////////////////////////////////////////////
