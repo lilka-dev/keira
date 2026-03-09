@@ -4,7 +4,7 @@
 
 /* ── Global state for the currently running dynamic app ─────────────────── */
 
-static App *g_dynapp = nullptr;
+static App* g_dynapp = nullptr;
 
 /* ── C API functions exported to .so apps ───────────────────────────────── */
 
@@ -54,19 +54,17 @@ void keira_display_fill_circle(int16_t x, int16_t y, int16_t r, uint16_t color) 
     }
 }
 
-void keira_display_draw_triangle(int16_t x0, int16_t y0,
-                                  int16_t x1, int16_t y1,
-                                  int16_t x2, int16_t y2,
-                                  uint16_t color) {
+void keira_display_draw_triangle(
+    int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint16_t color
+) {
     if (g_dynapp && g_dynapp->canvas) {
         g_dynapp->canvas->drawTriangle(x0, y0, x1, y1, x2, y2, color);
     }
 }
 
-void keira_display_fill_triangle(int16_t x0, int16_t y0,
-                                  int16_t x1, int16_t y1,
-                                  int16_t x2, int16_t y2,
-                                  uint16_t color) {
+void keira_display_fill_triangle(
+    int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint16_t color
+) {
     if (g_dynapp && g_dynapp->canvas) {
         g_dynapp->canvas->fillTriangle(x0, y0, x1, y1, x2, y2, color);
     }
@@ -90,13 +88,13 @@ void keira_display_set_text_size(uint8_t size) {
     }
 }
 
-void keira_display_print(const char *text) {
+void keira_display_print(const char* text) {
     if (g_dynapp && g_dynapp->canvas) {
         g_dynapp->canvas->print(text);
     }
 }
 
-void keira_display_println(const char *text) {
+void keira_display_println(const char* text) {
     if (g_dynapp && g_dynapp->canvas) {
         g_dynapp->canvas->println(text);
     }
@@ -152,27 +150,27 @@ uint32_t keira_controller_get_state(void) {
     lilka::State st = lilka::controller.getState();
     uint32_t bits = 0;
 
-    if (st.up.pressed)      bits |= (1 << 0);
-    if (st.down.pressed)    bits |= (1 << 1);
-    if (st.left.pressed)    bits |= (1 << 2);
-    if (st.right.pressed)   bits |= (1 << 3);
-    if (st.a.pressed)       bits |= (1 << 4);
-    if (st.b.pressed)       bits |= (1 << 5);
-    if (st.c.pressed)       bits |= (1 << 6);
-    if (st.d.pressed)       bits |= (1 << 7);
-    if (st.select.pressed)  bits |= (1 << 8);
-    if (st.start.pressed)   bits |= (1 << 9);
+    if (st.up.pressed) bits |= (1 << 0);
+    if (st.down.pressed) bits |= (1 << 1);
+    if (st.left.pressed) bits |= (1 << 2);
+    if (st.right.pressed) bits |= (1 << 3);
+    if (st.a.pressed) bits |= (1 << 4);
+    if (st.b.pressed) bits |= (1 << 5);
+    if (st.c.pressed) bits |= (1 << 6);
+    if (st.d.pressed) bits |= (1 << 7);
+    if (st.select.pressed) bits |= (1 << 8);
+    if (st.start.pressed) bits |= (1 << 9);
 
-    if (st.up.justPressed)      bits |= (1 << 16);
-    if (st.down.justPressed)    bits |= (1 << 17);
-    if (st.left.justPressed)    bits |= (1 << 18);
-    if (st.right.justPressed)   bits |= (1 << 19);
-    if (st.a.justPressed)       bits |= (1 << 20);
-    if (st.b.justPressed)       bits |= (1 << 21);
-    if (st.c.justPressed)       bits |= (1 << 22);
-    if (st.d.justPressed)       bits |= (1 << 23);
-    if (st.select.justPressed)  bits |= (1 << 24);
-    if (st.start.justPressed)   bits |= (1 << 25);
+    if (st.up.justPressed) bits |= (1 << 16);
+    if (st.down.justPressed) bits |= (1 << 17);
+    if (st.left.justPressed) bits |= (1 << 18);
+    if (st.right.justPressed) bits |= (1 << 19);
+    if (st.a.justPressed) bits |= (1 << 20);
+    if (st.b.justPressed) bits |= (1 << 21);
+    if (st.c.justPressed) bits |= (1 << 22);
+    if (st.d.justPressed) bits |= (1 << 23);
+    if (st.select.justPressed) bits |= (1 << 24);
+    if (st.start.justPressed) bits |= (1 << 25);
 
     return bits;
 }
@@ -264,7 +262,7 @@ void DynApp::run() {
     int ret = loader.load(filePath.c_str());
 
     if (ret != 0) {
-        const char *err = loader.getError();
+        const char* err = loader.getError();
         lilka::serial.log("DynApp: load failed: %s (ret=%d)", err ? err : "unknown", ret);
         alert("DynApp Error", String("Failed to load:\n") + (err ? err : "Unknown error"));
         g_dynapp = nullptr;
@@ -273,7 +271,7 @@ void DynApp::run() {
     }
 
     /* Prepare argv: argv[0] = path to the .so file */
-    char *argv[1];
+    char* argv[1];
     char pathBuf[256];
     strncpy(pathBuf, filePath.c_str(), sizeof(pathBuf) - 1);
     pathBuf[sizeof(pathBuf) - 1] = '\0';
