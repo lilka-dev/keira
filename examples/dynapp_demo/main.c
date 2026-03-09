@@ -113,8 +113,8 @@ int app_main(int argc, char* argv[]) {
         if (ball_vy < -1536) ball_vy = -1536;
 
         /* Apply friction */
-        ball_vx = (ball_vx * 253) >> 8; /* 0.988x */
-        ball_vy = (ball_vy * 253) >> 8;
+        ball_vx = (ball_vx * 253) / 256; /* 0.988x */
+        ball_vy = (ball_vy * 253) / 256;
 
         /* Update position */
         ball_x += ball_vx;
