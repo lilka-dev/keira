@@ -32,6 +32,7 @@
 #define FT_JS_SCRIPT_COLOR  lilka::colors::Butterscotch
 #define FT_SOUND_COLOR      lilka::colors::Plum_web
 #define FT_LT_COLOR         lilka::colors::Pink_lace
+#define FT_SO_COLOR         lilka::colors::Aquamarine
 #define FT_DIR_COLOR        lilka::colors::Arylide_yellow
 #define FT_OTHER_COLOR      lilka::colors::Light_gray
 //////////////////////////////////////////////////////////////////////////////
@@ -48,6 +49,7 @@
 #define FT_JS_SCRIPT_ICON       &js_img
 #define FT_SOUND_ICON           &music_img
 #define FT_LT_ICON              &music_img
+#define FT_SO_ICON              &bin_img
 #define FT_DIR_ICON             &folder_img
 #define FT_OTHER_ICON           &normalfile_img
 #define FM_SELECTED_FOLDER_ICON &selectedfolder_img
@@ -120,7 +122,7 @@
 #    define FM_DBG if (0)
 #endif
 
-typedef enum { FT_NONE, FT_NES_ROM, FT_BIN, FT_LUA_SCRIPT, FT_JS_SCRIPT, FT_SOUND, FT_LT, FT_DIR, FT_OTHER } FileType;
+typedef enum { FT_NONE, FT_NES_ROM, FT_BIN, FT_LUA_SCRIPT, FT_JS_SCRIPT, FT_SOUND, FT_LT, FT_SO, FT_DIR, FT_OTHER } FileType;
 typedef enum {
     FM_MODE_VIEW, // Standard mode
     FM_MODE_SELECT, // if selectedEntries contain something
@@ -287,6 +289,7 @@ private:
     void onFileOpenWithMJS();
     void onFileOpenWithLilTracker();
     void onFileOpenWithMadPlayer();
+    void onFileOpenWithDynApp();
 
     // Callbacks [fileListMenu]:
     void onFileListMenuItem();
