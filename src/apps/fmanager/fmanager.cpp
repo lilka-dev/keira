@@ -93,12 +93,7 @@ FileManagerApp::FileManagerApp(const String& path) :
         FM_CALLBACK_PTHIS
     );
     fileOpenWithMenu.addItem(
-        K_S_FMANAGER_DYNAPP,
-        0,
-        lilka::colors::White,
-        "",
-        FM_CALLBACK_CAST(onFileOpenWithDynApp),
-        FM_CALLBACK_PTHIS
+        K_S_FMANAGER_DYNAPP, 0, lilka::colors::White, "", FM_CALLBACK_CAST(onFileOpenWithDynApp), FM_CALLBACK_PTHIS
     );
     fileOpenWithMenu.addItem(
         K_S_MENU_BACK, 0, lilka::colors::White, "", FM_CALLBACK_CAST(onAnyMenuBack), FM_CALLBACK_PTHIS

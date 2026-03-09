@@ -44,16 +44,14 @@ void keira_display_draw_circle(int16_t x, int16_t y, int16_t r, uint16_t color);
 void keira_display_fill_circle(int16_t x, int16_t y, int16_t r, uint16_t color);
 
 /** Draw a triangle outline. */
-void keira_display_draw_triangle(int16_t x0, int16_t y0,
-                                  int16_t x1, int16_t y1,
-                                  int16_t x2, int16_t y2,
-                                  uint16_t color);
+void keira_display_draw_triangle(
+    int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint16_t color
+);
 
 /** Fill a triangle. */
-void keira_display_fill_triangle(int16_t x0, int16_t y0,
-                                  int16_t x1, int16_t y1,
-                                  int16_t x2, int16_t y2,
-                                  uint16_t color);
+void keira_display_fill_triangle(
+    int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint16_t color
+);
 
 /** Set text cursor position. */
 void keira_display_set_cursor(int16_t x, int16_t y);
@@ -65,10 +63,10 @@ void keira_display_set_text_color(uint16_t color);
 void keira_display_set_text_size(uint8_t size);
 
 /** Print text at current cursor position. */
-void keira_display_print(const char *text);
+void keira_display_print(const char* text);
 
 /** Print text with newline. */
-void keira_display_println(const char *text);
+void keira_display_println(const char* text);
 
 /** Get display width in pixels. */
 int16_t keira_display_width(void);
@@ -95,28 +93,28 @@ void keira_queue_draw(void);
 uint32_t keira_controller_get_state(void);
 
 /* Button masks for pressed state */
-#define KEIRA_BTN_UP      (1 << 0)
-#define KEIRA_BTN_DOWN    (1 << 1)
-#define KEIRA_BTN_LEFT    (1 << 2)
-#define KEIRA_BTN_RIGHT   (1 << 3)
-#define KEIRA_BTN_A       (1 << 4)
-#define KEIRA_BTN_B       (1 << 5)
-#define KEIRA_BTN_C       (1 << 6)
-#define KEIRA_BTN_D       (1 << 7)
-#define KEIRA_BTN_SELECT  (1 << 8)
-#define KEIRA_BTN_START   (1 << 9)
+#define KEIRA_BTN_UP     (1 << 0)
+#define KEIRA_BTN_DOWN   (1 << 1)
+#define KEIRA_BTN_LEFT   (1 << 2)
+#define KEIRA_BTN_RIGHT  (1 << 3)
+#define KEIRA_BTN_A      (1 << 4)
+#define KEIRA_BTN_B      (1 << 5)
+#define KEIRA_BTN_C      (1 << 6)
+#define KEIRA_BTN_D      (1 << 7)
+#define KEIRA_BTN_SELECT (1 << 8)
+#define KEIRA_BTN_START  (1 << 9)
 
 /* Button masks for justPressed state (shift by 16) */
-#define KEIRA_JUST_UP      (1 << 16)
-#define KEIRA_JUST_DOWN    (1 << 17)
-#define KEIRA_JUST_LEFT    (1 << 18)
-#define KEIRA_JUST_RIGHT   (1 << 19)
-#define KEIRA_JUST_A       (1 << 20)
-#define KEIRA_JUST_B       (1 << 21)
-#define KEIRA_JUST_C       (1 << 22)
-#define KEIRA_JUST_D       (1 << 23)
-#define KEIRA_JUST_SELECT  (1 << 24)
-#define KEIRA_JUST_START   (1 << 25)
+#define KEIRA_JUST_UP     (1 << 16)
+#define KEIRA_JUST_DOWN   (1 << 17)
+#define KEIRA_JUST_LEFT   (1 << 18)
+#define KEIRA_JUST_RIGHT  (1 << 19)
+#define KEIRA_JUST_A      (1 << 20)
+#define KEIRA_JUST_B      (1 << 21)
+#define KEIRA_JUST_C      (1 << 22)
+#define KEIRA_JUST_D      (1 << 23)
+#define KEIRA_JUST_SELECT (1 << 24)
+#define KEIRA_JUST_START  (1 << 25)
 
 /* ── Timing API ──────────────────────────────────────────────────────────── */
 

@@ -52,7 +52,7 @@ static int cos_approx(int deg) {
  * Entry point for the .so app.
  * argc/argv are provided by Keira: argv[0] is the .so file path.
  */
-int app_main(int argc, char *argv[]) {
+int app_main(int argc, char* argv[]) {
     (void)argc;
     (void)argv;
 
@@ -62,12 +62,12 @@ int app_main(int argc, char *argv[]) {
     /* Ball state — fixed-point (8-bit fraction) */
     int ball_x = (scr_w / 2) << 8;
     int ball_y = (scr_h / 2) << 8;
-    int ball_vx = 384;  /* ~1.5 px/frame */
-    int ball_vy = 256;  /* ~1.0 px/frame */
+    int ball_vx = 384; /* ~1.5 px/frame */
+    int ball_vy = 256; /* ~1.0 px/frame */
     int ball_r = 8;
 
-    /* Trail positions */
-    #define TRAIL_LEN 12
+/* Trail positions */
+#define TRAIL_LEN 12
     int16_t trail_x[TRAIL_LEN];
     int16_t trail_y[TRAIL_LEN];
     int trail_idx = 0;
@@ -95,9 +95,9 @@ int app_main(int argc, char *argv[]) {
         }
 
         /* D-pad moves the ball */
-        if (state & KEIRA_BTN_UP)    ball_vy -= 64;
-        if (state & KEIRA_BTN_DOWN)  ball_vy += 64;
-        if (state & KEIRA_BTN_LEFT)  ball_vx -= 64;
+        if (state & KEIRA_BTN_UP) ball_vy -= 64;
+        if (state & KEIRA_BTN_DOWN) ball_vy += 64;
+        if (state & KEIRA_BTN_LEFT) ball_vx -= 64;
         if (state & KEIRA_BTN_RIGHT) ball_vx += 64;
 
         /* A button — speed boost */
@@ -113,7 +113,7 @@ int app_main(int argc, char *argv[]) {
         if (ball_vy < -1536) ball_vy = -1536;
 
         /* Apply friction */
-        ball_vx = (ball_vx * 253) >> 8;  /* 0.988x */
+        ball_vx = (ball_vx * 253) >> 8; /* 0.988x */
         ball_vy = (ball_vy * 253) >> 8;
 
         /* Update position */
@@ -175,11 +175,8 @@ int app_main(int argc, char *argv[]) {
                 int y1 = cy + (r * sin_approx(a1)) / 256;
                 int x2 = cx + (r * cos_approx(a2)) / 256;
                 int y2 = cy + (r * sin_approx(a2)) / 256;
-                uint16_t hue_color = keira_display_color565(
-                    80 + (i * 29) % 176,
-                    40 + (i * 47) % 176,
-                    120 + (i * 37) % 136
-                );
+                uint16_t hue_color =
+                    keira_display_color565(80 + (i * 29) % 176, 40 + (i * 47) % 176, 120 + (i * 37) % 136);
                 keira_display_draw_line(x1, y1, x2, y2, hue_color);
             }
         }
@@ -200,10 +197,7 @@ int app_main(int argc, char *argv[]) {
         keira_display_draw_circle(bx, by, ball_r, KEIRA_COLOR_WHITE);
 
         /* Draw velocity indicator line from ball */
-        keira_display_draw_line(bx, by,
-                                bx + (ball_vx >> 5),
-                                by + (ball_vy >> 5),
-                                KEIRA_COLOR_YELLOW);
+        keira_display_draw_line(bx, by, bx + (ball_vx >> 5), by + (ball_vy >> 5), KEIRA_COLOR_YELLOW);
 
         /* Draw HUD text */
         keira_display_set_cursor(6, 6);
