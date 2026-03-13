@@ -155,6 +155,17 @@ void App::initCanvas() {
     KMTX_UNLOCK(canvasMutex);
 }
 //-----------------------------------------------------------------------------
+void App::clearCanvas() {
+    if (canvas) {
+        delete canvas;
+        canvas = NULL;
+    }
+    if (backCanvas) {
+        delete backCanvas;
+        backCanvas = NULL;
+    }
+}
+//-----------------------------------------------------------------------------
 void App::queueDraw() {
     KMTX_LOCK(canvasMutex);
 
