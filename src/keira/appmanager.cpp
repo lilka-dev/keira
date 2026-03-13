@@ -139,7 +139,7 @@ void AppManager::spawn(App* app, bool autoSuspend) {
     // Reset controler state on resume
     app->setupOnResumeCallback(KT_CLBK_CAST(&lilka::Controller::resetState), KT_CLBK_DATA_CAST(&lilka::controller));
     // Clear canvas resources on suspend
-    app->setupOnSuspendCallback(KT_CLBK_CAST(&App::clearCanvas), KT_CLBK_DATA_CAST(app));
+    app->setupOnSuspendCallback(KT_CLBK_CAST(&App::deinitCanvas), KT_CLBK_DATA_CAST(app));
     // Restore canvas resources on resume
     app->setupOnResumeCallback(KT_CLBK_CAST(&App::initCanvas), KT_CLBK_DATA_CAST(app));
 

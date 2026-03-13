@@ -69,8 +69,8 @@ protected:
     void setRedraw(bool redraw);
     // Initializes canvas, recreates canvas on flag changes
     void initCanvas();
-    // Clear existing canvases
-    void clearCanvas();
+    // Clear existing canvases memory
+    void deinitCanvas();
     //////////////////////////////////////////////////////////////////////////
     lilka::Canvas* backCanvas = NULL;
     uint32_t frame = 0;
