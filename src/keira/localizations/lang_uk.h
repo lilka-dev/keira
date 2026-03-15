@@ -219,7 +219,7 @@
 
 #define K_S_FMANAGER_ABOUT_FILE_FMT \
     "Тип: файл\n"                   \
-    "Розмір: %s\n" \ 
+    "Розмір: %s\n" \
     "MD5: %s\n"
 // TODO: MOVE MULTIBOOT TO SEPARATE APP
 #define K_S_FMANAGER_MULTIBOOT_ABOUT_FMT            "%s\n\nРозмір: %s"

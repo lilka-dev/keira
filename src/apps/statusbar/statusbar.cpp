@@ -1,4 +1,6 @@
 #include "statusbar.h"
+#include "keira/ksystem.h"
+// Icons:
 #include "apps/icons/battery.h"
 #include "apps/icons/battery_danger.h"
 #include "apps/icons/battery_absent.h"
@@ -11,9 +13,11 @@
 #include "apps/icons/wifi_3.h"
 #include "apps/icons/mem.h"
 #include "keira/servicemanager.h"
+// Services:
 #include "services/clock/clock.h"
 #include "services/network/network.h"
-#include "Preferences.h"
+// Libraries:
+#include <Preferences.h>
 
 StatusBarApp::StatusBarApp() : App("StatusBar") {
     setFlags(AppFlags::APP_FLAG_STATUSBAR);
@@ -142,7 +146,7 @@ int StatusBarApp::drawWidget(StatusBarWidget* widget, int x, int availableWidth)
 }
 
 int StatusBarApp::drawClock(lilka::Canvas* canvas) {
-    ClockService* clockService = ServiceManager::getInstance()->getService<ClockService>("clock");
+    ClockService* clockService = static_cast<ClockService*>(ksystem.services["clock"]);
     struct tm timeinfo = clockService->getTime();
     char strftime_buf[16];
     auto clockFormat = "%H:%M";
@@ -192,18 +196,32 @@ int StatusBarApp::drawMem(lilka::Canvas* canvas) {
 }
 
 int StatusBarApp::drawNetwork(lilka::Canvas* canvas) {
-    NetworkService* networkService = ServiceManager::getInstance()->getService<NetworkService>("network");
-    if (networkService != NULL) {
-        if (networkService->getNetworkState() == NETWORK_STATE_DISABLED) {
-            canvas->draw16bitRGBBitmapWithTranColor(0, 0, wifi_disabled_img, 0, 24, 24);
-        } else if (networkService->getNetworkState() == NETWORK_STATE_OFFLINE) {
-            canvas->draw16bitRGBBitmapWithTranColor(0, 0, wifi_offline_img, 0, 24, 24);
-        } else if (networkService->getNetworkState() == NETWORK_STATE_CONNECTING) {
-            canvas->draw16bitRGBBitmapWithTranColor(0, 0, wifi_connecting_img, 0, 24, 24);
-        } else if (networkService->getNetworkState() == NETWORK_STATE_ONLINE) {
-            canvas->draw16bitRGBBitmapWithTranColor(0, 0, wifiIcons[networkService->getSignalStrength()], 0, 24, 24);
-        }
+    NetworkService* networkService = static_cast<NetworkService*>(ksystem.services["network"]);
+
+    const uint16_t* stateIcons[] = {
+        wifi_disabled_img, // NETWORK_STATE_DISABLED = 0
+        wifi_offline_img, // NETWORK_STATE_OFFLINE  = 1
+        wifi_connecting_img
+    };
+
+    // Check if network service is runing
+    if (networkService == NULL) {
+        canvas->draw16bitRGBBitmapWithTranColor(0, 0, stateIcons[NETWORK_STATE_DISABLED], 0, 24, 24);
+        return 24;
     }
+
+    // Determine current network state
+    auto netState = networkService->getnetworkState();
+
+    // Draw network state icon(Not online)
+    if (netState != NETWORK_STATE_ONLINE) {
+        canvas->draw16bitRGBBitmapWithTranColor(0, 0, stateIcons[netState], 0, 24, 24);
+        return 24;
+    }
+
+    // Draw signal strength
+    canvas->draw16bitRGBBitmapWithTranColor(0, 0, wifiIcons[networkService->getsignalStrength()], 0, 24, 24);
+
     return 24;
 }
 
@@ -257,6 +275,7 @@ void StatusBarApp::formatSize(uint32_t bytes, char* buf, size_t len) {
 }
 
 void StatusBarApp::loadSettings() {
+    NVS_LOCK;
     Preferences prefs;
     prefs.begin(STATUSBAR_KEIRA_NAMESPACE, true);
     clockMode = prefs.getInt("clock", 1);
@@ -264,14 +283,17 @@ void StatusBarApp::loadSettings() {
     networkMode = prefs.getInt("network", 1);
     batteryMode = prefs.getInt("battery", 1);
     prefs.end();
+    NVS_UNLOCK;
 }
 
 void StatusBarApp::setMode(const char* key, uint8_t& mode, uint8_t newMode, uint8_t maxMode) {
     mode = newMode % (maxMode + 1);
+    NVS_LOCK;
     Preferences prefs;
     prefs.begin(STATUSBAR_KEIRA_NAMESPACE, false);
     prefs.putInt(key, mode);
     prefs.end();
+    NVS_UNLOCK;
 
     initSystemWidgets();
 }

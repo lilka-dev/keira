@@ -1,5 +1,6 @@
 #pragma once
 #include "keira/keira.h"
+#include "keira/debug.h"
 #include "keira/keira_allocators.h"
 //////////////////////////////////////////////////////////////////////////////
 // [^_^]==\~ File manager for Keira OS header file                          //
@@ -96,24 +97,24 @@
 #include <ff.h>
 
 // ICONS:
-#include "../icons/normalfile.h"
-#include "../icons/folder.h"
-#include "../icons/nes.h"
-#include "../icons/bin.h"
-#include "../icons/lua.h"
-#include "../icons/js.h"
-#include "../icons/music.h"
-#include "../icons/selectedfile.h"
-#include "../icons/selectedfolder.h"
+#include "apps/icons/normalfile.h"
+#include "apps/icons/folder.h"
+#include "apps/icons/nes.h"
+#include "apps/icons/bin.h"
+#include "apps/icons/lua.h"
+#include "apps/icons/js.h"
+#include "apps/icons/music.h"
+#include "apps/icons/selectedfile.h"
+#include "apps/icons/selectedfolder.h"
 
 // very bad test
 // /sd/1 => /sd/1122/1
 // no need with status bar
 #define MAKE_SANDWICH(X) \
-    if (0) AppManager::getInstance()->startToast(X)
+    if (0) ksystem.apps.startToast(X)
 
 // Uncomment this line to get some debuging information
-//#define FMANAGER_DEBUG
+// #define FMANAGER_DEBUG
 #ifdef FMANAGER_DEBUG
 #    define FM_DBG if (1)
 #else
@@ -147,6 +148,13 @@ typedef enum {
     changeMode(FM_MODE_VIEW); \
     exitChildDialogs = true;  \
     FM_DBG lilka::serial.log("FM mode reset at %s:%d", __FILE__, __LINE__)
+
+#define FM_MENU_HANDLE_EXIT(MENU)   \
+    auto button = MENU.getButton(); \
+    if (button == FM_EXIT_BUTTON) { \
+        FM_DBG LXP;                 \
+        return;                     \
+    }
 
 //////////////////////////////////////////////////////////////
 // TODO FManager list:
@@ -209,7 +217,7 @@ private:
     void deselectCurrentEntry();
     void clearSelectedEntries();
 
-    void deleteEntry(const FMEntry& entry, bool force = false);
+    void deleteEntry(const FMEntry& entry);
 
     // actual copying
     bool copyPath(const String& source, const String& destination);

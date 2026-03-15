@@ -1,43 +1,30 @@
 #include "keira/service.h"
-#include "keira/servicemanager.h"
 #include "services/watchdog/watchdog.h"
-
-Service::Service(const char* name) : name(name), taskHandle(NULL), stackSize(4096) {
+#include "keira/ksystem.h"
+Service::Service(const char* name) {
+    setName(name);
+    setktStackSize(4096);
+    setktPriority(KT_PRIO_IDLE);
+    setktType(KT_SERVICE);
+    NVS_LOCK;
     Preferences prefs;
-    prefs.begin(name, true);
+    prefs.begin(getName(), true);
     enabled = prefs.getBool("enabled", false);
     prefs.end();
+    NVS_UNLOCK;
 }
 
-Service::~Service() {
-}
+// TODO: to be moved to service manager
 bool Service::getEnabled() {
     return enabled;
 }
 
 void Service::setEnabled(bool enabled) {
-    this->enabled = enabled;
+    NVS_LOCK;
     Preferences prefs;
-    prefs.begin(name, false);
+    prefs.begin(getName(), false);
     prefs.putBool("enabled", enabled);
     prefs.end();
-}
-
-void Service::start() {
-    lilka::serial.log(K_S_SERVICE_STARTUP_FMT, name);
-    xTaskCreate(_run, name, stackSize, this, 1, &taskHandle);
-}
-
-void Service::_run(void* arg) {
-    Service* service = static_cast<Service*>(arg);
-#ifdef KEIRA_WATCHDOG
-    auto wd = ServiceManager::getInstance()->getService<WatchdogService>("watchdog");
-    if (wd != NULL) wd->addCurrentTask(WATCHDOG_TASK_SERVICE);
-#endif
-    service->run();
-    lilka::serial.err(K_S_SERVICE_DIE_FMT, service->name);
-}
-
-void Service::setStackSize(uint32_t stackSize) {
-    this->stackSize = stackSize;
+    NVS_UNLOCK;
+    this->enabled = enabled;
 }

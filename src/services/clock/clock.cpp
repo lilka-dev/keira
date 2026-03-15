@@ -1,18 +1,17 @@
 #include "clock.h"
 #include "services/network/network.h"
-#include "keira/servicemanager.h"
-
+#include "keira/ksystem.h"
 ClockService::ClockService() : Service("clock") {
 }
 
 void ClockService::run() {
     while (1) {
-        NetworkService* network = ServiceManager::getInstance()->getService<NetworkService>("network");
+        NetworkService* network = reinterpret_cast<NetworkService*>(ksystem.services["network"]);
         if (network == NULL) {
             vTaskDelay(1000 / portTICK_PERIOD_MS);
             continue;
         }
-        if (network->getNetworkState() == NetworkState::NETWORK_STATE_ONLINE) {
+        if (network->getnetworkState() == NetworkState::NETWORK_STATE_ONLINE) {
             lilka::serial.log("ClockService: Setting time from NTP server");
             configTzTime(MYTZ, "ua.pool.ntp.org", "pool.ntp.org");
             // Delay for 12 hours

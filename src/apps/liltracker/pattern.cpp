@@ -3,6 +3,7 @@
 
 #include "pattern.h"
 #include "utils/acquire.h"
+#include "keira/mutex.h"
 
 #define WRITE_TO_BUFFER(buffer, value)              \
     memcpy(&buffer[offset], &value, sizeof(value)); \
@@ -32,7 +33,7 @@ Pattern::Pattern() : xMutex(xSemaphoreCreateMutex()) {
             channels[channelIndex].events[eventIndex] = event;
         }
     }
-    xSemaphoreGive(xMutex);
+    KMTX_UNLOCK(xMutex);
 }
 
 Pattern::~Pattern() {

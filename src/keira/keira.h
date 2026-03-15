@@ -4,7 +4,7 @@
 //  Keira OS Header file
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-
+#include "keira/ksystem.h"
 #include "keira_lang.h"
 
 // BUTTONS:  //////////////////////////////////////////////////////////////////////////////////////////
@@ -30,11 +30,11 @@
 #include "apps/nes/nesapp.h"
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // FILETYPE HANDLERS:  ////////////////////////////////////////////////////////////////////////////////
-#define K_FT_NES_HANDLER(X)        AppManager::getInstance()->runApp(new NesApp(X))
-#define K_FT_LUA_SCRIPT_HANDLER(X) AppManager::getInstance()->runApp(new LuaFileRunnerApp(X))
-#define K_FT_JS_SCRIPT_HANDLER(X)  AppManager::getInstance()->runApp(new MJSApp(X))
-#define K_FT_SOUND_HANDLER(X)      AppManager::getInstance()->runApp(new MadPlayerApp(X))
-#define K_FT_LT_HANDLER(X)         AppManager::getInstance()->runApp(new LilTrackerApp(X))
+#define K_FT_NES_HANDLER(X)        ksystem.apps.spawn(new NesApp(X))
+#define K_FT_LUA_SCRIPT_HANDLER(X) ksystem.apps.spawn(new LuaFileRunnerApp(X))
+#define K_FT_JS_SCRIPT_HANDLER(X)  ksystem.apps.spawn(new MJSApp(X))
+#define K_FT_SOUND_HANDLER(X)      ksystem.apps.spawn(new MadPlayerApp(X))
+#define K_FT_LT_HANDLER(X)         ksystem.apps.spawn(new LilTrackerApp(X))
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // GUIDELINE: Use Keira global filetype handlers(K_FT_) if possible
 ///////////////////////////////////////////////////////////////////////////////////////////////////////

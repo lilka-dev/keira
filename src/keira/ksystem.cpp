@@ -137,17 +137,16 @@ void KeiraSystem::showWelcomeMessage() {
 void KeiraSystem::launchServices() {
     // TODO: implement on/off service via complete destroyment of its resources/threads
     // Prepare Service Manager
-    this->serviceManager = ServiceManager::getInstance();
 
 #ifdef KEIRA_WATCHDOG
-    serviceManager->addService(new WatchdogService());
+    services.spawn(new WatchdogService());
 #endif
-    serviceManager->addService(new NetworkService());
-    serviceManager->addService(new ClockService());
-    serviceManager->addService(new ScreenshotService());
-    serviceManager->addService(new TelnetService());
-    serviceManager->addService(new FTPService());
-    serviceManager->addService(new WebService());
+    services.spawn(new NetworkService());
+    services.spawn(new ClockService());
+    services.spawn(new ScreenshotService());
+    services.spawn(new TelnetService());
+    services.spawn(new FTPService());
+    services.spawn(new WebService());
 
     // GUIDELINE: To add a new service register it here
 }
@@ -167,7 +166,7 @@ void KeiraSystem::verifyOTA() {
 
 void KeiraSystem::registerFileSystems() {
     // Prepare RootVFS. Better to register it last
-    // / doesn't work here. 0_0==\~ Give me control filthy bitch -_-
+    //
     this->rootVFS = new RootVFS("");
 
     // Add well known dirs
@@ -209,24 +208,42 @@ void KeiraSystem::setup() {
     // Register VFS
     registerFileSystems();
 
-    // Launch appManager
-    this->appManager = AppManager::getInstance();
-
     // Send greetings to serial
     showWelcomeMessage();
 
     // Time to launch services
     launchServices();
 
-    // Run first apps
-    appManager->setPanel(new StatusBarApp());
-    appManager->runApp(new LauncherApp(), false);
+    // Launch Panel
+    auto panel = new StatusBarApp();
+    apps.setpanel(panel);
+    panel->start();
+
+    // Launch first app
+    apps.spawn(new LauncherApp(), false);
+
+    // Run thread managers
+    apps.start();
+
+    services.start();
+
+    threads.start();
+
+    vTaskDelete(NULL);
 }
 
 // TODO: To be run in separate KeiraThread[TO_IMPLEMENT]
 // System tick
 void KeiraSystem::loop() {
-    appManager->loop();
+    // sync all managers one by one
+    //    threads.update(); updated internally
+    // Due to no check on NULL in most apps while interacting to services
+    // We've to specify it before appManager
+    //   services.update();
+    // TODO: services and apps managers to be based on a thread manager
+    vTaskDelete(NULL);
+    // Delay system updates
+    //    vTaskDelay(pdMS_TO_TICKS(10));
 }
 
 KeiraSystem ksystem;

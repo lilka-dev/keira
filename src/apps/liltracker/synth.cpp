@@ -1,5 +1,6 @@
 #include "synth.h"
 #include "utils/acquire.h"
+#include "keira/mutex.h"
 
 Synth::Synth() : xMutex(xSemaphoreCreateMutex()), currentSample(0) {
     for (int i = 0; i < CHANNEL_COUNT; i++) {
@@ -11,7 +12,7 @@ Synth::Synth() : xMutex(xSemaphoreCreateMutex()), currentSample(0) {
             .effectStartTime = 0.0f,
         };
     }
-    xSemaphoreGive(xMutex);
+    KMTX_UNLOCK(xMutex);
 }
 
 void Synth::reset() {
