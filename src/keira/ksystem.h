@@ -21,9 +21,6 @@
 
 #define KEIRA_VERSION_TYPE_ACSTR lilka::SDK_VERSION_TYPE_ACSTR
 
-#define NVS_LOCK                 xSemaphoreTake(ksystem.nvsMTX, portMAX_DELAY);
-#define NVS_UNLOCK               xSemaphoreGive(ksystem.nvsMTX);
-
 typedef enum KEIRA_VERSION_TYPE : uint8_t {
     KEIRA_VERSION_TYPE_DEV = 0,
     KEIRA_VERSION_TYPE_PRE_RELEASE = 1,
