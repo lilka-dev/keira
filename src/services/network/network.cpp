@@ -171,26 +171,33 @@ void NetworkService::run() {
 void NetworkService::autoConnect() {
     WiFi.mode(WIFI_STA);
 
-    // Check if there is a known network to connect to
     NVS_LOCK;
     Preferences prefs;
     prefs.begin(getName(), true);
-    if (!prefs.isKey("last_ssid")) {
-        lilka::serial.log("NetworkService: no last SSID found, skipping auto connection");
-    } else {
-        String currentSSID = prefs.getString("last_ssid");
-        lilka::serial.log("NetworkService: last SSID found: %s", currentSSID.c_str());
-        lastPassword = getPassword(currentSSID);
-        if (lastPassword == "") {
-            lilka::serial.log("NetworkService: no password found for last SSID, skipping auto connection");
-        } else {
-            connect(currentSSID, lastPassword);
-        }
-    }
+    bool hasSSID = prefs.isKey("last_ssid");
+    String currentSSID = hasSSID ? prefs.getString("last_ssid") : "";
     prefs.end();
     NVS_UNLOCK;
-}
 
+    if (!hasSSID) {
+        lilka::serial.log("NetworkService: no last SSID found, skipping auto connection");
+        return;
+    }
+
+    lilka::serial.log("NetworkService: last SSID found: %s", currentSSID.c_str());
+    String password = getPassword(currentSSID);
+
+    if (password == "") {
+        lilka::serial.log("NetworkService: no password found for last SSID, skipping auto connection");
+        return;
+    }
+
+    KMTX_LOCK(mtxNetwork);
+    lastPassword = password;
+    KMTX_UNLOCK(mtxNetwork);
+
+    connect(currentSSID, password);
+}
 // Attempt to connect to a given network.
 // If the network is not known (password is required), return false.
 bool NetworkService::connect(String ssid) {
@@ -206,14 +213,14 @@ bool NetworkService::connect(String ssid) {
 
 // Attempt to connect to a given network with a given password.
 void NetworkService::connect(String ssid, String password) {
-    KMTX_LOCK(mtxNetwork);
-
     lilka::serial.log("NetworkService: connecting to %s", ssid.c_str());
+
+    KMTX_LOCK(mtxNetwork);
     lastPassword = password;
+    KMTX_UNLOCK(mtxNetwork);
+
     WiFi.disconnect();
     WiFi.begin(ssid.c_str(), password.c_str());
-
-    KMTX_UNLOCK(mtxNetwork);
 }
 
 String NetworkService::getPassword(String ssid) {
