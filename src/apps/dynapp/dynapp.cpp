@@ -239,7 +239,7 @@ static const lilka_dynsym_t g_keira_api_symbols[] = {
 /* ── DynApp implementation ──────────────────────────────────────────────── */
 
 DynApp::DynApp(const String& path) : App("DynApp"), filePath(path) {
-    setStackSize(16384);
+    setktStackSize(16384);
     setFlags(APP_FLAG_FULLSCREEN);
 }
 
