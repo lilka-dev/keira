@@ -13,5 +13,5 @@ public:
 
 private:
     void run() override;
-    NetworkService* networkService;
+    NetworkService* networkService = NULL;
 };
