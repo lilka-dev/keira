@@ -56,9 +56,10 @@
 #include <Preferences.h>
 #include <lilka/spi.h>
 
+#include "keira/ksystem.h"
+
 LauncherApp::LauncherApp() : App("Launcher") {
-    networkService = static_cast<NetworkService*>(ServiceManager::getInstance()->getService<NetworkService>("network"));
-    setStackSize(8192); // Yeah, this one is heavy as fuck
+    setktStackSize(8192); // Yeah, this one is heavy as fuck
 }
 
 void LauncherApp::run() {
@@ -146,6 +147,9 @@ void LauncherApp::run() {
                             lilka::colors::White,
                             [this](void* item) {
                                     lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
+                                    NetworkService* networkService = static_cast<NetworkService*>(
+                                        ksystem.services["network"]
+                                    );
                                     menuItem->postfix = networkService->getEnabled() ? K_S_ON : K_S_OFF;
                             }
                         ),
@@ -163,8 +167,7 @@ void LauncherApp::run() {
                             ITEM::MENU(
                                 K_S_STATUS,
                                 [this]() {
-                                            WebService* webService = static_cast<WebService*>(
-                                                ServiceManager::getInstance()->getService<WebService>("web")
+                                            WebService* webService = static_cast<WebService*>(ksystem.services["web"]
                                             );
                                             webService->setEnabled(!webService->getEnabled());
                                 },
@@ -173,7 +176,7 @@ void LauncherApp::run() {
                                 [this](void* item) {
                                             lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
                                             WebService* webService = static_cast<WebService*>(
-                                                ServiceManager::getInstance()->getService<WebService>("web")
+                                               ksystem.services["web"]
                                             );
                                             menuItem->postfix = webService->getEnabled() ? K_S_ON : K_S_OFF;
                                 }
@@ -184,7 +187,7 @@ void LauncherApp::run() {
                                 K_S_STATUS,
                                 [this]() {
                                             TelnetService* telnetService = static_cast<TelnetService*>(
-                                                ServiceManager::getInstance()->getService<TelnetService>("telnet")
+                                                ksystem.services["telnet"]
                                             );
                                             telnetService->setEnabled(!telnetService->getEnabled());
                                 },
@@ -193,7 +196,7 @@ void LauncherApp::run() {
                                 [this](void* item) {
                                             lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
                                             TelnetService* telnetService = static_cast<TelnetService*>(
-                                                ServiceManager::getInstance()->getService<TelnetService>("telnet")
+                                                ksystem.services["telnet"]
                                             );
                                             menuItem->postfix = telnetService->getEnabled() ? K_S_ON : K_S_OFF;
                                 }
@@ -204,7 +207,7 @@ void LauncherApp::run() {
                                 K_S_STATUS,
                                 [this]() {
                                             FTPService* ftpService = static_cast<FTPService*>(
-                                                ServiceManager::getInstance()->getService<FTPService>("ftp")
+                                                ksystem.services["ftp"]
                                             );
                                             ftpService->setEnabled(!ftpService->getEnabled());
                                 },
@@ -213,7 +216,7 @@ void LauncherApp::run() {
                                 [this](void* item) {
                                             lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
                                             FTPService* ftpService = static_cast<FTPService*>(
-                                                ServiceManager::getInstance()->getService<FTPService>("ftp")
+                                                ksystem.services["ftp"]
                                             );
                                             menuItem->postfix = ftpService->getEnabled() ? K_S_ON : K_S_OFF;
                                 }
@@ -226,7 +229,7 @@ void LauncherApp::run() {
                                 [this](void* item) {
                                             lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
                                             FTPService* ftpService = static_cast<FTPService*>(
-                                                ServiceManager::getInstance()->getService<FTPService>("ftp")
+                                                ksystem.services["ftp"]
                                             );
                                             menuItem->postfix = ftpService->getUser();
                                 }
@@ -235,7 +238,7 @@ void LauncherApp::run() {
                                 K_S_LAUNCHER_FTP_PASSWORD,
                                 [this]() {
                                             FTPService* ftpService = static_cast<FTPService*>(
-                                                ServiceManager::getInstance()->getService<FTPService>("ftp")
+                                                ksystem.services["ftp"]
                                             );
                                             ftpService->createPassword();
                                 },
@@ -244,7 +247,7 @@ void LauncherApp::run() {
                                 [this](void* item) {
                                             lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
                                             FTPService* ftpService = static_cast<FTPService*>(
-                                                ServiceManager::getInstance()->getService<FTPService>("ftp")
+                                                ksystem.services["ftp"]
                                             );
                                             menuItem->postfix = ftpService->getPassword();
                                 }
@@ -256,7 +259,10 @@ void LauncherApp::run() {
                                 lilka::colors::White,
                                 [this](void* item) {
                                             lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
-                                            menuItem->postfix = networkService->getIpAddr();
+                                            NetworkService* networkService = static_cast<NetworkService*>(
+                                        ksystem.services["network"]
+                                    );
+                                            menuItem->postfix = networkService->getipAddr();
                                 }
                             ),
                         }),
@@ -265,14 +271,14 @@ void LauncherApp::run() {
                         ITEM::MENU(
                             K_S_LAUNCHER_CLOCK,
                             [this]() {
-                                    auto statusBar = static_cast<StatusBarApp*>(AppManager::getInstance()->getPanel());
+                                    auto statusBar = static_cast<StatusBarApp*>(ksystem.apps.getpanel());
                                     statusBar->setClockMode((statusBar->getClockMode() + 1));
                             },
                             nullptr,
                             lilka::colors::White,
                             [this](void* item) {
                                     lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
-                                    auto statusBar = static_cast<StatusBarApp*>(AppManager::getInstance()->getPanel());
+                                    auto statusBar = static_cast<StatusBarApp*>(ksystem.apps.getpanel());
                                     switch (statusBar->getClockMode()) {
                                         case 0:
                                             menuItem->postfix = K_S_LAUNCHER_CLOCK_0;
@@ -292,14 +298,14 @@ void LauncherApp::run() {
                         ITEM::MENU(
                             K_S_LAUNCHER_MEM,
                             [this]() {
-                                    auto statusBar = static_cast<StatusBarApp*>(AppManager::getInstance()->getPanel());
+                                    auto statusBar = static_cast<StatusBarApp*>(ksystem.apps.getpanel());
                                     statusBar->setMemMode((statusBar->getMemMode() + 1));
                             },
                             nullptr,
                             lilka::colors::White,
                             [this](void* item) {
                                     lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
-                                    auto statusBar = static_cast<StatusBarApp*>(AppManager::getInstance()->getPanel());
+                                    auto statusBar = static_cast<StatusBarApp*>(ksystem.apps.getpanel());
                                     switch (statusBar->getMemMode()) {
                                         case 0:
                                             menuItem->postfix = K_S_LAUNCHER_MEM_0;
@@ -316,14 +322,14 @@ void LauncherApp::run() {
                         ITEM::MENU(
                             K_S_LAUNCHER_NETWORK,
                             [this]() {
-                                    auto statusBar = static_cast<StatusBarApp*>(AppManager::getInstance()->getPanel());
+                                    auto statusBar = static_cast<StatusBarApp*>(ksystem.apps.getpanel());
                                     statusBar->setNetworkMode((statusBar->getNetworkMode() + 1));
                             },
                             nullptr,
                             lilka::colors::White,
                             [this](void* item) {
                                     lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
-                                    auto statusBar = static_cast<StatusBarApp*>(AppManager::getInstance()->getPanel());
+                                    auto statusBar = static_cast<StatusBarApp*>(ksystem.apps.getpanel());
                                     switch (statusBar->getNetworkMode()) {
                                         case 0:
                                             menuItem->postfix = K_S_LAUNCHER_NETWORK_0;
@@ -337,14 +343,14 @@ void LauncherApp::run() {
                         ITEM::MENU(
                             K_S_LAUNCHER_BATTERY,
                             [this]() {
-                                    auto statusBar = static_cast<StatusBarApp*>(AppManager::getInstance()->getPanel());
+                                    auto statusBar = static_cast<StatusBarApp*>(ksystem.apps.getpanel());
                                     statusBar->setBatteryMode((statusBar->getBatteryMode() + 1));
                             },
                             nullptr,
                             lilka::colors::White,
                             [this](void* item) {
                                     lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
-                                    auto statusBar = static_cast<StatusBarApp*>(AppManager::getInstance()->getPanel());
+                                    auto statusBar = static_cast<StatusBarApp*>(ksystem.apps.getpanel());
                                     switch (statusBar->getBatteryMode()) {
                                         case 0:
                                             menuItem->postfix = K_S_LAUNCHER_BATTERY_0;
@@ -425,7 +431,7 @@ void LauncherApp::showMenu(const char* title, ITEM_LIST& list, bool back) {
 }
 template <typename T, typename... Args>
 void LauncherApp::runApp(Args&&... args) {
-    AppManager::getInstance()->runApp(new T(std::forward<Args>(args)...));
+    ksystem.apps.spawn(new T(std::forward<Args>(args)...));
 }
 void LauncherApp::setWiFiTxPower() {
     String names[] = {
@@ -467,10 +473,13 @@ void LauncherApp::setWiFiTxPower() {
     WiFi.setTxPower(values[index]);
 
     // Save value to NVS
+    NVS_LOCK;
     Preferences prefs;
-    prefs.begin(WIFI_KEIRA_NAMESPACE, false);
+    // This is a bit dumb, stor somewhere
+    prefs.begin(ksystem.services["network"]->getName(), false);
     prefs.putInt("txPower", static_cast<int>(values[index]));
     prefs.end();
+    NVS_UNLOCK;
 }
 
 void LauncherApp::setSpiSDSpeed() {
@@ -503,29 +512,34 @@ void LauncherApp::setSpiSDSpeed() {
     auto index = setSpiSDSpeedMenu.getCursor();
 
     // store new frequency to NVS
+    NVS_LOCK;
     Preferences prefs;
     prefs.begin(LILKA_SPI_NVS_NAMESPACE, false);
     uint32_t sdFrequency = sdFrequencies[index];
     prefs.putUInt(LILKA_SPI_NVS_SD_FREQUENCY_KEY, sdFrequency);
     prefs.end();
+    NVS_UNLOCK;
 
     alert("", K_S_CHANGE_ON_NEXT_BOOT);
 }
 
 void LauncherApp::wifiToggle() {
+    NetworkService* networkService = static_cast<NetworkService*>(ksystem.services["network"]);
     networkService->setEnabled(!networkService->getEnabled());
 }
 void LauncherApp::wifiManager() {
+    NetworkService* networkService = static_cast<NetworkService*>(ksystem.services["network"]);
     if (!networkService->getEnabled()) {
         alert(K_S_ERROR, K_S_LAUNCHER_ENABLE_WIFI_FIRST);
         return;
     }
-    AppManager::getInstance()->runApp(new WiFiConfigApp());
+    ksystem.apps.spawn(new WiFiConfigApp());
 }
 void LauncherApp::about() {
     alert(K_S_OS_NAME, K_S_OS_DESCRIPTION);
 }
 void LauncherApp::info() {
+    NetworkService* networkService = static_cast<NetworkService*>(ksystem.services["network"]);
     alert(
         K_S_LAUNCHER_DEVICE_INFO,
         StringFormat(
@@ -535,7 +549,7 @@ void LauncherApp::info() {
             esp_get_idf_version(),
             ESP.getCpuFreqMHz(),
             ESP.getChipCores(),
-            networkService->getIpAddr().c_str()
+            networkService->getipAddr().c_str()
         )
     );
 }

@@ -87,6 +87,9 @@ KeiraOS, операційна система для консолей [![Lilka](h
 
 Повна документація проєкту буде доступна ось тут: <https://docs.lilka.dev/projects/keira/uk/latest/>
 
+## Архітектура
+![Keira Architecture](./img/keira.png)
+
 ## Спільнота
 
 Приєднуйтесь до [нашого сервера в Discord][discord]!

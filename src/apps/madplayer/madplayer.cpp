@@ -3,8 +3,7 @@
 // Підтримувані формати: MOD, WAV, MP3, AAC, FLAC.
 // Автори: Олексій "Alder" Деркач (https://github.com/alder) та Андрій "and3rson" Дунай (https://github.com/and3rson)
 //
-
-#include "keira/appmanager.h"
+#include "keira/ksystem.h"
 #include "apps/statusbar/statusbar.h"
 #include "madplayer.h"
 
@@ -21,10 +20,10 @@ static const char* detectAudioType(const String& path) {
 }
 
 MadPlayerApp::MadPlayerApp(String path) : App("MadPlayer") {
-    setCore(1);
+    setktCore(1);
     fileName = path;
 
-    auto statusBar = static_cast<StatusBarApp*>(AppManager::getInstance()->getPanel());
+    auto statusBar = static_cast<StatusBarApp*>(ksystem.apps.getpanel());
     if (statusBar) {
         widgetId =
             statusBar->addWidget([this](lilka::Canvas* canvas) { return drawWidget(canvas); }, lilka::ALIGN_START, 24);
@@ -131,7 +130,7 @@ void MadPlayerApp::run() {
     delete sound;
     sound = nullptr;
 
-    auto statusBar = static_cast<StatusBarApp*>(AppManager::getInstance()->getPanel());
+    auto statusBar = static_cast<StatusBarApp*>(ksystem.apps.getpanel());
     if (statusBar) {
         statusBar->removeWidget(widgetId);
     }

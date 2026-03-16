@@ -1,9 +1,11 @@
+#include "keira/ksystem.h"
+#include "apps/wificonfig/wificonfig.h"
+// Libraries:
 #include <WiFi.h>
 #include "keira/keira.h"
-#include "apps/wificonfig/wificonfig.h"
-#include "keira/servicemanager.h"
+// Services:
 #include "services/network/network.h"
-
+// Icons:
 #include "apps/icons/wifi_0.h"
 #include "apps/icons/wifi_1.h"
 #include "apps/icons/wifi_2.h"
@@ -41,8 +43,7 @@ void WiFiConfigApp::run() {
     buffer.begin();
     buffer.fillScreen(0);
 
-    NetworkService* networkService =
-        static_cast<NetworkService*>(ServiceManager::getInstance()->getService<NetworkService>("network"));
+    NetworkService* networkService = static_cast<NetworkService*>(ksystem.services["network"]);
     // TODO: use dynamic_cast and assert networkService != nullptr
 
     buffer.fillScreen(lilka::colors::Black);
@@ -179,23 +180,23 @@ void WiFiConfigApp::run() {
         queueDraw();
 
         // // Wait for the adapter to start connecting
-        // while (networkService->getNetworkState() != NETWORK_STATE_CONNECTING &&
-        //        networkService->getNetworkState() != NETWORK_STATE_ONLINE) {
+        // while (networkService->getnetworkState() != NETWORK_STATE_CONNECTING &&
+        //        networkService->getnetworkState() != NETWORK_STATE_ONLINE) {
         //     taskYIELD();
         // }
         // // Wait for the adapter to finish connecting
-        // while (networkService->getNetworkState() == NETWORK_STATE_CONNECTING) {
+        // while (networkService->getnetworkState() == NETWORK_STATE_CONNECTING) {
         //     taskYIELD();
         // }
         // Wait for the adapter to start connecting (it can briefly enter DISCONNECTED state)
         vTaskDelay(1000 / portTICK_PERIOD_MS);
         // Wait for the adapter to finish connecting
-        while (networkService->getNetworkState() == NETWORK_STATE_CONNECTING) {
+        while (networkService->getnetworkState() == NETWORK_STATE_CONNECTING) {
             taskYIELD();
         }
 
         lilka::Alert alert("", "");
-        bool success = networkService->getNetworkState() == NETWORK_STATE_ONLINE;
+        bool success = networkService->getnetworkState() == NETWORK_STATE_ONLINE;
         if (success) {
             alert.setTitle(K_S_SUCCESS);
             alert.setMessage(StringFormat(K_S_WIFI_CONFIG_CONNECTED_TO_NETWORK_FMT, ssid.c_str()));

@@ -76,8 +76,8 @@ typedef enum : uint8_t {
 
 LilTrackerApp::LilTrackerApp() : App("LilTracker"), sequencer(NULL) {
     this->setFlags(APP_FLAG_FULLSCREEN);
-    this->setCore(1);
-    this->setStackSize(16384);
+    this->setktCore(1);
+    this->setktStackSize(16384);
     this->initialPath = "";
 }
 

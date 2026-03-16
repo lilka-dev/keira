@@ -3,6 +3,7 @@
 #include "lilka/serial.h"
 #include "track.h"
 #include "utils/acquire.h"
+#include "keira/mutex.h"
 
 // TODO: Limit page count
 // TODO: Limit pattern count
@@ -21,7 +22,7 @@
 
 Track::Track(int16_t bpm) : xMutex(xSemaphoreCreateRecursiveMutex()), bpm(bpm) {
     reset();
-    xSemaphoreGive(xMutex);
+    KMTX_UNLOCK(xMutex);
 }
 
 Track::~Track() {

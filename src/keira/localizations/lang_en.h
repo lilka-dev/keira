@@ -121,30 +121,30 @@
 
 #define K_S_LAUNCHER_ENABLE_WIFI_FIRST "Enable WiFi first"
 
-#define K_S_LAUNCHER_DEVICE_INFO_FMT \
-    "Model: %s\n"                    \
-    "Revision: %d\n"                 \
-    "ESP-IDF version: %s\n"          \
-    "Frequency: %d Mhz\n"            \
-    "Cores count: %d\n"              \
+#define K_S_LAUNCHER_DEVICE_INFO_FMT\
+    "Model: %s\n"\
+    "Revision: %d\n"\
+    "ESP-IDF version: %s\n"\
+    "Frequency: %d Mhz\n"\
+    "Cores count: %d\n"\
     "IP: %s"
 
 #define K_S_LAUNCHER_PARTITION_FMT "Address: 0x%s\nSize: 0x%s"
 
 #define K_S_LAUNCHER_FORMAT        "Formating"
 
-#define K_S_LAUNCHER_FORMAT_DISCLAIMER_ALERT            \
-    "ATTENTION: It would remove all data on SD card!\n" \
+#define K_S_LAUNCHER_FORMAT_DISCLAIMER_ALERT\
+    "ATTENTION: It would remove all data on SD card!\n"\
     "\nProceed?\n\nSTART - continue\nA - exit"
 
 #define K_S_LAUNCHER_PLEASE_STANDBY K_S_PLEASE_STANDBY
 
-#define K_S_LAUNCHER_FORMAT_ERROR_ALERT \
-    "Can't format SD card.\n\n"         \
+#define K_S_LAUNCHER_FORMAT_ERROR_ALERT\
+    "Can't format SD card.\n\n"\
     "System would reboot."
 
-#define K_S_LAUNCHER_FORMAT_SUCCESS_ALLERT \
-    "SD card format success!\n\n"          \
+#define K_S_LAUNCHER_FORMAT_SUCCESS_ALLERT\
+    "SD card format success!\n\n"\
     "System would reboot."
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -153,15 +153,15 @@
 #define K_S_WIFI_CONFIG_SCAN_ERROR_CODE_FMT "Can't scan networks, error code: %d"
 #define K_S_WIFI_CONFIG_NETWORKS            "Networks"
 
-#define K_S_WIFI_CONFIG_ABOUT_NETWORK_FMT \
-    "Channel: %d\n"                       \
-    "Signal strength: %ddb\n"             \
-    "MAC: %s\n"                           \
+#define K_S_WIFI_CONFIG_ABOUT_NETWORK_FMT\
+    "Channel: %d\n"\
+    "Signal strength: %ddb\n"\
+    "MAC: %s\n"\
     "Security: %s"
 
-#define K_S_WIFI_CONFIG_CONNECTING_TO_OPEN_INSECURE_NETWORK_FMT \
-    "You are connecting to insecure network %s\n\n"             \
-    "A - continue\n"                                            \
+#define K_S_WIFI_CONFIG_CONNECTING_TO_OPEN_INSECURE_NETWORK_FMT\
+    "You are connecting to insecure network %s\n\n"\
+    "A - continue\n"          \
     "B - select another network"
 
 #define K_S_WIFI_CONFIG_ENTER_PASSWORD              "Enter password:"
@@ -214,16 +214,16 @@
 #define K_S_FMANAGER_ARE_YOU_SURE_ALERT            "Are you sure"
 
 #define K_S_FMANAGER_THIS_OP_WOULD_DELETE_FILE_FMT "This operation would delete file\n %s\nProceed: START\nExit: B"
-#define K_S_FMANAGER_THIS_OP_WOULD_DELETE_COUNT_FILES_FMT \
+#define K_S_FMANAGER_THIS_OP_WOULD_DELETE_COUNT_FILES_FMT\
     "This operation would delete %d file(s)\nProceed: START\nExit: B"
 #define K_S_FMANAGER_SELECTED_ENTRIES_EXIT_FMT "Selected %d files\nConfirm exit: START\nReturn: B"
-#define K_S_FMANAGER_ABOUT_DIR_FMT \
-    "Type: directory\n"            \
+#define K_S_FMANAGER_ABOUT_DIR_FMT\
+    "Type: directory\n"\
     "Path: %s"
 
-#define K_S_FMANAGER_ABOUT_FILE_FMT \
-    "Type: file\n"                  \
-    "Size: %s\n" \ 
+#define K_S_FMANAGER_ABOUT_FILE_FMT\
+    "Type: file\n"\
+    "Size: %s\n"\
     "MD5: %s\n"
 // TODO: MOVE MULTIBOOT TO SEPARATE APP
 #define K_S_FMANAGER_MULTIBOOT_ABOUT_FMT            "%s\n\nSize: %s"
@@ -402,8 +402,8 @@
 // apps/usbdrive/usbdrive.cpp /////////////////////////////////////////////////////////////////////////
 #define K_S_USB_DRIVE_TITLE                       "USB Drive"
 #define K_S_USB_DRIVE_EXPERIMENTAL_TITLE          "Warning"
-#define K_S_USB_DRIVE_EXPERIMENTAL_WARNING        "Experimental feature.\n" \
-                                                  "Serial will be disabled.\n\n" \
+#define K_S_USB_DRIVE_EXPERIMENTAL_WARNING        "Experimental feature.\n"\
+                                                  "Serial will be disabled.\n\n"\
                                                   "[START] - OK  [A] - Cancel"
 #define K_S_USB_DRIVE_INITIALIZING                "Initializing USB..."
 #define K_S_USB_DRIVE_INIT_ERROR                  "USB initialization error"
@@ -431,8 +431,8 @@
 #define K_S_PASTEBIN_ENTER_NAME                   "Enter name"
 #define K_S_PASTEBIN_ERROR_CREATE_DIR             "Error while creating directory occured"
 #define K_S_PASTEBIN_ERROR_OPEN_FILE              "Error while opening file occured"
-#define K_S_PASTEBIN_FILE_DOWNLOADED_FMT          "File downloaded to \n%s"
-#define K_S_PASTEBIN_REQUEST_FAIL_FMT             "HTTP Error \n%s"
+#define K_S_PASTEBIN_FILE_DOWNLOADED_FMT          "File downloaded to\n%s"
+#define K_S_PASTEBIN_REQUEST_FAIL_FMT             "HTTP Error\n%s"
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // apps/mjs/mjsrunner.cpp /////////////////////////////////////////////////////////////////////////////
