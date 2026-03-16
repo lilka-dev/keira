@@ -28,6 +28,7 @@
 #include "apps/lua/luarunner.h"
 #include "apps/mjs/mjsrunner.h"
 #include "apps/nes/nesapp.h"
+#include "apps/dynapp/dynapp.h"
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // FILETYPE HANDLERS:  ////////////////////////////////////////////////////////////////////////////////
 #define K_FT_NES_HANDLER(X)        ksystem.apps.spawn(new NesApp(X))
@@ -35,6 +36,8 @@
 #define K_FT_JS_SCRIPT_HANDLER(X)  ksystem.apps.spawn(new MJSApp(X))
 #define K_FT_SOUND_HANDLER(X)      ksystem.apps.spawn(new MadPlayerApp(X))
 #define K_FT_LT_HANDLER(X)         ksystem.apps.spawn(new LilTrackerApp(X))
+#define K_FT_SO_HANDLER(X)         ksystem.apps.spawn(new DynApp(X))
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // GUIDELINE: Use Keira global filetype handlers(K_FT_) if possible
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
