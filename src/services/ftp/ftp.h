@@ -9,7 +9,7 @@ class FTPService : public Service {
 private:
     String user = FTP_USER;
     String password;
-    NetworkService* networkService;
+    NetworkService* networkService = NULL;
     FtpServer* ftpServer = nullptr;
 
 public:

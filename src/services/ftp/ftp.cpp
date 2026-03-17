@@ -14,7 +14,6 @@ FTPService::FTPService() : Service("ftp") {
         createPassword();
     }
 
-    networkService = reinterpret_cast<NetworkService*>(ksystem.services["network"]);
     lilka::fileutils.initSD();
 }
 
@@ -25,13 +24,14 @@ FTPService::~FTPService() {
 }
 
 void FTPService::run() {
+    // Await network service
+    while (networkService == NULL) {
+        networkService = static_cast<NetworkService*>(ksystem.services["network"]);
+        vTaskDelay(10 / portTICK_PERIOD_MS);
+    }
+
     bool wasOnline = false;
     while (true) {
-        if (!networkService) {
-            vTaskDelay(1000 / portTICK_PERIOD_MS);
-            continue;
-        }
-
         bool isOnline = networkService->getnetworkState() == NetworkState::NETWORK_STATE_ONLINE;
         if ((getEnabled() && isOnline) && !wasOnline) {
             ftpServer = new FtpServer();

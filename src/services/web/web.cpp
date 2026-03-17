@@ -1607,13 +1607,18 @@ static void startWebServer() {
 
 WebService::WebService() : Service("web") {
     setktStackSize(8192);
-    networkService = static_cast<NetworkService*>(ksystem.services["network"]);
 }
 
 WebService::~WebService() {
 }
 
 void WebService::run() {
+    // Await network service
+    while (networkService == NULL) {
+        networkService = static_cast<NetworkService*>(ksystem.services["network"]);
+        vTaskDelay(10 / portTICK_PERIOD_MS);
+    }
+
     bool wasOnline = false;
 
     while (true) {
