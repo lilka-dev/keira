@@ -12,11 +12,11 @@ FTPService::FTPService() {
     NVS_LOCK;
     Preferences prefs;
     prefs.begin(getName(), true);
-    password = prefs.getString("password", "");
+    setpassword(prefs.getString("password", ""));
     prefs.end();
     NVS_UNLOCK;
 
-    if (password.isEmpty()) {
+    if (getpassword().isEmpty()) {
         createPassword();
     }
 
@@ -38,21 +38,13 @@ void FTPService::run() {
     }
     */
     ftpServer = new FtpServer();
-    ftpServer->begin(user.c_str(), password.c_str());
+    ftpServer->begin(getuser().c_str(), getpassword().c_str());
 
     while (true) {
         // TODO: Ensure no need FTP recreate on network state change
         ftpServer->handleFTP();
         taskYIELD();
     }
-}
-
-String FTPService::getUser() {
-    return user;
-}
-
-String FTPService::getPassword() {
-    return password;
 }
 
 void FTPService::createPassword() {
@@ -68,9 +60,9 @@ void FTPService::createPassword() {
     prefs.end();
     NVS_UNLOCK;
 
-    password = String(pwd);
+    setpassword(String(pwd));
 
     if (ftpServer) {
-        ftpServer->credentials(user.c_str(), password.c_str());
+        ftpServer->credentials(getuser().c_str(), getpassword().c_str());
     }
 }

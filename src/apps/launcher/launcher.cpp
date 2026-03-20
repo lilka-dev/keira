@@ -216,7 +216,7 @@ void LauncherApp::run() {
                                             FTPService* ftpService = static_cast<FTPService*>(
                                                 ksystem.services["ftp"]
                                             );
-                                            menuItem->postfix = ftpService->getUser();
+                                            menuItem->postfix = ftpService->getuser();
                                 }
                             ),
                             ITEM::MENU(
@@ -234,7 +234,7 @@ void LauncherApp::run() {
                                             FTPService* ftpService = static_cast<FTPService*>(
                                                 ksystem.services["ftp"]
                                             );
-                                            menuItem->postfix = ftpService->getPassword();
+                                            menuItem->postfix = ftpService->getpassword();
                                 }
                             ),
                             ITEM::MENU(
