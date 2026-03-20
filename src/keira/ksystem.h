@@ -13,10 +13,8 @@
 #include "keira/appmanager.h"
 // Libraries
 #include <lilka.h>
-//#include <vector>
 
 // VFS(Virtual File Systems):
-//#include "keira/vfs/vfs.h"
 #include "keira/vfs/rootfs/rootfs.h"
 
 #define KEIRA_VERSION_TYPE_ACSTR lilka::SDK_VERSION_TYPE_ACSTR
@@ -48,7 +46,6 @@ public:
     //  Arduino-like entry points
     //========================================================================
     void setup();
-    void loop();
     //////////////////////////////////////////////////////////////////////////
 
     //========================================================================
@@ -72,7 +69,6 @@ private:
     void verifyOTA();
     void registerFileSystems();
     void showWelcomeMessage();
-    void launchServices();
     //////////////////////////////////////////////////////////////////////////
 
     //========================================================================

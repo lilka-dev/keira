@@ -1,4 +1,5 @@
 #include "epilepsy.h"
+#include <lilka/controller.h>
 
 EpilepsyApp::EpilepsyApp() : App("Epilepsy") {
 }

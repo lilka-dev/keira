@@ -5,9 +5,10 @@
 #include <AudioGeneratorFLAC.h>
 #include <AudioOutputI2S.h>
 
-#include <lilka.h>
 #include "keira/mutex.h"
 
+#include <lilka/config.h>
+#include <lilka/audio.h>
 #include "audioplayer.h"
 
 namespace lilka {

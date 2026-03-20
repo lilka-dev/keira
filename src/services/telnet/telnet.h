@@ -6,7 +6,6 @@
 
 class TelnetService : public Service {
 public:
-    TelnetService();
     ~TelnetService();
 
 private:

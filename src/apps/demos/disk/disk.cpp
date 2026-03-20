@@ -1,5 +1,7 @@
 #include "disk.h"
 
+#include <lilka/controller.h>
+
 DiskApp::DiskApp() : App("Disk") {
 }
 

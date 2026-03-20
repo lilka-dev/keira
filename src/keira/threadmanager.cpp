@@ -22,6 +22,7 @@ void ThreadManager::spawn(KeiraThread* thread, bool autoSuspend) {
     }
 };
 
+// TODO: improve via utilzing compile time crc32
 KeiraThread* ThreadManager::operator[](const char* name) {
     KMTX_LOCK(lock);
     for (auto& thread : threads) {

@@ -7,8 +7,6 @@
 
 class ClockService : public Service {
 public:
-    ClockService();
-
     struct tm getTime();
 
 private:

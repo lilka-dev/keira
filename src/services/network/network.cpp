@@ -1,10 +1,11 @@
 // TODO: Add enable/disable methods instead of deallocating WiFi from apps like LilTracker
 // TODO: Use the mutex, Luke!
+#include "network.h"
+REG_SERVICE("network", NetworkService, false);
 
 #include <Preferences.h>
 #include <esp_wifi.h>
 #include "keira/ksystem.h"
-#include "network.h"
 
 // Macro magic used to convert decimal constant to char[] constant
 #define STRX(x)               #x
@@ -15,13 +16,14 @@
 // - keira.last_ssid - last connected SSID
 // - keira.[SSID_hash]_pw - password of known network with a given SSID
 
-NetworkService::NetworkService() : Service("network") {
+NetworkService::~NetworkService() {
+    setnetworkState(NETWORK_STATE_DISABLED);
+    WiFi.disconnect(true, true);
+    WiFi.mode(WIFI_OFF);
 }
 
 void NetworkService::run() {
     // Loading settings from NVS
-
-    bool enabled = getEnabled();
     NVS_LOCK;
     Preferences prefs;
     prefs.begin(getName(), true);
@@ -108,17 +110,9 @@ void NetworkService::run() {
         }
     });
 
-    if (enabled) {
-        lilka::serial.log("NetworkService: WiFi is enabled, starting auto connection");
-        setnetworkState(NETWORK_STATE_OFFLINE);
-        WiFi.mode(WIFI_STA);
-        autoConnect();
-    } else {
-        lilka::serial.log("NetworkService: WiFi is disabled, not starting auto connection");
-        setnetworkState(NETWORK_STATE_DISABLED);
-        WiFi.disconnect(true, true);
-        WiFi.mode(WIFI_OFF);
-    }
+    setnetworkState(NETWORK_STATE_OFFLINE);
+    WiFi.mode(WIFI_STA);
+    autoConnect();
 
     while (1) {
         // Check if WiFi is deallocated
@@ -148,19 +142,6 @@ void NetworkService::run() {
                 } else {
                     setsignalStrength(0);
                 }
-            }
-        }
-
-        bool stateChanged = getEnabled() != enabled;
-        if (stateChanged) {
-            enabled = !enabled; // toggle to new state
-            if (enabled) {
-                setnetworkState(NETWORK_STATE_OFFLINE);
-                WiFi.mode(WIFI_STA);
-                autoConnect();
-            } else {
-                WiFi.disconnect(true, true);
-                WiFi.mode(WIFI_OFF);
             }
         }
 

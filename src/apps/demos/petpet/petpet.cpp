@@ -2,6 +2,7 @@
 #include "petpet.h"
 #include "petpet_gif.h"
 #include "utils/defer.h"
+#include <lilka/controller.h>
 
 // Idea by @imbirWIthSugar
 PetPetApp::PetPetApp() : App("PetPet") {

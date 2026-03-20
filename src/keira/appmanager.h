@@ -1,7 +1,6 @@
 #pragma once
 // Libraries
-#include <Arduino.h>
-#include <lilka.h>
+#include <lilka/display.h>
 
 // System components
 #include "keira/mutex.h"

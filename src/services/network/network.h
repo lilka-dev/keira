@@ -1,7 +1,9 @@
 #pragma once
 
 #include <WiFi.h>
+
 #include "keira/service.h"
+#include "keira/servicemanager.h"
 
 #include "keira/mutex.h"
 
@@ -14,7 +16,8 @@ enum NetworkState {
 
 class NetworkService : public Service {
 public:
-    NetworkService();
+    ~NetworkService();
+
     bool connect(String ssid);
     void connect(String ssid, String password);
     // This one is special, cause takes stuff from NVS

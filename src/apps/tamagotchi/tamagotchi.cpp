@@ -5,6 +5,9 @@
 #include "cpu.h"
 #include "savestate.h"
 
+#include <lilka/controller.h>
+#include <lilka/buzzer.h>
+
 static uint8_t matrix_buffer[LCD_HEIGHT][LCD_WIDTH] = {0};
 static uint8_t icon_buffer[ICON_NUM] = {0};
 static uint16_t current_freq = 0;

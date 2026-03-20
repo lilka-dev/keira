@@ -1,9 +1,11 @@
+#include "services/screenshot/screenshot.h"
+REG_SERVICE("screenshot", ScreenshotService, true);
+
 #include <contrib/LodePNG/lodepng.h>
 
-#include "services/screenshot/screenshot.h"
 #include "keira/appmanager.h"
 #include "services/clock/clock.h"
-#include "keira/ksystem.h"
+#include "keira/keira.h"
 
 #if !defined(KEIRA_SCREENSHOT_BMP) && !defined(KEIRA_SCREENSHOT_PNG)
 // Uncomment one of the following lines to choose the screenshot format
@@ -94,7 +96,7 @@ private:
 };
 #endif
 
-ScreenshotService::ScreenshotService() : Service("screenshot") {
+ScreenshotService::ScreenshotService() {
     setktStackSize(8192);
 }
 

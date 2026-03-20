@@ -58,6 +58,9 @@
 
 #include "keira/ksystem.h"
 
+#define TOGGLE_SERVICE(SERVICE_NAME) \
+    ksystem.services.setEnabled(SERVICE_NAME, !ksystem.services.getEnabled(SERVICE_NAME))
+
 LauncherApp::LauncherApp() : App("Launcher") {
     setktStackSize(8192); // Yeah, this one is heavy as fuck
 }
@@ -142,15 +145,12 @@ void LauncherApp::run() {
                     ITEM::SUBMENU(K_S_LAUNCHER_WIFI, {
                         ITEM::MENU(
                             K_S_LAUNCHER_WIFI_ADAPTER,
-                            [this]() { this->wifiToggle(); },
+                            [this]() { TOGGLE_SERVICE("network"); },
                             nullptr,
                             lilka::colors::White,
                             [this](void* item) {
                                     lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
-                                    NetworkService* networkService = static_cast<NetworkService*>(
-                                        ksystem.services["network"]
-                                    );
-                                    menuItem->postfix = networkService->getEnabled() ? K_S_ON : K_S_OFF;
+                                    menuItem->postfix = ksystem.services.getEnabled("network") ? K_S_ON : K_S_OFF;
                             }
                         ),
                         ITEM::MENU(K_S_LAUNCHER_WIFI_NETWORKS, [this]() { this->wifiManager(); }),
@@ -162,23 +162,20 @@ void LauncherApp::run() {
                         ITEM::MENU(K_S_LAUNCHER_SD_SPEED, [this]() { this->setSpiSDSpeed(); }),
                     }),
                     ITEM::MENU(K_S_LAUNCHER_SOUND, [this]() { this->runApp<SoundConfigApp>(); }),
+
+
                     ITEM::SUBMENU(K_S_LAUNCHER_SERVICES, {
                         ITEM::SUBMENU(K_S_LAUNCHER_WEB, {
                             ITEM::MENU(
                                 K_S_STATUS,
                                 [this]() {
-                                            WebService* webService = static_cast<WebService*>(ksystem.services["web"]
-                                            );
-                                            webService->setEnabled(!webService->getEnabled());
+                                            TOGGLE_SERVICE("web");
                                 },
                                 nullptr,
                                 lilka::colors::White,
                                 [this](void* item) {
                                             lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
-                                            WebService* webService = static_cast<WebService*>(
-                                               ksystem.services["web"]
-                                            );
-                                            menuItem->postfix = webService->getEnabled() ? K_S_ON : K_S_OFF;
+                                            menuItem->postfix = ksystem.services.getEnabled("web") ? K_S_ON : K_S_OFF;
                                 }
                             ),
                         }),
@@ -186,19 +183,13 @@ void LauncherApp::run() {
                             ITEM::MENU(
                                 K_S_STATUS,
                                 [this]() {
-                                            TelnetService* telnetService = static_cast<TelnetService*>(
-                                                ksystem.services["telnet"]
-                                            );
-                                            telnetService->setEnabled(!telnetService->getEnabled());
+                                            TOGGLE_SERVICE("telnet");
                                 },
                                 nullptr,
                                 lilka::colors::White,
                                 [this](void* item) {
                                             lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
-                                            TelnetService* telnetService = static_cast<TelnetService*>(
-                                                ksystem.services["telnet"]
-                                            );
-                                            menuItem->postfix = telnetService->getEnabled() ? K_S_ON : K_S_OFF;
+                                             menuItem->postfix = ksystem.services.getEnabled("telnet") ? K_S_ON : K_S_OFF;
                                 }
                             ),
                         }),
@@ -206,19 +197,13 @@ void LauncherApp::run() {
                             ITEM::MENU(
                                 K_S_STATUS,
                                 [this]() {
-                                            FTPService* ftpService = static_cast<FTPService*>(
-                                                ksystem.services["ftp"]
-                                            );
-                                            ftpService->setEnabled(!ftpService->getEnabled());
+                                         TOGGLE_SERVICE("ftp");
                                 },
                                 nullptr,
                                 lilka::colors::White,
                                 [this](void* item) {
                                             lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
-                                            FTPService* ftpService = static_cast<FTPService*>(
-                                                ksystem.services["ftp"]
-                                            );
-                                            menuItem->postfix = ftpService->getEnabled() ? K_S_ON : K_S_OFF;
+                                            menuItem->postfix = ksystem.services.getEnabled("ftp") ? K_S_ON : K_S_OFF;
                                 }
                             ),
                             ITEM::MENU(
@@ -523,18 +508,14 @@ void LauncherApp::setSpiSDSpeed() {
     alert("", K_S_CHANGE_ON_NEXT_BOOT);
 }
 
-void LauncherApp::wifiToggle() {
-    NetworkService* networkService = static_cast<NetworkService*>(ksystem.services["network"]);
-    networkService->setEnabled(!networkService->getEnabled());
-}
 void LauncherApp::wifiManager() {
-    NetworkService* networkService = static_cast<NetworkService*>(ksystem.services["network"]);
-    if (!networkService->getEnabled()) {
+    if (!ksystem.services.getEnabled("network")) {
         alert(K_S_ERROR, K_S_LAUNCHER_ENABLE_WIFI_FIRST);
         return;
     }
     ksystem.apps.spawn(new WiFiConfigApp());
 }
+
 void LauncherApp::about() {
     alert(K_S_OS_NAME, K_S_OS_DESCRIPTION);
 }

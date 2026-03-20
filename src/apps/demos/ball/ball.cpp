@@ -1,5 +1,7 @@
 #include "ball.h"
 
+#include <lilka/controller.h>
+
 BallApp::BallApp() : App("Ball") {
 }
 

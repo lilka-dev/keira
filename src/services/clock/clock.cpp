@@ -1,8 +1,8 @@
 #include "clock.h"
+REG_SERVICE("clock", ClockService, true);
+
 #include "services/network/network.h"
 #include "keira/ksystem.h"
-ClockService::ClockService() : Service("clock") {
-}
 
 void ClockService::run() {
     while (1) {

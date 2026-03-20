@@ -3,18 +3,6 @@
 // Boot:
 #include <lilka/multiboot.h>
 #include <esp_ota_ops.h>
-
-// Services:
-#ifdef KEIRA_WATCHDOG
-#    include "services/watchdog/watchdog.h"
-#endif
-#include "services/clock/clock.h"
-#include "services/network/network.h"
-#include "services/screenshot/screenshot.h"
-#include "services/telnet/telnet.h"
-#include "services/ftp/ftp.h"
-#include "services/web/web.h"
-
 // Apps:
 #include "apps/statusbar/statusbar.h"
 #include "apps/launcher/launcher.h"
@@ -27,7 +15,6 @@
 #include "keira_version_auto_gen.h"
 
 // Libs:
-//#include <string.h>
 #include <lilka/display.h>
 #include <lilka/ui.h>
 
@@ -133,24 +120,6 @@ void KeiraSystem::showWelcomeMessage() {
     lilka::serial.log("\nBooting %s\nBuilt on %s\n", version.c_str(), lilka::sdk.getVersionStr().c_str());
 }
 
-// Launch Services
-void KeiraSystem::launchServices() {
-    // TODO: implement on/off service via complete destroyment of its resources/threads
-    // Prepare Service Manager
-
-#ifdef KEIRA_WATCHDOG
-    services.spawn(new WatchdogService());
-#endif
-    services.spawn(new NetworkService());
-    services.spawn(new ClockService());
-    services.spawn(new ScreenshotService());
-    services.spawn(new TelnetService());
-    services.spawn(new FTPService());
-    services.spawn(new WebService());
-
-    // GUIDELINE: To add a new service register it here
-}
-
 // Verify OTA Update
 void KeiraSystem::verifyOTA() {
     // Approve current OTA firmware to prevent rollback
@@ -211,9 +180,6 @@ void KeiraSystem::setup() {
     // Send greetings to serial
     showWelcomeMessage();
 
-    // Time to launch services
-    launchServices();
-
     // Launch Panel
     auto panel = new StatusBarApp();
     apps.setpanel(panel);
@@ -232,18 +198,5 @@ void KeiraSystem::setup() {
     vTaskDelete(NULL);
 }
 
-// TODO: To be run in separate KeiraThread[TO_IMPLEMENT]
-// System tick
-void KeiraSystem::loop() {
-    // sync all managers one by one
-    //    threads.update(); updated internally
-    // Due to no check on NULL in most apps while interacting to services
-    // We've to specify it before appManager
-    //   services.update();
-    // TODO: services and apps managers to be based on a thread manager
-    vTaskDelete(NULL);
-    // Delay system updates
-    //    vTaskDelay(pdMS_TO_TICKS(10));
-}
-
-KeiraSystem ksystem;
+// Init with priority 3000, consider sdk using values before 3000
+KeiraSystem ksystem __attribute__((init_priority(3000)));

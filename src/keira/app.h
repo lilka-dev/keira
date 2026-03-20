@@ -1,6 +1,4 @@
 #pragma once
-// Libraries:
-#include <lilka.h> // need to fix it in apps
 #include <lilka/display.h>
 
 // TODO: to be moved to statusbar

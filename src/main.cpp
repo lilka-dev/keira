@@ -1,9 +1,10 @@
 #include "keira/ksystem.h"
+#include <FreeRTOS.h>
 
 void setup() {
     ksystem.setup();
 }
 
 void loop() {
-    ksystem.loop();
+    vTaskDelete(NULL);
 }

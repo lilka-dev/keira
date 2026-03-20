@@ -27,7 +27,7 @@
 
 #include "keira/bits/threadmanager.h"
 // Uncomment to get debug information
-// #define KEIRA_THREADMANAGER_DEBUG
+//#define KEIRA_THREADMANAGER_DEBUG
 
 #define KT_PCAST(X) reinterpret_cast<KeiraThread*>(X)
 
