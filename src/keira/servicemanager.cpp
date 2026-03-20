@@ -63,7 +63,20 @@ bool ServiceManager::getEnabled(const char* name) {
 
 void ServiceManager::setEnabled(const char* name, bool enabled) {
     K_SM_DBG LEP;
-    // Setup NVS value
+
+    auto pServiceTableEntry = findServiceEntry(name);
+
+    // No serviceEntry found in serviceTable
+    if (!pServiceTableEntry) return;
+
+    // Check if changes needed
+    KMTX_LOCK(serviceTableMtx);
+    if (enabled == pServiceTableEntry->enabled) {
+        KMTX_UNLOCK(serviceTableMtx);
+        return;
+    }
+
+    // Change NVS enabled value
     NVS_LOCK;
     Preferences prefs;
     prefs.begin(name, false);
@@ -71,32 +84,27 @@ void ServiceManager::setEnabled(const char* name, bool enabled) {
     prefs.end();
     NVS_UNLOCK;
 
-    auto pServiceTableEntry = findServiceEntry(name);
+    // Change enabled in service table
+    pServiceTableEntry->enabled = enabled;
 
-    KMTX_LOCK(serviceTableMtx);
+    // Ensure no changes to threads needed
+    if (enabled == (pServiceTableEntry->pService != NULL)) {
+        KMTX_UNLOCK(serviceTableMtx);
+        K_SM_DBG LXP;
+        return;
+    }
 
-    if (pServiceTableEntry) {
-        // Ensure state in serviceTable
-        pServiceTableEntry->enabled = enabled;
-
-        // Ensure no changes to threads needed
-        if (enabled == (pServiceTableEntry->pService != NULL)) {
-            KMTX_UNLOCK(serviceTableMtx);
-            K_SM_DBG LXP;
-            return;
-        }
-
-        // Spawn/delete service
-        if (enabled) {
-            pServiceTableEntry->pService = pServiceTableEntry->constructor();
-            spawn(KT_PCAST(pServiceTableEntry->pService));
-        } else {
-            if (pServiceTableEntry->pService) {
-                KT_PCAST(pServiceTableEntry->pService)->stop();
-                pServiceTableEntry->pService = NULL;
-            }
+    // Spawn/delete service
+    if (enabled) {
+        pServiceTableEntry->pService = pServiceTableEntry->constructor();
+        spawn(KT_PCAST(pServiceTableEntry->pService));
+    } else {
+        if (pServiceTableEntry->pService) {
+            KT_PCAST(pServiceTableEntry->pService)->stop();
+            pServiceTableEntry->pService = NULL;
         }
     }
+
     KMTX_UNLOCK(serviceTableMtx);
 
     K_SM_DBG LXP;
