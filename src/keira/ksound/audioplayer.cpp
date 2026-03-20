@@ -1,3 +1,4 @@
+#include "keira/ksystem.h"
 #include <AudioGeneratorMOD.h>
 #include <AudioGeneratorWAV.h>
 #include <AudioGeneratorMP3.h>
@@ -85,73 +86,73 @@ bool AudioPlayer::play(lilka::Sound* sound, AudioOutput* customOutput) {
     finished = false;
 
     // Start background task on core 0
-    xTaskCreatePinnedToCore(audioTaskFunc, "AudioPlayer", 8192, this, 1, &taskHandle, 0);
-
+    audioPlayerThread = new KeiraThread(
+        KT_CLBK_CAST(&AudioPlayer::audioTaskFunc), "AudioPlayer", 8192, KT_CLBK_DATA_CAST(this), KT_PRIO_IDLE, 0
+    );
+    ksystem.threads.spawn(audioPlayerThread);
     return true;
 }
 
-void AudioPlayer::audioTaskFunc(void* arg) {
-    AudioPlayer* self = static_cast<AudioPlayer*>(arg);
-
+void AudioPlayer::audioTaskFunc() {
     while (1) {
         // Check for commands
         AudioCommand cmd;
-        if (xQueueReceive(self->commandQueue, &cmd, 0) == pdTRUE) {
+        if (xQueueReceive(this->commandQueue, &cmd, 0) == pdTRUE) {
             switch (cmd.type) {
                 case AUDIO_CMD_STOP:
-                    if (self->generator) {
-                        self->generator->stop();
+                    if (this->generator) {
+                        this->generator->stop();
                     }
-                    KMTX_LOCK(self->mutex);
-                    self->playing = false;
-                    self->paused = false;
-                    self->finished = true;
-                    KMTX_UNLOCK(self->mutex);
+                    KMTX_LOCK(this->mutex);
+                    this->playing = false;
+                    this->paused = false;
+                    this->finished = true;
+                    KMTX_UNLOCK(this->mutex);
                     // Suspend instead of self-delete — let stopInternal() delete us
                     // so the task stack is freed immediately by the caller
-                    vTaskSuspend(NULL);
+                    if (K_PTHREAD_CHECK(audioPlayerThread)) audioPlayerThread->suspend();
                     return;
                 case AUDIO_CMD_PAUSE:
-                    KMTX_LOCK(self->mutex);
-                    self->paused = true;
-                    KMTX_UNLOCK(self->mutex);
+                    KMTX_LOCK(this->mutex);
+                    this->paused = true;
+                    KMTX_UNLOCK(this->mutex);
                     break;
                 case AUDIO_CMD_RESUME:
-                    KMTX_LOCK(self->mutex);
-                    self->paused = false;
-                    KMTX_UNLOCK(self->mutex);
+                    KMTX_LOCK(this->mutex);
+                    this->paused = false;
+                    KMTX_UNLOCK(this->mutex);
                     break;
                 case AUDIO_CMD_SET_GAIN:
-                    KMTX_LOCK(self->mutex);
-                    self->gain = cmd.gain;
-                    if (self->gain < 0) self->gain = 0;
-                    if (self->gain > 4) self->gain = 4;
-                    KMTX_UNLOCK(self->mutex);
-                    self->output->SetGain(self->gain);
+                    KMTX_LOCK(this->mutex);
+                    this->gain = cmd.gain;
+                    if (this->gain < 0) this->gain = 0;
+                    if (this->gain > 4) this->gain = 4;
+                    KMTX_UNLOCK(this->mutex);
+                    this->output->SetGain(this->gain);
                     break;
             }
         }
 
-        KMTX_LOCK(self->mutex);
-        bool currentPaused = self->paused;
-        bool currentFinished = self->finished;
-        KMTX_UNLOCK(self->mutex);
+        KMTX_LOCK(this->mutex);
+        bool currentPaused = this->paused;
+        bool currentFinished = this->finished;
+        KMTX_UNLOCK(this->mutex);
 
         if (currentFinished) {
-            vTaskSuspend(NULL);
+            if (K_PTHREAD_CHECK(audioPlayerThread)) audioPlayerThread->suspend();
             return;
         }
 
         if (!currentPaused) {
-            if (!self->generator->loop()) {
+            if (!this->generator->loop()) {
                 // Track finished
-                self->generator->stop();
-                KMTX_LOCK(self->mutex);
-                self->playing = false;
-                self->finished = true;
-                KMTX_UNLOCK(self->mutex);
+                this->generator->stop();
+                KMTX_LOCK(this->mutex);
+                this->playing = false;
+                this->finished = true;
+                KMTX_UNLOCK(this->mutex);
                 // Suspend instead of self-delete — let stopInternal() delete us
-                vTaskSuspend(NULL);
+                if (K_PTHREAD_CHECK(audioPlayerThread)) audioPlayerThread->suspend();
                 return;
             }
         }
@@ -161,7 +162,7 @@ void AudioPlayer::audioTaskFunc(void* arg) {
 
 void AudioPlayer::stopInternal() {
     // Stop the task if it's still running
-    if (taskHandle != nullptr) {
+    if (K_PTHREAD_CHECK(audioPlayerThread)) {
         if (!finished) {
             // Send stop command
             AudioCommand cmd = {.type = AUDIO_CMD_STOP, .gain = 0};
@@ -176,8 +177,8 @@ void AudioPlayer::stopInternal() {
         }
         // Delete task from this context — memory is freed immediately
         // (unlike vTaskDelete(NULL) which defers to IDLE task)
-        vTaskDelete(taskHandle);
-        taskHandle = nullptr;
+        audioPlayerThread->stop();
+        audioPlayerThread = nullptr;
     }
 
     // Always clean up resources (task may have finished naturally)
@@ -202,14 +203,14 @@ void AudioPlayer::stop() {
 }
 
 void AudioPlayer::pause() {
-    if (taskHandle != nullptr && playing && !paused) {
+    if (K_PTHREAD_CHECK(audioPlayerThread) && playing && !paused) {
         AudioCommand cmd = {.type = AUDIO_CMD_PAUSE, .gain = 0};
         xQueueSend(commandQueue, &cmd, portMAX_DELAY);
     }
 }
 
 void AudioPlayer::resume() {
-    if (taskHandle != nullptr && paused) {
+    if (K_PTHREAD_CHECK(audioPlayerThread) && paused) {
         AudioCommand cmd = {.type = AUDIO_CMD_RESUME, .gain = 0};
         xQueueSend(commandQueue, &cmd, portMAX_DELAY);
     }
@@ -217,7 +218,7 @@ void AudioPlayer::resume() {
 
 void AudioPlayer::setGain(float gain) {
     AudioCommand cmd = {.type = AUDIO_CMD_SET_GAIN, .gain = gain};
-    if (taskHandle != nullptr && !finished) {
+    if (K_PTHREAD_CHECK(audioPlayerThread) && !finished) {
         xQueueSend(commandQueue, &cmd, portMAX_DELAY);
     }
 }
