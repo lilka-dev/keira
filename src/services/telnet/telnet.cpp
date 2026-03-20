@@ -317,12 +317,10 @@ void TelnetService::run() {
     NetworkService* network = NULL;
 
     // Await network service
-    /*
     while (network == NULL) {
         network = static_cast<NetworkService*>(ksystem.services["network"]);
         vTaskDelay(10 / portTICK_PERIOD_MS);
     }
-    */
 
     telnet = new ESPTelnet();
     setupEventHandlers();

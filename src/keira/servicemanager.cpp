@@ -100,6 +100,12 @@ void ServiceManager::setEnabled(const char* name, bool enabled) {
         spawn(KT_PCAST(pServiceTableEntry->pService));
     } else {
         if (pServiceTableEntry->pService) {
+            K_SM_DBG lilka::serial.log(
+                "[ServiceManager] Stoping service %s/%p [ Autorun:%d ]",
+                pServiceTableEntry->name,
+                pServiceTableEntry->constructor,
+                pServiceTableEntry->enabled
+            );
             KT_PCAST(pServiceTableEntry->pService)->stop();
             pServiceTableEntry->pService = NULL;
         }

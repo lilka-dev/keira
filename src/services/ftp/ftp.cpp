@@ -19,8 +19,6 @@ FTPService::FTPService() {
     if (getpassword().isEmpty()) {
         createPassword();
     }
-
-    lilka::fileutils.initSD();
 }
 
 FTPService::~FTPService() {
@@ -31,12 +29,12 @@ FTPService::~FTPService() {
 
 void FTPService::run() {
     // Await network service
-    /*
+
     while (networkService == NULL) {
         networkService = static_cast<NetworkService*>(ksystem.services["network"]);
         vTaskDelay(10 / portTICK_PERIOD_MS);
     }
-    */
+
     ftpServer = new FtpServer();
     ftpServer->begin(getuser().c_str(), getpassword().c_str());
 

@@ -216,7 +216,7 @@ void LauncherApp::run() {
                                             FTPService* ftpService = static_cast<FTPService*>(
                                                 ksystem.services["ftp"]
                                             );
-                                            menuItem->postfix = ftpService->getuser();
+                                            menuItem->postfix = ftpService?ftpService->getuser():"";
                                 }
                             ),
                             ITEM::MENU(
@@ -225,6 +225,7 @@ void LauncherApp::run() {
                                             FTPService* ftpService = static_cast<FTPService*>(
                                                 ksystem.services["ftp"]
                                             );
+                                            if(ftpService)
                                             ftpService->createPassword();
                                 },
                                 nullptr,
@@ -234,7 +235,7 @@ void LauncherApp::run() {
                                             FTPService* ftpService = static_cast<FTPService*>(
                                                 ksystem.services["ftp"]
                                             );
-                                            menuItem->postfix = ftpService->getpassword();
+                                            menuItem->postfix = ftpService?ftpService->getpassword():"";
                                 }
                             ),
                             ITEM::MENU(
@@ -247,7 +248,7 @@ void LauncherApp::run() {
                                             NetworkService* networkService = static_cast<NetworkService*>(
                                         ksystem.services["network"]
                                     );
-                                            menuItem->postfix = networkService->getipAddr();
+                                            menuItem->postfix = networkService?networkService->getipAddr():"0.0.0.0";
                                 }
                             ),
                         }),
@@ -530,7 +531,7 @@ void LauncherApp::info() {
             esp_get_idf_version(),
             ESP.getCpuFreqMHz(),
             ESP.getChipCores(),
-            networkService->getipAddr().c_str()
+            networkService ? networkService->getipAddr().c_str() : "0.0.0.0"
         )
     );
 }
