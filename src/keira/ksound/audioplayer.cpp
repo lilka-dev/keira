@@ -15,6 +15,7 @@
 namespace lilka {
 
 AudioPlayer::~AudioPlayer() {
+    if (K_PTHREAD_CHECK(audioPlayerThread)) audioPlayerThread.stop();
     vSemaphoreDelete(mutex);
 }
 
