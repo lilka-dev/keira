@@ -143,7 +143,7 @@ bool ScreenshotService::saveScreenshot(lilka::Canvas* canvas) {
 
 bool ScreenshotService::writeScreenshot(uint8_t* buffer, uint32_t length, const char* ext) {
     // Generate filename
-    struct tm time = reinterpret_cast<ClockService*>(ksystem.services["clock"])->getTime();
+    struct tm time = ClockService::getTime();
     char filename[64];
     snprintf(
         filename,

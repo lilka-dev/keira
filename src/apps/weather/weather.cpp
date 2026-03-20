@@ -209,8 +209,7 @@ void WeatherApp::run() {
                     wind = data["current"]["wind_speed_10m"];
                     uint8_t code = data["current"]["weather_code"];
                     const icon_t* icon = icons[code];
-                    ClockService* clockService = static_cast<ClockService*>(ksystem.services["clock"]);
-                    struct tm time = clockService->getTime();
+                    struct tm time = ClockService::getTime();
                     if (time.tm_hour >= 6 && time.tm_hour < 18) {
                         iconData = &icon->day;
                     } else {
