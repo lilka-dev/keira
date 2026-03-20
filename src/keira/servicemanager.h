@@ -39,6 +39,7 @@ typedef struct {
 
 class ServiceManager : public ThreadManager {
 public:
+    ~ServiceManager();
     ServiceManager();
 
     // Retrives enabled state from service table for a service, note, this doesn't really mean that

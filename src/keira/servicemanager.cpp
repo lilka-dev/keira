@@ -4,6 +4,10 @@
 
 #include <Preferences.h>
 
+ServiceManager::~ServiceManager(){
+    vSemaphoreDelete(serviceTableMtx);
+}
+
 ServiceManager::ServiceManager() {
     setktCore(KEIRA_SERVICEMANAGER_CORE);
 }

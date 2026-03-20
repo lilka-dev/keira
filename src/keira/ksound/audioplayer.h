@@ -22,6 +22,7 @@ typedef struct {
 
 class AudioPlayer {
 public:
+    ~AudioPlayer();
     AudioPlayer();
     /// customOutput: NULL — створює власний AudioOutputI2S; інакше — caller відповідає за його життя.
     bool play(lilka::Sound* sound, AudioOutput* customOutput = nullptr);

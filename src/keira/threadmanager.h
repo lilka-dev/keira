@@ -33,6 +33,7 @@
 
 class ThreadManager : public KeiraThread {
 public:
+    ~ThreadManager();
     ThreadManager();
 
     // Spawns a new thread. Thread to be launched on next update

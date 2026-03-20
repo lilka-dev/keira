@@ -1,5 +1,9 @@
 #include "threadmanager.h"
 
+ThreadManager::~ThreadManager(){
+    vSemaphoreDelete(lock);
+}
+
 ThreadManager::ThreadManager() {
     //    setName(KEIRA_THREADMANAGER_NAME);
     setktPriority(KEIRA_THREADMANAGER_PRIORITY);

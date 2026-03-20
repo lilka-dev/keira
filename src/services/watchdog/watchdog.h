@@ -18,6 +18,7 @@ typedef struct {
 
 class WatchdogService : public Service {
 public:
+    ~WatchdogService();
     WatchdogService();
     const String taskTypeToString(TaskType type);
     const String affinityToString(BaseType_t affinity);

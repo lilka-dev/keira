@@ -20,6 +20,7 @@ NetworkService::~NetworkService() {
     setnetworkState(NETWORK_STATE_DISABLED);
     WiFi.disconnect(true, true);
     WiFi.mode(WIFI_OFF);
+    vSemaphoreDelete(mtxNetwork);
 }
 
 void NetworkService::run() {

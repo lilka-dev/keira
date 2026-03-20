@@ -25,6 +25,7 @@ FTPService::~FTPService() {
     if (ftpServer) {
         delete ftpServer;
     }
+    vSemaphoreDelete(ftpMtx);
 }
 
 void FTPService::run() {

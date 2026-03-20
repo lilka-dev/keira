@@ -13,6 +13,10 @@
 
 namespace lilka {
 
+AudioPlayer::~AudioPlayer() {
+    vSemaphoreDelete(mutex);
+}
+
 AudioPlayer::AudioPlayer() {
 }
 

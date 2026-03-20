@@ -30,6 +30,7 @@ App::~App() {
     if (backCanvas) delete backCanvas;
 
     KMTX_UNLOCK(canvasMutex);
+    vSemaphoreDelete(canvasMutex);
 }
 ///////////////////////////////////////////////////////////////////////////////
 
