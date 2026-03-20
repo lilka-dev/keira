@@ -461,8 +461,7 @@ void LauncherApp::setWiFiTxPower() {
     // Save value to NVS
     NVS_LOCK;
     Preferences prefs;
-    // This is a bit dumb, stor somewhere
-    prefs.begin(ksystem.services["network"]->getName(), false);
+    prefs.begin("network", false);
     prefs.putInt("txPower", static_cast<int>(values[index]));
     prefs.end();
     NVS_UNLOCK;
