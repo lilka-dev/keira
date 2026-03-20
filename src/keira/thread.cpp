@@ -31,7 +31,6 @@ KeiraThread::~KeiraThread() {
     if (ktTaskHandle) {
         vTaskDelete(ktTaskHandle);
         ktTaskHandle = NULL;
-
     } else {
         KT_DBG lilka::serial.err("Trying to stop non-existing task from Thread destructor");
     }
@@ -130,7 +129,7 @@ void KeiraThread::exit() {
 void KeiraThread::start() {
     KMTX_LOCK(ktLock);
 
-    if (ktTaskHandle != NULL) {
+    if (ktTaskHandle != NULL || ktState == KTS_EXITING) {
         KT_DBG lilka::serial.log("Thread %s already runing", ktName);
         KMTX_UNLOCK(ktLock);
         return;
@@ -234,6 +233,7 @@ void KeiraThread::stop() {
     KMTX_LOCK(ktLock);
 
     if (ktTaskHandle == NULL) {
+        this->ktState = KTS_EXITING;
         KT_DBG lilka::serial.err("Thread %s is not running, cannot stop", ktName);
         KMTX_UNLOCK(ktLock);
         return;
