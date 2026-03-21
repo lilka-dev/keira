@@ -1,3 +1,4 @@
+/*
 #include "telnet.h"
 REG_SERVICE("telnet", TelnetService, false);
 
@@ -331,3 +332,4 @@ void TelnetService::run() {
         taskYIELD();
     }
 }
+*/

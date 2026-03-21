@@ -1,3 +1,5 @@
+/*
+
 #include <ESPTelnet.h>
 #include "Preferences.h"
 #include "keira/servicemanager.h"
@@ -13,3 +15,4 @@ private:
     void setupEventHandlers();
     void run() override;
 };
+*/
