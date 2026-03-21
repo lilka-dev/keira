@@ -7,7 +7,6 @@ REG_SERVICE("telnet", TelnetService, false);
 
 #define STR_HELPER(x) #x
 #define STR(x)        STR_HELPER(x)
-ESPTelnet* telnet = NULL;
 EscapeCodes ansi;
 
 TelnetService::~TelnetService() {

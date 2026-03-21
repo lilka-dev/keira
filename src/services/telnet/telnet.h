@@ -9,6 +9,7 @@ public:
     ~TelnetService();
 
 private:
+    ESPTelnet* telnet = NULL;
     void setupEventHandlers();
     void run() override;
 };
