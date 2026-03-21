@@ -35,45 +35,54 @@ typedef struct {
 } KeiraConfigCallbackData;
 
 // return false means menu finished
-typedef bool (*KeiraConfigEntryCallback)(KeiraConfigCallbackData* entry);
+typedef bool (*KeiraConfigEntryCallback)(KeiraConfigCallbackData* clbkData);
 
 // return false means no changes
-typedef bool (*KeiraConfigEntryOnValidateCallback)(KeiraConfigCallbackData* data);
+typedef bool (*KeiraConfigEntryOnValidateCallback)(KeiraConfigCallbackData* clbkData);
 
 typedef struct {
+    // Values Set by user
     KeiraConfigDescription desc;
     KeiraConfigEntryType type;
     KeiraConfigEntryOnValidateCallback onValidate;
     KeiraConfigEntryCallback onClick;
     union {
-        struct {
+        union {
             bool value;
             bool def;
         } b;
-        struct {
+        union {
             char value[NVS_STRING_LEN];
-            const char* def;
+            char def[NVS_STRING_LEN];
         } s;
-        struct {
+        union {
             int32_t value;
             int32_t def;
         } i;
-        struct {
+        union {
             uint32_t value;
             uint32_t def;
         } u;
     };
+
+    // values set in KeiraConfig
+    SemaphoreHandle_t mtx;
 } KeiraConfigEntry;
 
 class KeiraConfig {
 public:
+    // Constructs KeiraConfig
+    // @param scope NVS scope to be used by KeiraConfig
     explicit KeiraConfig(const char* scope);
     ~KeiraConfig();
-    // UI
+    // Retrieves a pointer to lilka::Menu
     lilka::Menu* getMenu();
-    // Adds entry, setups inital value in NVS
-    void add(KeiraConfigEntry* entry);
+    // Adds entry, setups inital value in NVS if it doesn't exist
+    // or
+    // @param entry pointer to KeiraConfigEntry
+    void init(KeiraConfigEntry* entry);
     // Validate value, stores to NVS
+
     bool set(KeiraConfigEntry* entry);
 
     KeiraConfigEntry* operator[](const char* key);
@@ -91,6 +100,7 @@ private:
 
     nvs_handle_t nvsHandle;
     lilka::Menu configMenu;
+    // Protects configMenu
     SemaphoreHandle_t configMtx = xSemaphoreCreateMutex();
 
     char scope[NVS_NAMESPACE_LEN];
