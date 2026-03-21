@@ -101,6 +101,10 @@ public:
 
     bool set(KeiraConfigEntry entry);
 
+    // checks if key exists
+    bool isKey(const char* key);
+
+    // Returns KeiraConfigEntry
     KeiraConfigEntry operator[](const char* key);
     // TODO: dump settings to json, load settings from json
 private:
@@ -109,6 +113,7 @@ private:
 
     std::vector<KeiraConfigEntry> entries;
 
+    bool menuDirty = false;
     lilka::Menu configMenu;
     // Protects configMenu and entries
     SemaphoreHandle_t configMtx = xSemaphoreCreateMutex();

@@ -1,11 +1,11 @@
 #include "keira/config.h"
 
-static esp_err_t nvsWrite(nvs_handle_t handle, KeiraConfigEntry* entry) {
+static inline esp_err_t nvsWrite(nvs_handle_t handle, KeiraConfigEntry* entry) {
     size_t size = entry->type == KCONFIG_STRING ? strlen(entry->s.value) + 1 : sizeof(entry->u64.value);
     return nvs_set_blob(handle, entry->desc.key, &entry->b.value, size);
 }
 
-static esp_err_t nvsRead(nvs_handle_t handle, KeiraConfigEntry* entry) {
+static inline esp_err_t nvsRead(nvs_handle_t handle, KeiraConfigEntry* entry) {
     size_t size = entry->type == KCONFIG_STRING ? NVS_STRING_LEN : sizeof(entry->u64.value);
     return nvs_get_blob(handle, entry->desc.key, &entry->b.value, &size);
 }
@@ -19,6 +19,16 @@ KeiraConfig::KeiraConfig(const char* scope) {
         // assert here
     }
     strcpy(this->scope, scope);
+}
+
+lilka::Menu* getMenu() {
+    KMTX_LOCK(configMtx);
+    if (menuDirty) {
+        rebuildMenu();
+        menuDirty = false;
+    }
+    KMTX_UNLOCK(configMtx);
+    return &configMenu;
 }
 
 void KeiraConfig::init(KeiraConfigEntry entry) {
@@ -42,7 +52,7 @@ void KeiraConfig::init(KeiraConfigEntry entry) {
     entries.push_back(entry);
     KMTX_UNLOCK(configMtx);
 
-    rebuildMenu();
+    menuDirty = true;
 }
 
 bool KeiraConfig::set(KeiraConfigEntry entry) {
@@ -70,8 +80,20 @@ bool KeiraConfig::set(KeiraConfigEntry entry) {
     }
     KMTX_UNLOCK(configMtx);
 
-    rebuildMenu();
+    menuDirty = true;
     return true;
+}
+
+bool KeiraConfig::isKey(const char* key) {
+    KMTX_LOCK(configMtx);
+    for (auto& entry : entries) {
+        if (strcmp(entry.desc.key, key) == 0) {
+            KMTX_UNLOCK(configMtx);
+            return true;
+        }
+    }
+    KMTX_UNLOCK(configMtx);
+    return false;
 }
 
 KeiraConfigEntry KeiraConfig::operator[](const char* key) {
@@ -90,6 +112,8 @@ KeiraConfigEntry KeiraConfig::operator[](const char* key) {
 void KeiraConfig::rebuildMenu() {
     KMTX_LOCK(configMtx);
     configMenu.clearItems();
+    for (auto& entry : entries) {
+    }
 
     KMTX_UNLOCK(configMtx);
 }
