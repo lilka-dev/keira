@@ -18,7 +18,15 @@
 #define NVS_KEY_LEN       16
 #define NVS_STRING_LEN    64
 
-typedef enum { KCONFIG_BOOL, KCONFIG_STRING, KCONFIG_INT, KCONFIG_UINT } KeiraConfigEntryType;
+// lol, theoretically we can save float as well, cause NVS do not know a thing about types
+typedef enum {
+    KCONFIG_BOOL,
+    KCONFIG_STRING,
+    KCONFIG_INT,
+    KCONFIG_INT64,
+    KCONFIG_UINT,
+    KCONFIG_UINT64
+} KeiraConfigEntryType;
 
 // Forward declaration (circular dependency)
 typedef struct KeiraConfigEntry KeiraConfigEntry;
@@ -46,6 +54,8 @@ typedef struct {
     KeiraConfigEntryType type;
     KeiraConfigEntryOnValidateCallback onValidate;
     KeiraConfigEntryCallback onClick;
+    void* onClickData;
+    void* onValidateData;
     union {
         union {
             bool value;
@@ -60,47 +70,47 @@ typedef struct {
             int32_t def;
         } i;
         union {
+            int64_t value;
+            int64_t def;
+        } i64;
+        union {
             uint32_t value;
             uint32_t def;
         } u;
+        union {
+            uint64_t value;
+            uint64_t def;
+        } u64;
     };
-
-    // values set in KeiraConfig
-    SemaphoreHandle_t mtx;
 } KeiraConfigEntry;
 
 class KeiraConfig {
 public:
+    ~KeiraConfig();
     // Constructs KeiraConfig
     // @param scope NVS scope to be used by KeiraConfig
     explicit KeiraConfig(const char* scope);
-    ~KeiraConfig();
+
     // Retrieves a pointer to lilka::Menu
     lilka::Menu* getMenu();
     // Adds entry, setups inital value in NVS if it doesn't exist
     // or
     // @param entry pointer to KeiraConfigEntry
-    void init(KeiraConfigEntry* entry);
+    void init(KeiraConfigEntry entry);
     // Validate value, stores to NVS
 
-    bool set(KeiraConfigEntry* entry);
+    bool set(KeiraConfigEntry entry);
 
-    KeiraConfigEntry* operator[](const char* key);
+    KeiraConfigEntry operator[](const char* key);
     // TODO: dump settings to json, load settings from json
 private:
-    // load value from nvs done on add
-    void load(KeiraConfigEntry* entry);
-
     // Rebuild configMenu from entries
     void rebuildMenu();
 
     std::vector<KeiraConfigEntry> entries;
 
-    //
-
-    nvs_handle_t nvsHandle;
     lilka::Menu configMenu;
-    // Protects configMenu
+    // Protects configMenu and entries
     SemaphoreHandle_t configMtx = xSemaphoreCreateMutex();
 
     char scope[NVS_NAMESPACE_LEN];
