@@ -1,13 +1,15 @@
 #include "keira/config.h"
+#include "keira/keira_lang.h"
+#include "keira/ksystem.h"
 
 static inline esp_err_t nvsWrite(nvs_handle_t handle, KeiraConfigEntry* entry) {
-    size_t size = entry->type == KCONFIG_STRING ? strlen(entry->s.value) + 1 : sizeof(entry->u64.value);
-    return nvs_set_blob(handle, entry->desc.key, &entry->b.value, size);
+    size_t size = entry->type == KCONFIG_STRING ? entry->s.length() + 1 : sizeof(entry->u64);
+    return nvs_set_blob(handle, entry->key, &entry->b, size);
 }
 
 static inline esp_err_t nvsRead(nvs_handle_t handle, KeiraConfigEntry* entry) {
-    size_t size = entry->type == KCONFIG_STRING ? NVS_STRING_LEN : sizeof(entry->u64.value);
-    return nvs_get_blob(handle, entry->desc.key, &entry->b.value, &size);
+    size_t size = entry->type == KCONFIG_STRING ? entry->s.length() : sizeof(entry->u64);
+    return nvs_get_blob(handle, entry->key, &entry->b, &size);
 }
 
 KeiraConfig::~KeiraConfig() {
@@ -21,7 +23,7 @@ KeiraConfig::KeiraConfig(const char* scope) {
     strcpy(this->scope, scope);
 }
 
-lilka::Menu* getMenu() {
+lilka::Menu* KeiraConfig::getMenu() {
     KMTX_LOCK(configMtx);
     if (menuDirty) {
         rebuildMenu();
@@ -56,10 +58,6 @@ void KeiraConfig::init(KeiraConfigEntry entry) {
 }
 
 bool KeiraConfig::set(KeiraConfigEntry entry) {
-    bool entryValid =
-        (!entry.onValidate) || entry.onValidate({.menu = NULL, .entry = &entry, .data = entry.onValidateData});
-    if (!entryValid) return false;
-
     NVS_LOCK;
     nvs_handle_t handle;
     if (nvs_open(scope, NVS_READWRITE, &handle) != ESP_OK) {
@@ -73,7 +71,7 @@ bool KeiraConfig::set(KeiraConfigEntry entry) {
 
     KMTX_LOCK(configMtx);
     for (auto& ent : entries) {
-        if (strcmp(ent.desc.key, entry.desc.key) == 0) {
+        if (strcmp(ent.key, entry.key) == 0) {
             memcpy(&ent.b, &entry.b, sizeof(KeiraConfigEntry) - offsetof(KeiraConfigEntry, b));
             break;
         }
@@ -87,7 +85,7 @@ bool KeiraConfig::set(KeiraConfigEntry entry) {
 bool KeiraConfig::isKey(const char* key) {
     KMTX_LOCK(configMtx);
     for (auto& entry : entries) {
-        if (strcmp(entry.desc.key, key) == 0) {
+        if (strcmp(entry.key, key) == 0) {
             KMTX_UNLOCK(configMtx);
             return true;
         }
@@ -100,7 +98,7 @@ KeiraConfigEntry KeiraConfig::operator[](const char* key) {
     KeiraConfigEntry foundEntry = {};
     KMTX_LOCK(configMtx);
     for (auto& entry : entries) {
-        if (strcmp(entry.desc.key, key) == 0) {
+        if (strcmp(entry.key, key) == 0) {
             foundEntry = entry;
             break;
         }
@@ -110,10 +108,31 @@ KeiraConfigEntry KeiraConfig::operator[](const char* key) {
 }
 
 void KeiraConfig::rebuildMenu() {
-    KMTX_LOCK(configMtx);
     configMenu.clearItems();
     for (auto& entry : entries) {
+        String postfix;
+        switch (entry.type) {
+            case KCONFIG_BOOL:
+                postfix = entry.b ? K_S_ON : K_S_OFF;
+                break;
+            case KCONFIG_STRING:
+                postfix = String(entry.s);
+                break;
+            case KCONFIG_INT:
+                postfix = String(entry.i);
+                break;
+            case KCONFIG_INT64:
+                postfix = String((long)entry.i64);
+                break;
+            case KCONFIG_UINT:
+                postfix = String(entry.u);
+                break;
+            case KCONFIG_UINT64:
+                postfix = String((unsigned long)entry.u64);
+                break;
+        }
+        configMenu.addItem(
+            entry.description, nullptr, lilka::colors::White, postfix.c_str(), entry.onClick, entry.onClickData
+        );
     }
-
-    KMTX_UNLOCK(configMtx);
 }
