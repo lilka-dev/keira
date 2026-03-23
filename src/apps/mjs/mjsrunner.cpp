@@ -1,4 +1,5 @@
 #include "mjsrunner.h"
+#include "mjsgpio.h"
 #include "lilka.h"
 #include "mjs.h"
 #include "keira/keira.h"
@@ -11,6 +12,7 @@ void MJSApp::run() {
     mjs_val_t res;
 
     mjs_set_ffi_resolver(mjs, ffi_resolver);
+    mjs_gpio_register(mjs);
     mjs_err_t err = mjs_exec_file(mjs, path.c_str(), &res);
     if (err != MJS_OK) {
         const char* error = mjs_strerror(mjs, err);
