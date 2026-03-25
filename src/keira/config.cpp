@@ -3,13 +3,58 @@
 #include "keira/ksystem.h"
 
 static inline esp_err_t nvsWrite(nvs_handle_t handle, KeiraConfigEntry* entry) {
-    size_t size = entry->type == KCONFIG_STRING ? entry->s.length() + 1 : sizeof(entry->u64);
-    return nvs_set_blob(handle, entry->key, &entry->b, size);
+    switch (entry->type) {
+        case KCONFIG_BOOL:
+            return nvs_set_u8(handle, entry->key, (uint8_t)entry->b);
+        case KCONFIG_STRING:
+            return nvs_set_str(handle, entry->key, entry->s.c_str());
+        case KCONFIG_INT:
+            return nvs_set_i32(handle, entry->key, entry->i);
+        case KCONFIG_INT64:
+            return nvs_set_i64(handle, entry->key, entry->i64);
+        case KCONFIG_UINT:
+            return nvs_set_u32(handle, entry->key, entry->u);
+        case KCONFIG_UINT64:
+            return nvs_set_u64(handle, entry->key, entry->u64);
+        default:
+            return ESP_ERR_INVALID_ARG;
+    }
 }
 
 static inline esp_err_t nvsRead(nvs_handle_t handle, KeiraConfigEntry* entry) {
-    size_t size = entry->type == KCONFIG_STRING ? entry->s.length() : sizeof(entry->u64);
-    return nvs_get_blob(handle, entry->key, &entry->b, &size);
+    switch (entry->type) {
+        case KCONFIG_BOOL: {
+            uint8_t val;
+            esp_err_t err = nvs_get_u8(handle, entry->key, &val);
+            if (err == ESP_OK) entry->b = (bool)val;
+            return err;
+        }
+        case KCONFIG_STRING: {
+            char buf[MAX_STRING_LEN];
+            size_t len = sizeof(buf);
+            esp_err_t err = nvs_get_str(handle, entry->key, buf, &len);
+            if (err == ESP_OK) entry->s = String(buf);
+            return err;
+        }
+        case KCONFIG_INT: {
+            esp_err_t err = nvs_get_i32(handle, entry->key, &entry->i);
+            return err;
+        }
+        case KCONFIG_INT64: {
+            esp_err_t err = nvs_get_i64(handle, entry->key, &entry->i64);
+            return err;
+        }
+        case KCONFIG_UINT: {
+            esp_err_t err = nvs_get_u32(handle, entry->key, &entry->u);
+            return err;
+        }
+        case KCONFIG_UINT64: {
+            esp_err_t err = nvs_get_u64(handle, entry->key, &entry->u64);
+            return err;
+        }
+        default:
+            return ESP_ERR_INVALID_ARG;
+    }
 }
 
 KeiraConfig::~KeiraConfig() {
@@ -17,7 +62,7 @@ KeiraConfig::~KeiraConfig() {
 }
 
 KeiraConfig::KeiraConfig(const char* scope) {
-    if (strlen(scope) + 1 > NVS_NAMESPACE_LEN) {
+    if (strlen(scope) + 1 >= NVS_NAMESPACE_LEN) {
         // assert here
     }
     strcpy(this->scope, scope);
@@ -72,7 +117,11 @@ bool KeiraConfig::set(KeiraConfigEntry entry) {
     KMTX_LOCK(configMtx);
     for (auto& ent : entries) {
         if (strcmp(ent.key, entry.key) == 0) {
-            memcpy(&ent.b, &entry.b, sizeof(KeiraConfigEntry) - offsetof(KeiraConfigEntry, b));
+            if (entry.type == KCONFIG_STRING) {
+                ent.s = entry.s;
+            } else {
+                memcpy(&ent.b, &entry.b, sizeof(KeiraConfigEntry) - offsetof(KeiraConfigEntry, b));
+            }
             break;
         }
     }
@@ -131,8 +180,10 @@ void KeiraConfig::rebuildMenu() {
                 postfix = String((unsigned long)entry.u64);
                 break;
         }
-        configMenu.addItem(
-            entry.description, nullptr, lilka::colors::White, postfix.c_str(), entry.onClick, entry.onClickData
-        );
+
+        if (entry.onClick)
+            configMenu.addItem(
+                entry.description, nullptr, lilka::colors::White, postfix.c_str(), entry.onClick, entry.onClickData
+            );
     }
 }

@@ -15,6 +15,7 @@
 #include "keira/mutex.h"
 
 #define NVS_NAMESPACE_LEN 16
+#define MAX_STRING_LEN    256
 
 // lol, theoretically we can save float as well, cause NVS do not know a thing about types
 typedef enum {
@@ -46,7 +47,6 @@ typedef struct {
         uint32_t u;
         uint64_t u64;
     };
-    SemaphoreHandle_t mtx;
 } KeiraConfigEntry;
 
 class KeiraConfig {
