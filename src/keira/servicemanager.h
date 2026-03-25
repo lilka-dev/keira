@@ -3,8 +3,6 @@
 
 #include "keira/threadmanager.h"
 
-#include <vector>
-
 // Uncomment this line to get debugging information
 //#define KEIRA_SERVICEMANAGER_DEBUG
 

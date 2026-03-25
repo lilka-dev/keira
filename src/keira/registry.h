@@ -62,9 +62,13 @@ typedef struct {
 
 class KeiraRegistry {
 public:
-    void reg(KeiraRegistryEntry& entry);
+    KeiraRegistry();
+    ~KeiraRegistry();
     void lock();
     void unlock();
+
+    void reg(KeiraRegistryEntry& entry);
+
     KeiraRegistryEntry* operator[](const char* name);
     std::vector<KeiraRegistryEntry>::iterator begin() {
         return entries.begin();
@@ -72,10 +76,8 @@ public:
     std::vector<KeiraRegistryEntry>::iterator end() {
         return entries.end();
     }
-    KeiraRegistry();
-    ~KeiraRegistry();
 
 private:
     std::vector<KeiraRegistryEntry> entries;
-    SemaphoreHandle_t mtx = xSemaphoreCreateMutex();
+    SemaphoreHandle_t registryMtx = xSemaphoreCreateMutex();
 };
