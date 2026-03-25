@@ -4,7 +4,6 @@
 #include "keira/mutex.h"
 #include "keira/config.h"
 
-
 #define FTP_USER            "lilka"
 #define FTP_PASSWORD_LENGTH 6
 
@@ -17,12 +16,13 @@ private:
     SemaphoreHandle_t ftpMtx = xSemaphoreCreateMutex();
 
 public:
-    FTPService();
     ~FTPService();
 
     KMTX_GETER(String, user, ftpMtx);
     KMTX_SETER_GETER(String, password, ftpMtx);
     void createPassword();
+
+    void onStart() override;
 
 private:
     void run() override;

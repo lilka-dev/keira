@@ -1,31 +1,25 @@
 #include "ftp.h"
 
-// Libraries
-#include <Preferences.h>
-
 #include "keira/ksystem.h"
 #include "keira/keira_lang.h"
 #include "services/network/network.h"
 
 REG_SERVICE("ftp", FTPService, false);
-REG_CONFIG("ftp", KCONFIG_STRING, K_S_LAUNCHER_FTP_PASSWORD, "password", "");
-
-FTPService::FTPService() {
-    KeiraRegistryEntry* entry = ksystem.registry[getName()];
-    if (entry && entry->config) {
-        auto pwdEntry = (*entry->config)["password"];
-        setpassword(pwdEntry.s);
-        if (getpassword().isEmpty()) {
-            createPassword();
-        }
-    }
-}
+REG_CONFIG("ftp", KCONFIG_STRING, "password", K_S_LAUNCHER_FTP_PASSWORD, "");
 
 FTPService::~FTPService() {
     if (ftpServer) {
         delete ftpServer;
     }
     vSemaphoreDelete(ftpMtx);
+}
+
+void FTPService::onStart() {
+    KeiraRegistryEntry* entry = ksystem.registry[getName()];
+    setpassword(getConfig()["password"].s);
+    if (getpassword().isEmpty()) {
+        createPassword();
+    }
 }
 
 void FTPService::run() {
@@ -52,12 +46,10 @@ void FTPService::createPassword() {
         pwd[i] = random(0, 2) == 0 ? random(48, 57) : random(97, 122);
     }
     pwd[FTP_PASSWORD_LENGTH] = 0;
-    NVS_LOCK;
-    Preferences prefs;
-    prefs.begin(getName(), false);
-    prefs.putString("password", pwd);
-    prefs.end();
-    NVS_UNLOCK;
+
+    auto pwdEntry = getConfig()["password"];
+    pwdEntry.s = pwd;
+    getConfig().set(pwdEntry);
 
     setpassword(String(pwd));
 
