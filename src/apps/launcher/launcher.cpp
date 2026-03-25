@@ -59,7 +59,7 @@
 #include "keira/ksystem.h"
 
 #define TOGGLE_SERVICE(SERVICE_NAME) \
-    ksystem.services.setEnabled(SERVICE_NAME, !ksystem.services.getEnabled(SERVICE_NAME))
+    ksystem.services.status(SERVICE_NAME) ? ksystem.services.down(SERVICE_NAME) : ksystem.services.up(SERVICE_NAME)
 
 LauncherApp::LauncherApp() : App("Launcher") {
     setktStackSize(8192); // Yeah, this one is heavy as fuck
@@ -150,7 +150,7 @@ void LauncherApp::run() {
                             lilka::colors::White,
                             [this](void* item) {
                                     lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
-                                    menuItem->postfix = ksystem.services.getEnabled("network") ? K_S_ON : K_S_OFF;
+                                    menuItem->postfix = ksystem.services.status("network") ? K_S_ON : K_S_OFF;
                             }
                         ),
                         ITEM::MENU(K_S_LAUNCHER_WIFI_NETWORKS, [this]() { this->wifiManager(); }),
@@ -175,7 +175,7 @@ void LauncherApp::run() {
                                 lilka::colors::White,
                                 [this](void* item) {
                                             lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
-                                            menuItem->postfix = ksystem.services.getEnabled("web") ? K_S_ON : K_S_OFF;
+                                            menuItem->postfix = ksystem.services.status("web") ? K_S_ON : K_S_OFF;
                                 }
                             ),
                         }),
@@ -189,7 +189,7 @@ void LauncherApp::run() {
                                 lilka::colors::White,
                                 [this](void* item) {
                                             lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
-                                             menuItem->postfix = ksystem.services.getEnabled("telnet") ? K_S_ON : K_S_OFF;
+                                             menuItem->postfix = ksystem.services.status("telnet") ? K_S_ON : K_S_OFF;
                                 }
                             ),
                         }),
@@ -203,7 +203,7 @@ void LauncherApp::run() {
                                 lilka::colors::White,
                                 [this](void* item) {
                                             lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
-                                            menuItem->postfix = ksystem.services.getEnabled("ftp") ? K_S_ON : K_S_OFF;
+                                            menuItem->postfix = ksystem.services.status("ftp") ? K_S_ON : K_S_OFF;
                                 }
                             ),
                             ITEM::MENU(
@@ -509,7 +509,7 @@ void LauncherApp::setSpiSDSpeed() {
 }
 
 void LauncherApp::wifiManager() {
-    if (!ksystem.services.getEnabled("network")) {
+    if (!ksystem.services.status("network")) {
         alert(K_S_ERROR, K_S_LAUNCHER_ENABLE_WIFI_FIRST);
         return;
     }

@@ -11,6 +11,7 @@
 #include "keira/threadmanager.h"
 #include "keira/servicemanager.h"
 #include "keira/appmanager.h"
+#include "registry.h"
 // Libraries
 #include <lilka.h>
 
@@ -54,6 +55,8 @@ public:
     ThreadManager threads;
     AppManager apps;
     ServiceManager services;
+    // Registry managing constructors of threads/services
+    KeiraRegistry registry;
     //////////////////////////////////////////////////////////////////////////
     // Yeah, we've to do that cause it doesn't support multithreading
     // TODO: move the fuck out from insane lib which have a begin/end

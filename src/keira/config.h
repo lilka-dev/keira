@@ -32,8 +32,8 @@ typedef void (*KeiraConfigEntryCallback)(void* clbkData);
 
 typedef struct {
     // BASE =>
-    char key[NVS_NAMESPACE_LEN];
-    String description;
+    const char* key;
+    const char* description;
     KeiraConfigEntryType type;
     // Callbacks
     KeiraConfigEntryCallback onClick;
