@@ -17,6 +17,41 @@
 #define NVS_NAMESPACE_LEN 16
 #define MAX_STRING_LEN    256
 
+#define REG_CONFIG(SCOPE, TYPE, KEY, DESCRIPTION, DEFAULT_VALUE)               \
+    __attribute__((constructor(3200))) void registerConfigEnntry##__LINE__() { \
+        KeiraRegistryEntry* entry = ksystem.registry[SCOPE];                   \
+        if (!entry || !entry->config) return;                                  \
+        KeiraConfigEntry cfgEntry = {                                          \
+            .key = KEY,                                                        \
+            .description = DESCRIPTION,                                        \
+            .type = TYPE,                                                      \
+            .onClick = nullptr,                                                \
+            .onClickData = nullptr,                                            \
+        };                                                                     \
+        /* set default value based on type */                                  \
+        switch (TYPE) {                                                        \
+            case KCONFIG_BOOL:                                                 \
+                cfgEntry.b = (bool)DEFAULT_VALUE;                              \
+                break;                                                         \
+            case KCONFIG_STRING:                                               \
+                cfgEntry.s = String(DEFAULT_VALUE);                            \
+                break;                                                         \
+            case KCONFIG_INT:                                                  \
+                cfgEntry.i = (int32_t)DEFAULT_VALUE;                           \
+                break;                                                         \
+            case KCONFIG_UINT:                                                 \
+                cfgEntry.u = (uint32_t)DEFAULT_VALUE;                          \
+                break;                                                         \
+            case KCONFIG_INT64:                                                \
+                cfgEntry.i64 = (int64_t)DEFAULT_VALUE;                         \
+                break;                                                         \
+            case KCONFIG_UINT64:                                               \
+                cfgEntry.u64 = (uint64_t)DEFAULT_VALUE;                        \
+                break;                                                         \
+        }                                                                      \
+        entry->config->init(cfgEntry);                                         \
+    }
+
 // lol, theoretically we can save float as well, cause NVS do not know a thing about types
 typedef enum {
     KCONFIG_BOOL,
@@ -61,10 +96,10 @@ public:
     // Adds entry, setups inital value in NVS if it doesn't exist
     // or
     // @param entry pointer to KeiraConfigEntry
-    void init(KeiraConfigEntry entry);
+    void init(KeiraConfigEntry& entry);
     // Validate value, stores to NVS
 
-    bool set(KeiraConfigEntry entry);
+    bool set(KeiraConfigEntry& entry);
 
     // checks if key exists
     bool isKey(const char* key);

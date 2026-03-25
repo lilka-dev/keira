@@ -2,6 +2,8 @@
 #include "services/network/network.h"
 #include "keira/service.h"
 #include "keira/mutex.h"
+#include "keira/config.h"
+
 
 #define FTP_USER            "lilka"
 #define FTP_PASSWORD_LENGTH 6

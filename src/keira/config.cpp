@@ -78,7 +78,7 @@ lilka::Menu* KeiraConfig::getMenu() {
     return &configMenu;
 }
 
-void KeiraConfig::init(KeiraConfigEntry entry) {
+void KeiraConfig::init(KeiraConfigEntry& entry) {
     NVS_LOCK;
     // We can't place it as a field on class, cause esp idf doesn't support more than 16 open handles
     nvs_handle_t handle;
@@ -102,7 +102,7 @@ void KeiraConfig::init(KeiraConfigEntry entry) {
     menuDirty = true;
 }
 
-bool KeiraConfig::set(KeiraConfigEntry entry) {
+bool KeiraConfig::set(KeiraConfigEntry& entry) {
     NVS_LOCK;
     nvs_handle_t handle;
     if (nvs_open(scope, NVS_READWRITE, &handle) != ESP_OK) {

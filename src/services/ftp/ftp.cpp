@@ -3,21 +3,21 @@
 // Libraries
 #include <Preferences.h>
 
-REG_SERVICE("ftp", FTPService, false);
-
 #include "keira/ksystem.h"
+#include "keira/keira_lang.h"
 #include "services/network/network.h"
 
-FTPService::FTPService() {
-    NVS_LOCK;
-    Preferences prefs;
-    prefs.begin(getName(), true);
-    setpassword(prefs.getString("password", ""));
-    prefs.end();
-    NVS_UNLOCK;
+REG_SERVICE("ftp", FTPService, false);
+REG_CONFIG("ftp", KCONFIG_STRING, K_S_LAUNCHER_FTP_PASSWORD, "password", "");
 
-    if (getpassword().isEmpty()) {
-        createPassword();
+FTPService::FTPService() {
+    KeiraRegistryEntry* entry = ksystem.registry[getName()];
+    if (entry && entry->config) {
+        auto pwdEntry = (*entry->config)["password"];
+        setpassword(pwdEntry.s);
+        if (getpassword().isEmpty()) {
+            createPassword();
+        }
     }
 }
 
