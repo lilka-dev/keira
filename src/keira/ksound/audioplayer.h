@@ -47,7 +47,7 @@ private:
     bool ownsOutput = false;
     lilka::Sound* playingSound = nullptr;
 
-    KeiraThread *audioPlayerThread = nullptr;
+    KeiraThread* audioPlayerThread = nullptr;
     QueueHandle_t commandQueue = nullptr;
     SemaphoreHandle_t mutex = nullptr;
 

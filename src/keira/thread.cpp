@@ -233,7 +233,7 @@ void KeiraThread::stop() {
     KMTX_LOCK(ktLock);
 
     this->ktState = KTS_EXITING;
-    
+
     if (ktTaskHandle == NULL) {
         KT_DBG lilka::serial.err("Thread %s is not running, cannot stop", ktName);
         KMTX_UNLOCK(ktLock);

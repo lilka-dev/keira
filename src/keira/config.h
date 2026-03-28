@@ -17,39 +17,38 @@
 #define NVS_NAMESPACE_LEN 16
 #define MAX_STRING_LEN    256
 
-#define REG_CONFIG(SCOPE, TYPE, KEY, DESCRIPTION, DEFAULT_VALUE)                 \
-    __attribute__((constructor(3200))) void registerConfigEntry##__COUNTER__() { \
-        KeiraRegistryEntry* entry = ksystem.registry[SCOPE];                     \
-        if (!entry || !entry->config) return;                                    \
-        KeiraConfigEntry cfgEntry = {                                            \
-            .key = KEY,                                                          \
-            .description = DESCRIPTION,                                          \
-            .type = TYPE,                                                        \
-            .onClick = nullptr,                                                  \
-            .onClickData = nullptr,                                              \
-        };                                                                       \
-        /* set default value based on type */                                    \
-        switch (TYPE) {                                                          \
-            case KCONFIG_BOOL:                                                   \
-                cfgEntry.b = (bool)DEFAULT_VALUE;                                \
-                break;                                                           \
-            case KCONFIG_STRING:                                                 \
-                cfgEntry.s = String(DEFAULT_VALUE);                              \
-                break;                                                           \
-            case KCONFIG_INT:                                                    \
-                cfgEntry.i = (int32_t)DEFAULT_VALUE;                             \
-                break;                                                           \
-            case KCONFIG_UINT:                                                   \
-                cfgEntry.u = (uint32_t)DEFAULT_VALUE;                            \
-                break;                                                           \
-            case KCONFIG_INT64:                                                  \
-                cfgEntry.i64 = (int64_t)DEFAULT_VALUE;                           \
-                break;                                                           \
-            case KCONFIG_UINT64:                                                 \
-                cfgEntry.u64 = (uint64_t)DEFAULT_VALUE;                          \
-                break;                                                           \
-        }                                                                        \
-        entry->config->init(cfgEntry);                                           \
+#define REG_CONFIG(SCOPE, NAME, TYPE, DESCRIPTION, DEFAULT_VALUE)                 \
+    __attribute__((constructor(3200))) void registerConfigEntry##SCOPE_##NAME() { \
+        KeiraRegistryEntry* entry = ksystem.registry[#SCOPE];                     \
+        if (!entry || !entry->config) return;                                     \
+        KeiraConfigEntry cfgEntry = {                                             \
+            .key = #NAME,                                                         \
+            .description = DESCRIPTION,                                           \
+            .type = TYPE,                                                         \
+            .onClick = nullptr,                                                   \
+            .onClickData = nullptr,                                               \
+        };                                                                        \
+        switch (TYPE) {                                                           \
+            case KCONFIG_BOOL:                                                    \
+                cfgEntry.b = (bool)DEFAULT_VALUE;                                 \
+                break;                                                            \
+            case KCONFIG_STRING:                                                  \
+                cfgEntry.s = String(DEFAULT_VALUE);                               \
+                break;                                                            \
+            case KCONFIG_INT:                                                     \
+                cfgEntry.i = (int32_t)DEFAULT_VALUE;                              \
+                break;                                                            \
+            case KCONFIG_UINT:                                                    \
+                cfgEntry.u = (uint32_t)DEFAULT_VALUE;                             \
+                break;                                                            \
+            case KCONFIG_INT64:                                                   \
+                cfgEntry.i64 = (int64_t)DEFAULT_VALUE;                            \
+                break;                                                            \
+            case KCONFIG_UINT64:                                                  \
+                cfgEntry.u64 = (uint64_t)DEFAULT_VALUE;                           \
+                break;                                                            \
+        }                                                                         \
+        entry->config->init(cfgEntry);                                            \
     }
 
 // lol, theoretically we can save float as well, cause NVS do not know a thing about types

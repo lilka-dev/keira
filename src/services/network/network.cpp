@@ -1,16 +1,20 @@
 // TODO: Add enable/disable methods instead of deallocating WiFi from apps like LilTracker
 // TODO: Use the mutex, Luke!
 #include "network.h"
-REG_SERVICE("network", NetworkService, false);
 
 #include <Preferences.h>
 #include <esp_wifi.h>
 #include "keira/ksystem.h"
+#include "keira/keira_lang.h"
 
 // Macro magic used to convert decimal constant to char[] constant
 #define STRX(x)               #x
 #define STR(x)                STRX(x)
 #define LILKA_HOSTNAME_PREFIX "LilkaV"
+
+REG_SERVICE(network, NetworkService, false);
+REG_CONFIG(network, txPower, KCONFIG_INT, K_S_LAUNCHER_WIFI_TX_POWER, WIFI_POWER_19_5dBm);
+REG_CONFIG(network, last_ssid, KCONFIG_STRING, "Last SSID", "");
 
 // EEPROM preferences used:
 // - keira.last_ssid - last connected SSID

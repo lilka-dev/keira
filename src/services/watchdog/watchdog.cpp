@@ -2,7 +2,7 @@
 #include "keira/keira.h"
 
 #ifdef KEIRA_WATCHDOG
-REG_SERVICE("watchdog", WatchdogService, true);
+REG_SERVICE(watchdog, WatchdogService, true);
 #endif
 
 char TASK_STATE_TO_STR[][8] = {"Running", "Ready", "Blocked", "Suspend", "Deleted", "Invalid"};

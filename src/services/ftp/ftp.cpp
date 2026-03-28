@@ -4,8 +4,8 @@
 #include "keira/keira_lang.h"
 #include "services/network/network.h"
 
-REG_SERVICE("ftp", FTPService, false);
-REG_CONFIG("ftp", KCONFIG_STRING, "password", K_S_LAUNCHER_FTP_PASSWORD, "");
+REG_SERVICE(ftp, FTPService, false);
+REG_CONFIG(ftp, password, KCONFIG_STRING, K_S_LAUNCHER_FTP_PASSWORD, "");
 
 FTPService::~FTPService() {
     if (ftpServer) {
@@ -47,9 +47,11 @@ void FTPService::createPassword() {
     }
     pwd[FTP_PASSWORD_LENGTH] = 0;
 
-    auto pwdEntry = getConfig()["password"];
+    auto cfg = getConfig();
+
+    auto pwdEntry = cfg["password"];
     pwdEntry.s = pwd;
-    getConfig().set(pwdEntry);
+    cfg.set(pwdEntry);
 
     setpassword(String(pwd));
 

@@ -1,6 +1,6 @@
 /*
 #include "telnet.h"
-REG_SERVICE("telnet", TelnetService, false);
+REG_SERVICE(telnet, TelnetService, false);
 
 #include <EscapeCodes.h>
 

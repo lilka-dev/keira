@@ -1,8 +1,9 @@
 #include "web.h"
-REG_SERVICE("web", WebService, false);
-
+#include "keira/registry.h"
 #include "esp_http_server.h"
 #include "keira/ksystem.h"
+
+REG_SERVICE(web, WebService, false);
 
 // TODO: html to header generator with compression
 

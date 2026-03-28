@@ -515,7 +515,6 @@ void LuaReplApp::run() {
 
     lilka::serial.log("lua: start REPL");
 
-
     bool quit = false;
     while (!quit) {
         String input;

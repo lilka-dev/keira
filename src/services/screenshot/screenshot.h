@@ -1,6 +1,7 @@
 #pragma once
 
 #include "keira/service.h"
+#include <lilka/display.h>
 
 class ScreenshotService : public Service {
 public:

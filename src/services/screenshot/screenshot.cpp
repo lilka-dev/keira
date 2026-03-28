@@ -1,11 +1,11 @@
 #include "services/screenshot/screenshot.h"
-REG_SERVICE("screenshot", ScreenshotService, true);
-
 #include <contrib/LodePNG/lodepng.h>
-
 #include "keira/appmanager.h"
 #include "services/clock/clock.h"
 #include "keira/keira.h"
+#include "keira/registry.h"
+
+REG_SERVICE(screenshot, ScreenshotService, true);
 
 #if !defined(KEIRA_SCREENSHOT_BMP) && !defined(KEIRA_SCREENSHOT_PNG)
 // Uncomment one of the following lines to choose the screenshot format

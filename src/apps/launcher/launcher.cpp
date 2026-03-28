@@ -6,10 +6,10 @@
 
 #include "keira/servicemanager.h"
 // Services:
-#include "services/network/network.h"
-#include "services/ftp/ftp.h"
-#include "services/telnet/telnet.h"
-#include "services/web/web.h"
+// #include "services/network/network.h"
+// #include "services/ftp/ftp.h"
+// #include "services/telnet/telnet.h"
+// #include "services/web/web.h"
 // Demos:
 #include "apps/demos/lines/lines.h"
 #include "apps/demos/disk/disk.h"
@@ -62,9 +62,74 @@
     ksystem.services.status(SERVICE_NAME) ? ksystem.services.down(SERVICE_NAME) : ksystem.services.up(SERVICE_NAME)
 
 LauncherApp::LauncherApp() : App("Launcher") {
-    setktStackSize(8192); // Yeah, this one is heavy as fuck
+    setktStackSize(8192);
+
+    // Setup config callbacks for all services
+    ksystem.registry.lock();
+    for (auto& unit : ksystem.registry) {
+        if (unit.type != KREG_SERVICE || !unit.config) continue;
+
+        // enabled toggle callback
+        if (unit.config->isKey("enabled")) {
+            auto entry = (*unit.config)["enabled"];
+            entry.onClick = [](void* data) {
+                const char* name = static_cast<const char*>(data);
+                ksystem.services.status(name) ? ksystem.services.down(name) : ksystem.services.up(name);
+            };
+            entry.onClickData = (void*)unit.name;
+            unit.config->set(entry);
+        }
+    }
+    ksystem.registry.unlock();
 }
 
+void LauncherApp::showServicesMenu() {
+    lilka::Menu servicesMenu(K_S_LAUNCHER_SERVICES);
+    servicesMenu.addActivationButton(K_BTN_BACK);
+
+    ksystem.registry.lock();
+    for (auto& unit : ksystem.registry) {
+        if (unit.type != KREG_SERVICE) continue;
+        servicesMenu.addItem(
+            unit.name, nullptr, lilka::colors::White, ksystem.services.status(unit.name) ? K_S_ON : K_S_OFF
+        );
+    }
+    ksystem.registry.unlock();
+
+    while (!servicesMenu.isFinished()) {
+        servicesMenu.update();
+        servicesMenu.draw(canvas);
+        queueDraw();
+    }
+
+    if (servicesMenu.getButton() == K_BTN_BACK) return;
+
+    // Find selected service by index
+    int index = servicesMenu.getCursor();
+    int i = 0;
+    const char* selectedName = nullptr;
+
+    ksystem.registry.lock();
+    for (auto& unit : ksystem.registry) {
+        if (unit.type != KREG_SERVICE) continue;
+        if (i == index) {
+            selectedName = unit.name;
+            break;
+        }
+        i++;
+    }
+    ksystem.registry.unlock();
+
+    if (!selectedName) return;
+
+    // Show config menu for selected service
+    lilka::Menu* cfgMenu = ksystem.registry[selectedName]->config->getMenu();
+    while (!cfgMenu->isFinished()) {
+        cfgMenu->update();
+        cfgMenu->draw(canvas);
+        queueDraw();
+    }
+}
 void LauncherApp::run() {
 #ifdef KEIRA_DEBUG_APP
 #    ifdef KEIRA_DEBUG_APP_PARAMS
@@ -164,95 +229,7 @@ void LauncherApp::run() {
                     ITEM::MENU(K_S_LAUNCHER_SOUND, [this]() { this->runApp<SoundConfigApp>(); }),
 
 
-                    ITEM::SUBMENU(K_S_LAUNCHER_SERVICES, {
-                        ITEM::SUBMENU(K_S_LAUNCHER_WEB, {
-                            ITEM::MENU(
-                                K_S_STATUS,
-                                [this]() {
-                                            TOGGLE_SERVICE("web");
-                                },
-                                nullptr,
-                                lilka::colors::White,
-                                [this](void* item) {
-                                            lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
-                                            menuItem->postfix = ksystem.services.status("web") ? K_S_ON : K_S_OFF;
-                                }
-                            ),
-                        }),
-                        ITEM::SUBMENU(K_S_LAUNCHER_TELNET, {
-                            ITEM::MENU(
-                                K_S_STATUS,
-                                [this]() {
-                                            TOGGLE_SERVICE("telnet");
-                                },
-                                nullptr,
-                                lilka::colors::White,
-                                [this](void* item) {
-                                            lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
-                                             menuItem->postfix = ksystem.services.status("telnet") ? K_S_ON : K_S_OFF;
-                                }
-                            ),
-                        }),
-                        ITEM::SUBMENU(K_S_LAUNCHER_FTP, {
-                            ITEM::MENU(
-                                K_S_STATUS,
-                                [this]() {
-                                         TOGGLE_SERVICE("ftp");
-                                },
-                                nullptr,
-                                lilka::colors::White,
-                                [this](void* item) {
-                                            lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
-                                            menuItem->postfix = ksystem.services.status("ftp") ? K_S_ON : K_S_OFF;
-                                }
-                            ),
-                            ITEM::MENU(
-                                K_S_LAUNCHER_FTP_USER,
-                                nullptr,
-                                nullptr,
-                                lilka::colors::White,
-                                [this](void* item) {
-                                            lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
-                                            FTPService* ftpService = static_cast<FTPService*>(
-                                                ksystem.services["ftp"]
-                                            );
-                                            menuItem->postfix = ftpService?ftpService->getuser():"";
-                                }
-                            ),
-                            ITEM::MENU(
-                                K_S_LAUNCHER_FTP_PASSWORD,
-                                [this]() {
-                                            FTPService* ftpService = static_cast<FTPService*>(
-                                                ksystem.services["ftp"]
-                                            );
-                                            if(ftpService)
-                                            ftpService->createPassword();
-                                },
-                                nullptr,
-                                lilka::colors::White,
-                                [this](void* item) {
-                                            lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
-                                            FTPService* ftpService = static_cast<FTPService*>(
-                                                ksystem.services["ftp"]
-                                            );
-                                            menuItem->postfix = ftpService?ftpService->getpassword():"";
-                                }
-                            ),
-                            ITEM::MENU(
-                                K_S_LAUNCHER_FTP_IP,
-                                nullptr,
-                                nullptr,
-                                lilka::colors::White,
-                                [this](void* item) {
-                                            lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
-                                            NetworkService* networkService = static_cast<NetworkService*>(
-                                        ksystem.services["network"]
-                                    );
-                                            menuItem->postfix = networkService?networkService->getipAddr():"0.0.0.0";
-                                }
-                            ),
-                        }),
-                    }),
+                    ITEM::MENU(K_S_LAUNCHER_SERVICES, [this]() { this->showServicesMenu(); }),
                     ITEM::SUBMENU(K_S_LAUNCHER_STATUSBAR, {
                         ITEM::MENU(
                             K_S_LAUNCHER_CLOCK,

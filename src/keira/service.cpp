@@ -1,5 +1,6 @@
 #include "keira/service.h"
 #include <assert.h>
+#include "keira/ksystem.h"
 
 Service::Service() {
     setktStackSize(4096);
