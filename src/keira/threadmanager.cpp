@@ -5,7 +5,7 @@ ThreadManager::~ThreadManager() {
 }
 
 ThreadManager::ThreadManager() {
-    //    setName(KEIRA_THREADMANAGER_NAME);
+    setName(KEIRA_THREADMANAGER_NAME);
     setktPriority(KEIRA_THREADMANAGER_PRIORITY);
     setktCore(KEIRA_THREADMANAGER_CORE);
 }

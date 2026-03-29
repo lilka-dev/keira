@@ -1,6 +1,7 @@
 #include "keira/config.h"
 #include "keira/keira_lang.h"
 #include "keira/ksystem.h"
+#include <nvs_flash.h> // REQUIRES nvs_flash
 
 static inline esp_err_t nvsWrite(nvs_handle_t handle, KeiraConfigEntry* entry) {
     switch (entry->type) {
@@ -62,6 +63,7 @@ KeiraConfig::~KeiraConfig() {
 }
 
 KeiraConfig::KeiraConfig(const char* scope) {
+    nvs_flash_init();
     if (strlen(scope) + 1 >= NVS_NAMESPACE_LEN) {
         // assert here
     }
@@ -84,12 +86,16 @@ void KeiraConfig::init(KeiraConfigEntry& entry) {
     nvs_handle_t handle;
     if (nvs_open(scope, NVS_READWRITE, &handle) != ESP_OK) {
         NVS_UNLOCK;
+        lilka::serial.err("Can't open nvs for %s", scope);
         return;
     }
 
     if (nvsRead(handle, &entry) != ESP_OK) {
+        lilka::serial.err("Can't read setting for %s[%s]", scope, entry.key);
         nvsWrite(handle, &entry);
         nvs_commit(handle);
+    } else {
+        lilka::serial.log("Read setting for %s[%s]", scope, entry.key);
     }
 
     nvs_close(handle);
@@ -185,5 +191,6 @@ void KeiraConfig::rebuildMenu() {
             configMenu.addItem(
                 entry.description, nullptr, lilka::colors::White, postfix.c_str(), entry.onClick, entry.onClickData
             );
+        else configMenu.addItem(entry.description, nullptr, lilka::colors::White, postfix.c_str());
     }
 }

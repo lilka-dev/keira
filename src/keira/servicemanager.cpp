@@ -5,6 +5,8 @@ ServiceManager::~ServiceManager() {
 }
 
 ServiceManager::ServiceManager() {
+    setName(KEIRA_SERVICEMANAGER_NAME);
+    setktPriority(KEIRA_SERVICEMANAGER_PRIORITY);
     setktCore(KEIRA_SERVICEMANAGER_CORE);
 }
 
