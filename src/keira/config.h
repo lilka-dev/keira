@@ -100,6 +100,14 @@ public:
 
     bool set(KeiraConfigEntry& entry);
 
+    std::vector<KeiraConfigEntry>::iterator begin() {
+        return entries.begin();
+    }
+    
+    std::vector<KeiraConfigEntry>::iterator end() {
+        return entries.end();
+    }
+
     // checks if key exists
     bool isKey(const char* key);
 

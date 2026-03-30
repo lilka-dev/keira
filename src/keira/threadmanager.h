@@ -45,6 +45,14 @@ public:
     virtual void threadsClean();
     virtual void threadsRun();
 
+    std::vector<KeiraThread*>::iterator begin() {
+        return threads.begin();
+    }
+
+    std::vector<KeiraThread*>::iterator end() {
+        return threads.end();
+    }
+
     // Performs launch of thread updates. run in a separate thread
     void run() override;
 
