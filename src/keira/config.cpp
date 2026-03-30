@@ -70,16 +70,6 @@ KeiraConfig::KeiraConfig(const char* scope) {
     strcpy(this->scope, scope);
 }
 
-lilka::Menu* KeiraConfig::getMenu() {
-    KMTX_LOCK(configMtx);
-    if (menuDirty) {
-        rebuildMenu();
-        menuDirty = false;
-    }
-    KMTX_UNLOCK(configMtx);
-    return &configMenu;
-}
-
 void KeiraConfig::init(KeiraConfigEntry& entry) {
     NVS_LOCK;
     // We can't place it as a field on class, cause esp idf doesn't support more than 16 open handles
@@ -104,8 +94,6 @@ void KeiraConfig::init(KeiraConfigEntry& entry) {
     KMTX_LOCK(configMtx);
     entries.push_back(entry);
     KMTX_UNLOCK(configMtx);
-
-    menuDirty = true;
 }
 
 bool KeiraConfig::set(KeiraConfigEntry& entry) {
@@ -133,7 +121,6 @@ bool KeiraConfig::set(KeiraConfigEntry& entry) {
     }
     KMTX_UNLOCK(configMtx);
 
-    menuDirty = true;
     return true;
 }
 
@@ -160,37 +147,4 @@ KeiraConfigEntry KeiraConfig::operator[](const char* key) {
     }
     KMTX_UNLOCK(configMtx);
     return foundEntry;
-}
-
-void KeiraConfig::rebuildMenu() {
-    configMenu.clearItems();
-    for (auto& entry : entries) {
-        String postfix;
-        switch (entry.type) {
-            case KCONFIG_BOOL:
-                postfix = entry.b ? K_S_ON : K_S_OFF;
-                break;
-            case KCONFIG_STRING:
-                postfix = String(entry.s);
-                break;
-            case KCONFIG_INT:
-                postfix = String(entry.i);
-                break;
-            case KCONFIG_INT64:
-                postfix = String((long)entry.i64);
-                break;
-            case KCONFIG_UINT:
-                postfix = String(entry.u);
-                break;
-            case KCONFIG_UINT64:
-                postfix = String((unsigned long)entry.u64);
-                break;
-        }
-
-        if (entry.onClick)
-            configMenu.addItem(
-                entry.description, nullptr, lilka::colors::White, postfix.c_str(), entry.onClick, entry.onClickData
-            );
-        else configMenu.addItem(entry.description, nullptr, lilka::colors::White, postfix.c_str());
-    }
 }

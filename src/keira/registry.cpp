@@ -5,6 +5,13 @@ KeiraRegistry::KeiraRegistry() {
 }
 
 KeiraRegistry::~KeiraRegistry() {
+    // Cleanup configs for unit
+    lock();
+    for (auto& entry : entries) {
+        delete entry.config;
+    }
+    unlock();
+    // Remove semaphore
     vSemaphoreDelete(registryMtx);
 }
 

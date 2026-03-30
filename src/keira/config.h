@@ -25,8 +25,6 @@
             .key = #NAME,                                                         \
             .description = DESCRIPTION,                                           \
             .type = TYPE,                                                         \
-            .onClick = nullptr,                                                   \
-            .onClickData = nullptr,                                               \
         };                                                                        \
         switch (TYPE) {                                                           \
             case KCONFIG_BOOL:                                                    \
@@ -69,9 +67,6 @@ typedef struct {
     const char* key;
     const char* description;
     KeiraConfigEntryType type;
-    // Callbacks
-    KeiraConfigEntryCallback onClick;
-    void* onClickData;
     // Entry value
     String s; // empty string if not it
     union {
@@ -89,9 +84,6 @@ public:
     // Constructs KeiraConfig
     // @param scope NVS scope to be used by KeiraConfig
     explicit KeiraConfig(const char* scope);
-
-    // Retrieves a pointer to lilka::Menu
-    lilka::Menu* getMenu();
     // Adds entry, setups inital value in NVS if it doesn't exist
     // or
     // @param entry pointer to KeiraConfigEntry
@@ -103,7 +95,7 @@ public:
     std::vector<KeiraConfigEntry>::iterator begin() {
         return entries.begin();
     }
-    
+
     std::vector<KeiraConfigEntry>::iterator end() {
         return entries.end();
     }
@@ -115,14 +107,9 @@ public:
     KeiraConfigEntry operator[](const char* key);
     // TODO: dump settings to json, load settings from json
 private:
-    // Rebuild configMenu from entries
-    void rebuildMenu();
-
     std::vector<KeiraConfigEntry> entries;
 
-    bool menuDirty = false;
-    lilka::Menu configMenu;
-    // Protects configMenu and entries
+    // Protects entries
     SemaphoreHandle_t configMtx = xSemaphoreCreateMutex();
 
     char scope[NVS_NAMESPACE_LEN];

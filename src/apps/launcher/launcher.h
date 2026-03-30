@@ -58,16 +58,29 @@ public:
 private:
     void run() override;
 
-    void showMenu(const char* title, ITEM_LIST& menu, bool back = true);
     template <typename T, typename... Args>
     void runApp(Args&&... args);
     void setWiFiTxPower();
     void wifiToggle();
     void wifiManager();
     void setSpiSDSpeed();
-    void showServicesMenu();
+
     void about();
     void info();
     void partitions();
     void formatSD();
+
+    // menu loops:
+    void showServicesMenu();
+    void showMenu(const char* title, ITEM_LIST& menu, bool back = true);
+
+    // callbacks[servicesMenu] -> launches pServiceMenu
+    void onAnyServiceMenuItem();
+
+    // callback[pServiceMenu]
+    void onServiceConfigMenuItem();
+
+private:
+    lilka::Menu servicesMenu;
+    lilka::Menu* pServiceMenu = NULL;
 };

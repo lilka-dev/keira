@@ -63,47 +63,10 @@
 
 LauncherApp::LauncherApp() : App("Launcher") {
     setktStackSize(8192);
-
-    // Setup config callbacks for all services
-    ksystem.registry.lock();
-    for (auto& unit : ksystem.registry) {
-        if (unit.type != KREG_SERVICE || !unit.config) continue;
-
-        // enabled toggle callback
-        if (unit.config->isKey("enabled")) {
-            auto entry = (*unit.config)["enabled"];
-            entry.onClick = [](void* data) {
-                const char* name = static_cast<const char*>(data);
-                ksystem.services.status(name) ? ksystem.services.down(name) : ksystem.services.up(name);
-            };
-            entry.onClickData = (void*)unit.name;
-            unit.config->set(entry);
-        }
-    }
-    ksystem.registry.unlock();
 }
 
-void LauncherApp::showServicesMenu() {
-    lilka::Menu servicesMenu(K_S_LAUNCHER_SERVICES);
-    servicesMenu.addActivationButton(K_BTN_BACK);
-
-    ksystem.registry.lock();
-    for (auto& unit : ksystem.registry) {
-        if (unit.type != KREG_SERVICE) continue;
-        servicesMenu.addItem(
-            unit.name, nullptr, lilka::colors::White, ksystem.services.status(unit.name) ? K_S_ON : K_S_OFF
-        );
-    }
-    ksystem.registry.unlock();
-
-    while (!servicesMenu.isFinished()) {
-        servicesMenu.update();
-        servicesMenu.draw(canvas);
-        queueDraw();
-    }
-
+void LauncherApp::onAnyServiceMenuItem() {
     if (servicesMenu.getButton() == K_BTN_BACK) return;
-
     // Find selected service by index
     int index = servicesMenu.getCursor();
     int i = 0;
@@ -122,14 +85,44 @@ void LauncherApp::showServicesMenu() {
 
     if (!selectedName) return;
 
-    // Show config menu for selected service
-    lilka::Menu* cfgMenu = ksystem.registry[selectedName]->config->getMenu();
-    while (!cfgMenu->isFinished()) {
-        cfgMenu->update();
-        cfgMenu->draw(canvas);
+    auto cfg = ksystem.registry[selectedName]->config;
+
+    // // Show config menu for selected service
+    // pServiceMenu = cfg->getMenu();
+
+    // while (!pServiceMenu->isFinished()) {
+    //     pServiceMenu->update();
+    //     pServiceMenu->draw(canvas);
+    //     queueDraw();
+    // }
+}
+
+void LauncherApp::showServicesMenu() {
+    servicesMenu.clearItems();
+    servicesMenu.setTitle(K_S_LAUNCHER_SERVICES);
+    servicesMenu.addActivationButton(K_BTN_BACK);
+
+    ksystem.registry.lock();
+    for (auto& unit : ksystem.registry) {
+        if (unit.type != KREG_SERVICE) continue;
+        servicesMenu.addItem(
+            unit.name,
+            nullptr,
+            ksystem.services.status(unit.name) ? lilka::colors::Green : lilka::colors::Red,
+            "",
+            LILKA_MENU_CLBK_CAST(&LauncherApp::onAnyServiceMenuItem),
+            LILKA_MENU_CLBK_DATA_CAST(this)
+        );
+    }
+    ksystem.registry.unlock();
+
+    while (!servicesMenu.isFinished()) {
+        servicesMenu.update();
+        servicesMenu.draw(canvas);
         queueDraw();
     }
 }
+
 void LauncherApp::run() {
 #ifdef KEIRA_DEBUG_APP
 #    ifdef KEIRA_DEBUG_APP_PARAMS

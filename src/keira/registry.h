@@ -26,31 +26,27 @@ typedef enum {
 } KeiraRegistryEntryType;
 
 // Service registration macro
-#define REG_SERVICE(NAME, CLASS, DEFAULT_ENABLED)                                             \
-    Service* createService##NAME() {                                                          \
-        auto pService = new CLASS();                                                          \
-        pService->setName(#NAME);                                                             \
-        return pService;                                                                      \
-    }                                                                                         \
-    __attribute__((constructor(3100))) void registerService##NAME() {                         \
-        auto cfg = new KeiraConfig(#NAME);                                                    \
-        KeiraConfigEntry enCfgEntry = {                                                       \
-            .key = "enabled",                                                                 \
-            .description = "Enable service",                                                  \
-            .type = KCONFIG_BOOL,                                                             \
-            .onClick = nullptr,                                                               \
-            .onClickData = nullptr,                                                           \
-            .b = DEFAULT_ENABLED                                                              \
-        };                                                                                    \
-        cfg->init(enCfgEntry);                                                                \
-        KeiraRegistryEntry regEntry = {                                                       \
-            .name = #NAME,                                                                    \
-            .type = KREG_SERVICE,                                                             \
-            .constructor = reinterpret_cast<RegistryUnitContructorFunc>(createService##NAME), \
-            .config = cfg                                                                     \
-        };                                                                                    \
-        ksystem.registry.reg(regEntry);                                                       \
+#define REG_SERVICE(NAME, CLASS, DEFAULT_ENABLED)                                                         \
+    Service* createService##NAME() {                                                                      \
+        auto pService = new CLASS();                                                                      \
+        pService->setName(#NAME);                                                                         \
+        return pService;                                                                                  \
+    }                                                                                                     \
+    __attribute__((constructor(3100))) void registerService##NAME() {                                     \
+        auto cfg = new KeiraConfig(#NAME);                                                                \
+        KeiraConfigEntry enCfgEntry = {                                                                   \
+            .key = "enabled", .description = "Enable service", .type = KCONFIG_BOOL, .b = DEFAULT_ENABLED \
+        };                                                                                                \
+        cfg->init(enCfgEntry);                                                                            \
+        KeiraRegistryEntry regEntry = {                                                                   \
+            .name = #NAME,                                                                                \
+            .type = KREG_SERVICE,                                                                         \
+            .constructor = reinterpret_cast<RegistryUnitContructorFunc>(createService##NAME),             \
+            .config = cfg                                                                                 \
+        };                                                                                                \
+        ksystem.registry.reg(regEntry);                                                                   \
     }
+// TODO: Reuse provided by KeiraConfig macro to register enabled
 
 typedef struct {
     const char* name; // name of app/service task, scope of settings
