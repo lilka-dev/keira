@@ -122,6 +122,16 @@ FileManagerApp::FileManagerApp(const String& path) :
         LILKA_MENU_CLBK_CAST(&FileManagerApp::onFileOpenWithMadPlayer),
         LILKA_MENU_CLBK_DATA_CAST(this)
     );
+
+    fileOpenWithMenu.addItem(
+        K_S_FMANAGER_DYNAPP,
+        0,
+        lilka::colors::White,
+        "",
+        LILKA_MENU_CLBK_CAST(&FileManagerApp::onFileOpenWithDynApp),
+        LILKA_MENU_CLBK_DATA_CAST(this)
+    );
+
     fileOpenWithMenu.addItem(
         K_S_MENU_BACK,
         0,
@@ -313,6 +323,10 @@ FMEntry FileManagerApp::pathToEntry(const String& path) {
         newEntry.type = FT_LT;
         newEntry.icon = FT_LT_ICON;
         newEntry.color = FT_LT_COLOR;
+    } else if (lowerCasedPath.endsWith(".so")) {
+        newEntry.type = FT_SO;
+        newEntry.icon = FT_SO_ICON;
+        newEntry.color = FT_SO_COLOR;
     } else {
         newEntry.type = FT_OTHER;
         newEntry.icon = FT_OTHER_ICON;
@@ -353,6 +367,9 @@ void FileManagerApp::openCurrentEntry() {
             break;
         case FT_LT:
             K_FT_LT_HANDLER(path);
+            break;
+        case FT_SO:
+            K_FT_SO_HANDLER(path);
             break;
         case FT_DIR:
             FT_DEFAULT_DIR_HANDLER;
@@ -496,6 +513,14 @@ void FileManagerApp::onFileOpenWithMadPlayer() {
     K_FT_SOUND_HANDLER(lilka::fileutils.joinPath(currentEntry.path, currentEntry.name));
 
     FM_DBG LXP;
+}
+
+void FileManagerApp::onFileOpenWithDynApp() {
+    FM_DBG lilka::serial.log("Enter onFileOpenWithDynApp");
+    auto button = fileOpenWithMenu.getButton();
+    if (button == FM_EXIT_BUTTON) return; // Exit
+
+    K_FT_SO_HANDLER(lilka::fileutils.joinPath(currentEntry.path, currentEntry.name));
 }
 
 // FILE SELECTION MENU BELOW:
