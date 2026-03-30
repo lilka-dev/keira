@@ -78,8 +78,6 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #define ENTRY_NOT_FOUND_INDEX UINT16_MAX
-#define FM_CALLBACK_CAST(X)   reinterpret_cast<lilka::PMenuItemCallback>(&FileManagerApp::X)
-#define FM_CALLBACK_PTHIS     reinterpret_cast<void*>(this)
 
 // DEPS:
 #include "keira/appmanager.h"
