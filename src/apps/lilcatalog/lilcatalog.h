@@ -34,7 +34,14 @@
 #define CATALOG_DOWNLOAD_BUFFER_SIZE 2048
 
 // Execution file types
-typedef enum { EXEC_TYPE_UNKNOWN, EXEC_TYPE_LUA, EXEC_TYPE_BINARY, EXEC_TYPE_ARCHIVE, EXEC_TYPE_IMAGE, EXEC_TYPE_DYNAPP } ExecutionType;
+typedef enum {
+    EXEC_TYPE_UNKNOWN,
+    EXEC_TYPE_LUA,
+    EXEC_TYPE_BINARY,
+    EXEC_TYPE_ARCHIVE,
+    EXEC_TYPE_IMAGE,
+    EXEC_TYPE_DYNAPP
+} ExecutionType;
 
 // Source info
 typedef struct {
