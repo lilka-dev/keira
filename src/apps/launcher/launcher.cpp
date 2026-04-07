@@ -10,6 +10,7 @@
 #include "services/ftp/ftp.h"
 #include "services/telnet/telnet.h"
 #include "services/web/web.h"
+#include "services/mdns/mdns.h"
 // Demos:
 #include "apps/demos/lines/lines.h"
 #include "apps/demos/disk/disk.h"
@@ -263,6 +264,39 @@ void LauncherApp::run() {
                                         ksystem.services["network"]
                                     );
                                             menuItem->postfix = networkService->getipAddr();
+                                }
+                            ),
+                        }),
+                        ITEM::SUBMENU(K_S_LAUNCHER_MDNS, {
+                            ITEM::MENU(
+                                K_S_STATUS,
+                                [this]() {
+                                            MDNSService* mdnsService = static_cast<MDNSService*>(
+                                                ksystem.services["mdns"]
+                                            );
+                                            mdnsService->setEnabled(!mdnsService->getEnabled());
+                                },
+                                nullptr,
+                                lilka::colors::White,
+                                [this](void* item) {
+                                            lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
+                                            MDNSService* mdnsService = static_cast<MDNSService*>(
+                                                ksystem.services["mdns"]
+                                            );
+                                            menuItem->postfix = mdnsService->getEnabled() ? K_S_ON : K_S_OFF;
+                                }
+                            ),
+                            ITEM::MENU(
+                                K_S_LAUNCHER_MDNS_HOSTNAME,
+                                [this]() { this->setMDNSHostname(); },
+                                nullptr,
+                                lilka::colors::White,
+                                [this](void* item) {
+                                            lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
+                                            MDNSService* mdnsService = static_cast<MDNSService*>(
+                                                ksystem.services["mdns"]
+                                            );
+                                            menuItem->postfix = mdnsService->getFullHostname();
                                 }
                             ),
                         }),
@@ -527,6 +561,25 @@ void LauncherApp::wifiToggle() {
     NetworkService* networkService = static_cast<NetworkService*>(ksystem.services["network"]);
     networkService->setEnabled(!networkService->getEnabled());
 }
+
+void LauncherApp::setMDNSHostname() {
+    MDNSService* mdnsService = static_cast<MDNSService*>(ksystem.services["mdns"]);
+
+    lilka::InputDialog inputDialog(K_S_LAUNCHER_MDNS_ENTER_HOSTNAME);
+    inputDialog.setValue(mdnsService->getHostname());
+
+    while (!inputDialog.isFinished()) {
+        inputDialog.update();
+        inputDialog.draw(canvas);
+        queueDraw();
+    }
+
+    String newHostname = inputDialog.getValue();
+    if (!newHostname.isEmpty()) {
+        mdnsService->setHostname(newHostname);
+    }
+}
+
 void LauncherApp::wifiManager() {
     NetworkService* networkService = static_cast<NetworkService*>(ksystem.services["network"]);
     if (!networkService->getEnabled()) {

@@ -65,6 +65,7 @@ private:
     void wifiToggle();
     void wifiManager();
     void setSpiSDSpeed();
+    void setMDNSHostname();
     void about();
     void info();
     void partitions();
