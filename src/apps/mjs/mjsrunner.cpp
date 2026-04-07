@@ -100,8 +100,8 @@ void MJSApp::run() {
     mjs_err_t err = mjs_exec_file(mjs, path.c_str(), &res);
     if (err != MJS_OK) {
         const char* error = mjs_strerror(mjs, err);
-        (void)error;
-        alert("mJS", String(K_S_MJS_ERROR) + err);
+        Serial.printf("mJS error %d: %s\n", err, error ? error : "unknown");
+        alert("mJS", String(K_S_MJS_ERROR) + err + "\n" + (error ? error : ""));
     }
 
     // Cleanup audio

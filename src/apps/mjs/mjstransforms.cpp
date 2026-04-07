@@ -154,7 +154,7 @@ static void mjs_transforms_delete(struct mjs* mjs) {
 
 void mjs_transforms_register(struct mjs* mjs) {
     mjs_val_t transforms = mjs_mk_object(mjs);
-    mjs_set(mjs, transforms, "new", ~0, mjs_mk_foreign_func(mjs, (mjs_func_ptr_t)mjs_transforms_new));
+    mjs_set(mjs, transforms, "create", ~0, mjs_mk_foreign_func(mjs, (mjs_func_ptr_t)mjs_transforms_new));
     mjs_set(mjs, transforms, "rotate", ~0, mjs_mk_foreign_func(mjs, (mjs_func_ptr_t)mjs_transforms_rotate));
     mjs_set(mjs, transforms, "scale", ~0, mjs_mk_foreign_func(mjs, (mjs_func_ptr_t)mjs_transforms_scale));
     mjs_set(mjs, transforms, "multiply", ~0, mjs_mk_foreign_func(mjs, (mjs_func_ptr_t)mjs_transforms_multiply));
@@ -162,7 +162,7 @@ void mjs_transforms_register(struct mjs* mjs) {
     mjs_set(mjs, transforms, "vtransform", ~0, mjs_mk_foreign_func(mjs, (mjs_func_ptr_t)mjs_transforms_vtransform));
     mjs_set(mjs, transforms, "get", ~0, mjs_mk_foreign_func(mjs, (mjs_func_ptr_t)mjs_transforms_get));
     mjs_set(mjs, transforms, "set", ~0, mjs_mk_foreign_func(mjs, (mjs_func_ptr_t)mjs_transforms_set));
-    mjs_set(mjs, transforms, "delete", ~0, mjs_mk_foreign_func(mjs, (mjs_func_ptr_t)mjs_transforms_delete));
+    mjs_set(mjs, transforms, "free", ~0, mjs_mk_foreign_func(mjs, (mjs_func_ptr_t)mjs_transforms_delete));
     mjs_val_t global = mjs_get_global(mjs);
     mjs_set(mjs, global, "transforms", ~0, transforms);
 }
