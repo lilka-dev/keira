@@ -38,6 +38,10 @@
 #define K_S_FTP                         "FTP"
 #define K_S_WEB                         "Web"
 #define K_S_TELNET                      "Telnet"
+#define K_S_MDNS                        "mDNS"
+#define K_S_LAUNCHER_MDNS               K_S_MDNS
+#define K_S_LAUNCHER_MDNS_HOSTNAME      "Hostname"
+#define K_S_LAUNCHER_MDNS_ENTER_HOSTNAME "Enter hostname:"
 #define K_S_CHANGE_ON_NEXT_BOOT         "Changes would apply on next boot"
 #define K_S_OS_NAME                     "Keira OS"
 #define K_S_OS_DESCRIPTION              "by Андерсон & friends"

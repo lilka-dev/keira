@@ -14,6 +14,7 @@
 #include "services/telnet/telnet.h"
 #include "services/ftp/ftp.h"
 #include "services/web/web.h"
+#include "services/mdns/mdns.h"
 
 // Apps:
 #include "apps/statusbar/statusbar.h"
@@ -147,6 +148,7 @@ void KeiraSystem::launchServices() {
     services.spawn(new TelnetService());
     services.spawn(new FTPService());
     services.spawn(new WebService());
+    services.spawn(new MDNSService());
 
     // GUIDELINE: To add a new service register it here
 }
