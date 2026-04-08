@@ -39,18 +39,27 @@ void MDNSService::startMDNS() {
         return;
     }
 
-    if (MDNS.begin(hostname.c_str())) {
-        lilka::serial.log("MDNSService: mDNS started with hostname %s.local", hostname.c_str());
-
-        // Advertise services
-        MDNS.addService("http", "tcp", 80);
-        MDNS.addService("ftp", "tcp", 21);
-        MDNS.addService("telnet", "tcp", 23);
-
-        mdnsStarted = true;
-    } else {
-        lilka::serial.log("MDNSService: Failed to start mDNS");
+    esp_err_t err = mdns_init();
+    if (err != ESP_OK) {
+        lilka::serial.log("MDNSService: Failed to init mDNS: %s", esp_err_to_name(err));
+        return;
     }
+
+    err = mdns_hostname_set(hostname.c_str());
+    if (err != ESP_OK) {
+        lilka::serial.log("MDNSService: Failed to set hostname: %s", esp_err_to_name(err));
+        mdns_free();
+        return;
+    }
+
+    lilka::serial.log("MDNSService: mDNS started with hostname %s.local", hostname.c_str());
+
+    // Advertise services
+    mdns_service_add(NULL, "_http", "_tcp", 80, NULL, 0);
+    mdns_service_add(NULL, "_ftp", "_tcp", 21, NULL, 0);
+    mdns_service_add(NULL, "_telnet", "_tcp", 23, NULL, 0);
+
+    mdnsStarted = true;
 }
 
 void MDNSService::stopMDNS() {
@@ -58,7 +67,8 @@ void MDNSService::stopMDNS() {
         return;
     }
 
-    MDNS.end();
+    mdns_service_remove_all();
+    mdns_free();
     mdnsStarted = false;
     lilka::serial.log("MDNSService: mDNS stopped");
 }

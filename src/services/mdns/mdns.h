@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ESPmDNS.h>
+#include <mdns.h>
 #include "services/network/network.h"
 #include "keira/service.h"
 
