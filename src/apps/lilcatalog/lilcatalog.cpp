@@ -420,6 +420,7 @@ ExecutionType LilCatalogApp::parseExecutionType(const String& typeStr) {
     if (typeStr == "binary") return EXEC_TYPE_BINARY;
     if (typeStr == "archive") return EXEC_TYPE_ARCHIVE;
     if (typeStr == "image") return EXEC_TYPE_IMAGE;
+    if (typeStr == "dynapp" || typeStr == "so") return EXEC_TYPE_DYNAPP;
     return EXEC_TYPE_UNKNOWN;
 }
 
@@ -859,16 +860,39 @@ void LilCatalogApp::removeEntry() {
     showEntry();
 }
 
+ExecutionType LilCatalogApp::detectTypeByExtension(const String& location) {
+    String loc = location;
+    loc.toLowerCase();
+    if (loc.endsWith(".lua")) return EXEC_TYPE_LUA;
+    if (loc.endsWith(".bin")) return EXEC_TYPE_BINARY;
+    if (loc.endsWith(".so")) return EXEC_TYPE_DYNAPP;
+    if (loc.endsWith(".zip") || loc.endsWith(".tar") || loc.endsWith(".gz")) return EXEC_TYPE_ARCHIVE;
+    return EXEC_TYPE_UNKNOWN;
+}
+
 void LilCatalogApp::executeEntry() {
     String execPath = getEntryExecutablePath();
     String canonicalPath = lilka::fileutils.getCannonicalPath(&SD, execPath);
 
-    switch (currentEntry.entryfile.type) {
+    // Use manifest type, but fallback to extension detection if type is ARCHIVE or UNKNOWN
+    // This fixes catalog entries with wrong types (e.g. .lua marked as archive)
+    ExecutionType execType = currentEntry.entryfile.type;
+    if (execType == EXEC_TYPE_ARCHIVE || execType == EXEC_TYPE_UNKNOWN) {
+        ExecutionType detectedType = detectTypeByExtension(currentEntry.entryfile.location);
+        if (detectedType != EXEC_TYPE_UNKNOWN && detectedType != EXEC_TYPE_ARCHIVE) {
+            execType = detectedType;
+        }
+    }
+
+    switch (execType) {
         case EXEC_TYPE_LUA:
             K_FT_LUA_SCRIPT_HANDLER(canonicalPath);
             break;
         case EXEC_TYPE_BINARY:
             fileLoadAsRom(canonicalPath);
+            break;
+        case EXEC_TYPE_DYNAPP:
+            K_FT_SO_HANDLER(canonicalPath);
             break;
         case EXEC_TYPE_ARCHIVE:
             showAlert(K_S_LILCATALOG_ARCHIVE_NOTICE);
@@ -1070,6 +1094,9 @@ void LilCatalogApp::drawAppView() {
             break;
         case EXEC_TYPE_BINARY:
             typeStr = "BIN";
+            break;
+        case EXEC_TYPE_DYNAPP:
+            typeStr = "SO";
             break;
         default:
             break;

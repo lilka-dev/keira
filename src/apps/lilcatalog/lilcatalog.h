@@ -11,6 +11,7 @@
 #include "../mjs/mjsrunner.h"
 #include "../nes/nesapp.h"
 #include "../fmanager/fmanager.h"
+#include "../dynapp/dynapp.h"
 
 // Base URL for catalog API (apps only)
 #define CATALOG_BASE_URL "https://catalog.lilka.dev"
@@ -33,7 +34,14 @@
 #define CATALOG_DOWNLOAD_BUFFER_SIZE 2048
 
 // Execution file types
-typedef enum { EXEC_TYPE_UNKNOWN, EXEC_TYPE_LUA, EXEC_TYPE_BINARY, EXEC_TYPE_ARCHIVE, EXEC_TYPE_IMAGE } ExecutionType;
+typedef enum {
+    EXEC_TYPE_UNKNOWN,
+    EXEC_TYPE_LUA,
+    EXEC_TYPE_BINARY,
+    EXEC_TYPE_ARCHIVE,
+    EXEC_TYPE_IMAGE,
+    EXEC_TYPE_DYNAPP
+} ExecutionType;
 
 // Source info
 typedef struct {
@@ -142,6 +150,7 @@ private:
     bool parseManifest(const String& json, catalog_entry& entry);
     bool parseShortManifest(const String& json, catalog_entry& entry);
     ExecutionType parseExecutionType(const String& typeStr);
+    ExecutionType detectTypeByExtension(const String& location);
     FileType executionTypeToFileType(ExecutionType type);
 
     // Entry management
