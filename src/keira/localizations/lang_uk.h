@@ -110,7 +110,24 @@
 #define K_S_LAUNCHER_BATTERY_3         "Текст"
 
 #define K_S_LAUNCHER_ABOUT_SYSTEM      "Про систему"
+#define K_S_LAUNCHER_ABOUT             "Про пристрій"
+#define K_S_LAUNCHER_FIRMWARE_VERSION  "Версія прошивки"
+#define K_S_LAUNCHER_EASTER_EGG        "Сюрприз!"
+#define K_S_LAUNCHER_ABOUT_FMT \
+    "Keira: %s\n"              \
+    "SDK: %s\n"                \
+    "ESP-IDF: %s\n\n"         
+#define K_S_LAUNCHER_VERSION_FMT \
+    "Keira: %s\n"                \
+    "SDK: %s\n"                  \
+    "ESP-IDF: %s"
 #define K_S_LAUNCHER_DEVICE_INFO       "Інфо про пристрій"
+#define K_S_LAUNCHER_DEVICE_INFO_FMT \
+    "Модель: %s\n"                   \
+    "Ревізія: %d\n"                  \
+    "Частота: %d МГц\n"              \
+    "Кількість ядер: %d\n"           \
+    "IP: %s"
 #define K_S_PARTITION_TABLE            "Таблиця розділів"
 #define K_S_LAUNCHER_LIGHT_SLEEP       "Light sleep"
 #define K_S_LAUNCHER_DEEP_SLEEP        "Deep sleep"
@@ -119,14 +136,6 @@
 #define K_S_LAUNCHER_SELECT_TX_POWER   "Оберіть потужність"
 
 #define K_S_LAUNCHER_ENABLE_WIFI_FIRST "Спочатку увімкніть WiFi-адаптер"
-
-#define K_S_LAUNCHER_DEVICE_INFO_FMT \
-    "Модель: %s\n"                   \
-    "Ревізія: %d\n"                  \
-    "Версія ESP-IDF: %s\n"           \
-    "Частота: %d МГц\n"              \
-    "Кількість ядер: %d\n"           \
-    "IP: %s"
 
 #define K_S_LAUNCHER_PARTITION_FMT "Адреса: 0x%s\nРозмір: 0x%s"
 

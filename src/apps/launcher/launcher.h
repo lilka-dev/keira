@@ -67,6 +67,7 @@ private:
     void setSpiSDSpeed();
     void about();
     void info();
+    void showEasterEgg();
     void partitions();
     void formatSD();
 };
