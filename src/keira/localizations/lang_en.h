@@ -124,10 +124,11 @@
     "ESP-IDF: %s"
 #define K_S_LAUNCHER_DEVICE_INFO       "About device"
 #define K_S_LAUNCHER_DEVICE_INFO_FMT\
-    "Model: %s\n"\
+    "Device: %s\n"\
+    "Chip: %s\n"\
     "Revision: %d\n"\
     "Frequency: %d Mhz\n"\
-    "Cores count: %d\n"\
+    "Cores: %d\n"\
     "IP: %s"
 #define K_S_PARTITION_TABLE            "Partition table"
 #define K_S_LAUNCHER_LIGHT_SLEEP       "Light sleep"

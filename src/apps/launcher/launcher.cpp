@@ -547,6 +547,7 @@ void LauncherApp::info() {
         K_S_LAUNCHER_DEVICE_INFO,
         StringFormat(
             K_S_LAUNCHER_DEVICE_INFO_FMT,
+            ARDUINO_BOARD,
             ESP.getChipModel(),
             ESP.getChipRevision(),
             ESP.getCpuFreqMHz(),

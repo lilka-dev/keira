@@ -123,10 +123,11 @@
     "ESP-IDF: %s"
 #define K_S_LAUNCHER_DEVICE_INFO       "Інфо про пристрій"
 #define K_S_LAUNCHER_DEVICE_INFO_FMT \
-    "Модель: %s\n"                   \
+    "Пристрій: %s\n"                 \
+    "Чіп: %s\n"                      \
     "Ревізія: %d\n"                  \
     "Частота: %d МГц\n"              \
-    "Кількість ядер: %d\n"           \
+    "Ядер: %d\n"                     \
     "IP: %s"
 #define K_S_PARTITION_TABLE            "Таблиця розділів"
 #define K_S_LAUNCHER_LIGHT_SLEEP       "Light sleep"
