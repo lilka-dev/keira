@@ -20,7 +20,7 @@ jobs:
       languages: ${{ steps.set-matrix.outputs.languages }}
       is_release: ${{ steps.set-matrix.outputs.is_release }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Build language matrix
         id: set-matrix
@@ -46,13 +46,13 @@ jobs:
       matrix:
         lang: ${{ fromJson(needs.prepare.outputs.languages) }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
           fetch-depth: 0
 
       # ── PlatformIO cache (key invalidates on config changes) ───────────
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: |
             ~/.cache/pip
@@ -73,7 +73,7 @@ jobs:
           ccache --set-config=max_size=500M
           ccache --zero-stats
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: ~/.cache/ccache
           key: ${{ runner.os }}-ccache-${{ matrix.lang }}-${{ github.sha }}
@@ -82,9 +82,9 @@ jobs:
             ${{ runner.os }}-ccache-
 
       # ── Python + PIO ───────────────────────────────────────────────────
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
-          python-version: '3.9'
+          python-version: '3.12'
 
       - name: Install PlatformIO Core
         run: pip install --upgrade platformio esptool
