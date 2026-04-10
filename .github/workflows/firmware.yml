@@ -13,29 +13,83 @@ permissions:
   contents: write
 
 jobs:
-  keira:
+  # ── Step 1: Read languages.txt and determine build matrix dynamically ──
+  prepare:
     runs-on: ubuntu-latest
+    outputs:
+      languages: ${{ steps.set-matrix.outputs.languages }}
+      is_release: ${{ steps.set-matrix.outputs.is_release }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Build language matrix
+        id: set-matrix
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            # Tag push → build every language from languages.txt in parallel
+            LANGS=$(cat languages.txt | jq -R -s -c 'split("\n") | map(select(. != ""))')
+            echo "is_release=true" >> $GITHUB_OUTPUT
+          else
+            # PR / branch push → build default language only
+            LANGS='["default"]'
+            echo "is_release=false" >> $GITHUB_OUTPUT
+          fi
+          echo "languages=$LANGS" >> $GITHUB_OUTPUT
+          echo "Matrix: $LANGS"
+
+  # ── Step 2: Build each language in parallel via matrix strategy ─────────
+  keira:
+    needs: prepare
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        lang: ${{ fromJson(needs.prepare.outputs.languages) }}
     steps:
       - uses: actions/checkout@v3
         with:
           submodules: recursive
           fetch-depth: 0
 
+      # ── PlatformIO cache (key invalidates on config changes) ───────────
       - uses: actions/cache@v3
         with:
           path: |
             ~/.cache/pip
             ~/.platformio/.cache
             ./.pio
-          key: ${{ runner.os }}-keira
+          key: ${{ runner.os }}-pio-${{ matrix.lang }}-${{ hashFiles('platformio.ini') }}
+          restore-keys: |
+            ${{ runner.os }}-pio-${{ matrix.lang }}-
+            ${{ runner.os }}-pio-
 
+      # ── ccache for the ESP-IDF / GCC toolchain ─────────────────────────
+      - name: Install ccache
+        run: sudo apt-get update && sudo apt-get install -y ccache
+
+      - name: Configure ccache
+        run: |
+          echo "/usr/lib/ccache" >> $GITHUB_PATH
+          ccache --set-config=max_size=500M
+          ccache --zero-stats
+
+      - uses: actions/cache@v3
+        with:
+          path: ~/.cache/ccache
+          key: ${{ runner.os }}-ccache-${{ matrix.lang }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-ccache-${{ matrix.lang }}-
+            ${{ runner.os }}-ccache-
+
+      # ── Python + PIO ───────────────────────────────────────────────────
       - uses: actions/setup-python@v4
         with:
           python-version: '3.9'
 
       - name: Install PlatformIO Core
-        run: pip install --upgrade platformio
+        run: pip install --upgrade platformio esptool
 
+      # ── Version header ─────────────────────────────────────────────────
       - name: Extract version and generate Keira header
         id: version
         run: |
@@ -82,46 +136,71 @@ jobs:
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
           echo "TYPE=$VERSION_TYPE" >> $GITHUB_OUTPUT
 
-      - name: Build and package firmware
+      # ── Build ──────────────────────────────────────────────────────────
+      - name: Build firmware (${{ matrix.lang }})
         run: |
           mkdir -p out
-          if [[ "${{ steps.version.outputs.VERSION_TYPE }}" != "KEIRA_VERSION_TYPE_DEV" ]]; then
-            echo "Tag detected - building for all languages"
-            for lang in $(cat languages.txt); do
-              echo "Building for $lang"
-              PLATFORMIO_BUILD_FLAGS=-D$lang pio run -e v2
-              cp .pio/build/v2/firmware.bin out/keira_${lang}.bin
-              cp .pio/build/v2/partitions.bin out/partitions.bin
-              cp .pio/build/v2/bootloader.bin out/bootloader.bin
-              pip install esptool
-              esptool.py --chip esp32s3 merge_bin \
-                -o out/KeiraOS_merged_${lang}.bin \
-                0x0 out/bootloader.bin \
-                0x8000 out/partitions.bin \
-                0x10000 out/keira_${lang}.bin
-            done
-          else
-            echo "Main branch or PR - building for default language only"
+          LANG="${{ matrix.lang }}"
+
+          if [[ "$LANG" == "default" ]]; then
+            echo "Building default language"
             pio run -e v2
             cp .pio/build/v2/firmware.bin out/keira.bin
-            cp .pio/build/v2/partitions.bin out/partitions.bin
-            cp .pio/build/v2/bootloader.bin out/bootloader.bin
-            pip install esptool
+          else
+            echo "Building for $LANG"
+            PLATFORMIO_BUILD_FLAGS=-D$LANG pio run -e v2
+            cp .pio/build/v2/firmware.bin out/keira_${LANG}.bin
+          fi
+
+          cp .pio/build/v2/partitions.bin out/partitions.bin
+          cp .pio/build/v2/bootloader.bin out/bootloader.bin
+
+          # Merge into single flashable binary
+          if [[ "$LANG" == "default" ]]; then
             esptool.py --chip esp32s3 merge_bin \
               -o out/KeiraOS_merged.bin \
               0x0 out/bootloader.bin \
               0x8000 out/partitions.bin \
               0x10000 out/keira.bin
+          else
+            esptool.py --chip esp32s3 merge_bin \
+              -o out/KeiraOS_merged_${LANG}.bin \
+              0x0 out/bootloader.bin \
+              0x8000 out/partitions.bin \
+              0x10000 out/keira_${LANG}.bin
           fi
 
-      - name: Upload firmware artifacts
+      - name: Print ccache stats
+        if: always()
+        run: ccache --show-stats
+
+      # ── Upload per-language artifact ───────────────────────────────────
+      - name: Upload firmware artifact (${{ matrix.lang }})
+        uses: actions/upload-artifact@v4
+        with:
+          name: KeiraOS-firmware-${{ matrix.lang }}
+          path: out/*.bin
+
+  # ── Step 3: Collect all per-language artifacts and publish release ──────
+  release:
+    needs: [prepare, keira]
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all firmware artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: all-firmware
+          pattern: KeiraOS-firmware-*
+          merge-multiple: true
+
+      - name: Upload firmware artifacts (combined)
         uses: actions/upload-artifact@v4
         with:
           name: KeiraOS-firmware
-          path: out/*.bin
+          path: all-firmware/*.bin
 
       - name: Upload KeiraOS bins to Release
         uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: out/*.bin
+          files: all-firmware/*.bin
