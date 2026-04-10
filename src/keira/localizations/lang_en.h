@@ -115,7 +115,25 @@
 #define K_S_LAUNCHER_BATTERY_3         "Text"
 
 #define K_S_LAUNCHER_ABOUT_SYSTEM      "About system"
+#define K_S_LAUNCHER_ABOUT             "About"
+#define K_S_LAUNCHER_FIRMWARE_VERSION  "Firmware version"
+#define K_S_LAUNCHER_EASTER_EGG        "Surprise!"
+#define K_S_LAUNCHER_ABOUT_FMT\
+    "Keira: %s\n"\
+    "SDK: %s\n"\
+    "ESP-IDF: %s\n\n"
+#define K_S_LAUNCHER_VERSION_FMT\
+    "Keira: %s\n"\
+    "SDK: %s\n"\
+    "ESP-IDF: %s"
 #define K_S_LAUNCHER_DEVICE_INFO       "About device"
+#define K_S_LAUNCHER_DEVICE_INFO_FMT\
+    "Device: %s\n"\
+    "Chip: %s\n"\
+    "Revision: %d\n"\
+    "Frequency: %d Mhz\n"\
+    "Cores: %d\n"\
+    "IP: %s"
 #define K_S_PARTITION_TABLE            "Partition table"
 #define K_S_LAUNCHER_LIGHT_SLEEP       "Light sleep"
 #define K_S_LAUNCHER_DEEP_SLEEP        "Deep sleep"
@@ -124,14 +142,6 @@
 #define K_S_LAUNCHER_SELECT_TX_POWER   "Set power"
 
 #define K_S_LAUNCHER_ENABLE_WIFI_FIRST "Enable WiFi first"
-
-#define K_S_LAUNCHER_DEVICE_INFO_FMT\
-    "Model: %s\n"\
-    "Revision: %d\n"\
-    "ESP-IDF version: %s\n"\
-    "Frequency: %d Mhz\n"\
-    "Cores count: %d\n"\
-    "IP: %s"
 
 #define K_S_LAUNCHER_PARTITION_FMT "Address: 0x%s\nSize: 0x%s"
 

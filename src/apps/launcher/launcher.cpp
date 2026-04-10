@@ -1,5 +1,6 @@
 #include <ff.h>
 #include <FS.h>
+#include <qrcode.h>
 #include "keira/keira.h"
 #include "launcher.h"
 #include "keira/appmanager.h"
@@ -148,9 +149,8 @@ void LauncherApp::run() {
                             lilka::colors::White,
                             [this](void* item) {
                                     lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
-                                    NetworkService* networkService = static_cast<NetworkService*>(
-                                        ksystem.services["network"]
-                                    );
+                                    NetworkService* networkService =
+                                        static_cast<NetworkService*>(ksystem.services["network"]);
                                     menuItem->postfix = networkService->getEnabled() ? K_S_ON : K_S_OFF;
                             }
                         ),
@@ -168,17 +168,14 @@ void LauncherApp::run() {
                             ITEM::MENU(
                                 K_S_STATUS,
                                 [this]() {
-                                            WebService* webService = static_cast<WebService*>(ksystem.services["web"]
-                                            );
+                                            WebService* webService = static_cast<WebService*>(ksystem.services["web"]);
                                             webService->setEnabled(!webService->getEnabled());
                                 },
                                 nullptr,
                                 lilka::colors::White,
                                 [this](void* item) {
                                             lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
-                                            WebService* webService = static_cast<WebService*>(
-                                               ksystem.services["web"]
-                                            );
+                                            WebService* webService = static_cast<WebService*>(ksystem.services["web"]);
                                             menuItem->postfix = webService->getEnabled() ? K_S_ON : K_S_OFF;
                                 }
                             ),
@@ -187,18 +184,16 @@ void LauncherApp::run() {
                             ITEM::MENU(
                                 K_S_STATUS,
                                 [this]() {
-                                            TelnetService* telnetService = static_cast<TelnetService*>(
-                                                ksystem.services["telnet"]
-                                            );
+                                            TelnetService* telnetService =
+                                                static_cast<TelnetService*>(ksystem.services["telnet"]);
                                             telnetService->setEnabled(!telnetService->getEnabled());
                                 },
                                 nullptr,
                                 lilka::colors::White,
                                 [this](void* item) {
                                             lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
-                                            TelnetService* telnetService = static_cast<TelnetService*>(
-                                                ksystem.services["telnet"]
-                                            );
+                                            TelnetService* telnetService =
+                                                static_cast<TelnetService*>(ksystem.services["telnet"]);
                                             menuItem->postfix = telnetService->getEnabled() ? K_S_ON : K_S_OFF;
                                 }
                             ),
@@ -207,18 +202,14 @@ void LauncherApp::run() {
                             ITEM::MENU(
                                 K_S_STATUS,
                                 [this]() {
-                                            FTPService* ftpService = static_cast<FTPService*>(
-                                                ksystem.services["ftp"]
-                                            );
+                                            FTPService* ftpService = static_cast<FTPService*>(ksystem.services["ftp"]);
                                             ftpService->setEnabled(!ftpService->getEnabled());
                                 },
                                 nullptr,
                                 lilka::colors::White,
                                 [this](void* item) {
                                             lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
-                                            FTPService* ftpService = static_cast<FTPService*>(
-                                                ksystem.services["ftp"]
-                                            );
+                                            FTPService* ftpService = static_cast<FTPService*>(ksystem.services["ftp"]);
                                             menuItem->postfix = ftpService->getEnabled() ? K_S_ON : K_S_OFF;
                                 }
                             ),
@@ -229,27 +220,21 @@ void LauncherApp::run() {
                                 lilka::colors::White,
                                 [this](void* item) {
                                             lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
-                                            FTPService* ftpService = static_cast<FTPService*>(
-                                                ksystem.services["ftp"]
-                                            );
+                                            FTPService* ftpService = static_cast<FTPService*>(ksystem.services["ftp"]);
                                             menuItem->postfix = ftpService->getUser();
                                 }
                             ),
                             ITEM::MENU(
                                 K_S_LAUNCHER_FTP_PASSWORD,
                                 [this]() {
-                                            FTPService* ftpService = static_cast<FTPService*>(
-                                                ksystem.services["ftp"]
-                                            );
+                                            FTPService* ftpService = static_cast<FTPService*>(ksystem.services["ftp"]);
                                             ftpService->createPassword();
                                 },
                                 nullptr,
                                 lilka::colors::White,
                                 [this](void* item) {
                                             lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
-                                            FTPService* ftpService = static_cast<FTPService*>(
-                                                ksystem.services["ftp"]
-                                            );
+                                            FTPService* ftpService = static_cast<FTPService*>(ksystem.services["ftp"]);
                                             menuItem->postfix = ftpService->getPassword();
                                 }
                             ),
@@ -260,9 +245,8 @@ void LauncherApp::run() {
                                 lilka::colors::White,
                                 [this](void* item) {
                                             lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
-                                            NetworkService* networkService = static_cast<NetworkService*>(
-                                        ksystem.services["network"]
-                                    );
+                                            NetworkService* networkService =
+                                                static_cast<NetworkService*>(ksystem.services["network"]);
                                             menuItem->postfix = networkService->getipAddr();
                                 }
                             ),
@@ -402,8 +386,10 @@ void LauncherApp::run() {
                             }
                         ),
                     }),
-                    ITEM::MENU(K_S_LAUNCHER_ABOUT_SYSTEM, [this]() { this->about(); }),
-                    ITEM::MENU(K_S_LAUNCHER_DEVICE_INFO, [this]() { this->info(); }),
+                    ITEM::SUBMENU(K_S_LAUNCHER_ABOUT, {
+                        ITEM::MENU(K_S_OS_NAME, [this]() { this->about(); }),
+                        ITEM::MENU(K_S_LAUNCHER_DEVICE_INFO, [this]() { this->info(); }),
+                    }),
                     ITEM::MENU(K_S_LAUNCHER_LIGHT_SLEEP, []() {
                             lilka::board.enablePowerSavingMode();
                             esp_light_sleep_start();
@@ -589,7 +575,24 @@ void LauncherApp::wifiManager() {
     ksystem.apps.spawn(new WiFiConfigApp());
 }
 void LauncherApp::about() {
-    alert(K_S_OS_NAME, K_S_OS_DESCRIPTION);
+    static int clickCount = 0;
+    clickCount++;
+
+    if (clickCount >= 5) {
+        clickCount = 0;
+        showEasterEgg();
+        return;
+    }
+
+    alert(
+        K_S_OS_NAME,
+        StringFormat(
+            K_S_LAUNCHER_ABOUT_FMT,
+            ksystem.getVersionStr().c_str(),
+            lilka::sdk.getVersionStr().c_str(),
+            esp_get_idf_version()
+        )
+    );
 }
 void LauncherApp::info() {
     NetworkService* networkService = static_cast<NetworkService*>(ksystem.services["network"]);
@@ -597,14 +600,69 @@ void LauncherApp::info() {
         K_S_LAUNCHER_DEVICE_INFO,
         StringFormat(
             K_S_LAUNCHER_DEVICE_INFO_FMT,
+            ARDUINO_BOARD,
             ESP.getChipModel(),
             ESP.getChipRevision(),
-            esp_get_idf_version(),
             ESP.getCpuFreqMHz(),
             ESP.getChipCores(),
             networkService->getipAddr().c_str()
         )
     );
+}
+void LauncherApp::showEasterEgg() {
+    const char* url = "https://youtu.be/dQw4w9WgXcQ";
+
+    // Use a static variable to store QR code for display callback
+    static lilka::Canvas* qrCanvas = nullptr;
+    static int qrScale = 0;
+    static int qrOffsetX = 0;
+    static int qrOffsetY = 0;
+
+    qrCanvas = canvas;
+
+    auto displayFunc = [](esp_qrcode_handle_t qrcode) {
+        int size = esp_qrcode_get_size(qrcode);
+        qrScale = min((int)qrCanvas->width(), (int)(qrCanvas->height() - 40)) / size;
+        qrOffsetX = (qrCanvas->width() - size * qrScale) / 2;
+        qrOffsetY = 30 + (qrCanvas->height() - 40 - size * qrScale) / 2;
+
+        qrCanvas->fillScreen(lilka::colors::White);
+        qrCanvas->setTextColor(lilka::colors::Black);
+        qrCanvas->setFont(FONT_9x15);
+        qrCanvas->setTextBound(0, 0, qrCanvas->width(), qrCanvas->height());
+        qrCanvas->setCursor(qrCanvas->width() / 2 - 40, 20);
+        qrCanvas->print(K_S_LAUNCHER_EASTER_EGG);
+
+        for (int y = 0; y < size; y++) {
+            for (int x = 0; x < size; x++) {
+                if (esp_qrcode_get_module(qrcode, x, y)) {
+                    qrCanvas->fillRect(
+                        qrOffsetX + x * qrScale, qrOffsetY + y * qrScale, qrScale, qrScale, lilka::colors::Black
+                    );
+                }
+            }
+        }
+    };
+
+    esp_qrcode_config_t cfg = ESP_QRCODE_CONFIG_DEFAULT();
+    cfg.display_func = displayFunc;
+    cfg.max_qrcode_version = 10;
+    cfg.qrcode_ecc_level = ESP_QRCODE_ECC_LOW;
+
+    if (esp_qrcode_generate(&cfg, url) != ESP_OK) {
+        alert(K_S_ERROR, "Failed to generate QR code");
+        return;
+    }
+
+    queueDraw();
+
+    while (true) {
+        lilka::State state = lilka::controller.getState();
+        if (state.a.justPressed || state.b.justPressed || state.start.justPressed) {
+            break;
+        }
+        taskYIELD();
+    }
 }
 void LauncherApp::partitions() {
     // TODO : support more than 16 partitions
