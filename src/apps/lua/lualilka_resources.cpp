@@ -3,6 +3,22 @@
 #include "keira/ksound/sound.h"
 #include "keira/ksound/audioplayer.h"
 
+// helper
+static String luapath_to_path(lua_State* L, const char* path) {
+    // Empty path
+    if (strlen(path) == 0) return "/";
+
+    // Absolute path
+    if (path[0] == '/') return String(path);
+
+    // Relative path
+    lua_getfield(L, LUA_REGISTRYINDEX, "dir");
+    const char* dir = lua_tostring(L, -1);
+    lua_pop(L, 1);
+
+    return String(dir) + "/" + path;
+}
+
 static bool lualilka_resources_removeFromRegistry(lua_State* L, const char* registryKey, const void* ptr) {
     lua_getfield(L, LUA_REGISTRYINDEX, registryKey);
     if (!lua_istable(L, -1)) {
@@ -28,10 +44,7 @@ static bool lualilka_resources_removeFromRegistry(lua_State* L, const char* regi
 int lualilka_resources_loadImage(lua_State* L) {
     const char* path = luaL_checkstring(L, 1);
     // Get dir from registry
-    lua_getfield(L, LUA_REGISTRYINDEX, "dir");
-    const char* dir = lua_tostring(L, -1);
-    lua_pop(L, 1);
-    String fullPath = String(dir) + "/" + path;
+    String fullPath = luapath_to_path(L, path);
     // 2nd argument is optional transparency color (16-bit 5-6-5)
     int32_t transparencyColor = -1;
     if (lua_gettop(L) > 1) {
@@ -185,10 +198,7 @@ int lualilka_resources_flipImageY(lua_State* L) {
 int lualilka_resources_loadAudio(lua_State* L) {
     const char* path = luaL_checkstring(L, 1);
     // Get dir from registry
-    lua_getfield(L, LUA_REGISTRYINDEX, "dir");
-    const char* dir = lua_tostring(L, -1);
-    lua_pop(L, 1);
-    String fullPath = String(dir) + "/" + path;
+    String fullPath = luapath_to_path(L, path);
 
     // Detect audio type by extension
     String lowerPath = fullPath;
@@ -287,10 +297,7 @@ int lualilka_resources_delete(lua_State* L) {
 int lualilka_resources_readFile(lua_State* L) {
     const char* path = luaL_checkstring(L, 1);
     // Get dir from registry
-    lua_getfield(L, LUA_REGISTRYINDEX, "dir");
-    const char* dir = lua_tostring(L, -1);
-    lua_pop(L, 1);
-    String fullPath = String(dir) + "/" + path;
+    String fullPath = luapath_to_path(L, path);
 
     String fileContent;
     int result = lilka::resources.readFile(fullPath, fileContent);
@@ -306,10 +313,7 @@ int lualilka_resources_writeFile(lua_State* L) {
     const char* path = luaL_checkstring(L, 1);
     const char* content = luaL_checkstring(L, 2);
     // Get dir from registry
-    lua_getfield(L, LUA_REGISTRYINDEX, "dir");
-    const char* dir = lua_tostring(L, -1);
-    lua_pop(L, 1);
-    String fullPath = String(dir) + "/" + path;
+    String fullPath = luapath_to_path(L, path);
 
     int result = lilka::resources.writeFile(fullPath, content);
     if (result) {
