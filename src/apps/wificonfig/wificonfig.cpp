@@ -161,15 +161,7 @@ void WiFiConfigApp::run() {
                 continue;
             }
         } else {
-            lilka::InputDialog passwordDialog(K_S_WIFI_CONFIG_ENTER_PASSWORD);
-            passwordDialog.setMasked(true);
-            passwordDialog.setValue(networkService->getPassword(ssid));
-            while (!passwordDialog.isFinished()) {
-                passwordDialog.update();
-                passwordDialog.draw(canvas);
-                queueDraw();
-            }
-            password = passwordDialog.getValue();
+            password = input(K_S_WIFI_CONFIG_ENTER_PASSWORD, "", true);
         }
         networkService->connect(ssid, password);
 

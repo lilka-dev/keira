@@ -33,23 +33,9 @@ void pastebinApp::uiLoop() {
             return; // exit
         } else {
             if (settingsMenu.getCursor() == 0) {
-                lilka::InputDialog inputDialog(String(K_S_PASTEBIN_ENTER_CODE));
-                inputDialog.setValue(link_code);
-                while (!inputDialog.isFinished()) {
-                    inputDialog.update();
-                    inputDialog.draw(canvas);
-                    queueDraw();
-                }
-                link_code = inputDialog.getValue();
+                link_code = input(K_S_PASTEBIN_ENTER_CODE);
             } else if (settingsMenu.getCursor() == 1) {
-                lilka::InputDialog inputDialog(String(K_S_PASTEBIN_ENTER_NAME));
-                inputDialog.setValue(filename);
-                while (!inputDialog.isFinished()) {
-                    inputDialog.update();
-                    inputDialog.draw(canvas);
-                    queueDraw();
-                }
-                filename = inputDialog.getValue();
+                filename = input(K_S_PASTEBIN_ENTER_NAME);
             } else if (settingsMenu.getCursor() == 2) {
                 if (filename.length() == 0) {
                     filename = link_code;
