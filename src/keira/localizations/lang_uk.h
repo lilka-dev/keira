@@ -37,6 +37,10 @@
 #define K_S_FTP                         "FTP"
 #define K_S_WEB                         "Web"
 #define K_S_TELNET                      "Telnet"
+#define K_S_MDNS                        "mDNS"
+#define K_S_LAUNCHER_MDNS               K_S_MDNS
+#define K_S_LAUNCHER_MDNS_HOSTNAME      "Ім'я хоста"
+#define K_S_LAUNCHER_MDNS_ENTER_HOSTNAME "Введіть ім'я хоста:"
 #define K_S_CHANGE_ON_NEXT_BOOT         "Зміни вступлять в силу при наступному завантаженні"
 #define K_S_OS_NAME                     "Keira OS"
 #define K_S_OS_DESCRIPTION              "by Андерсон & friends"
@@ -110,7 +114,25 @@
 #define K_S_LAUNCHER_BATTERY_3         "Текст"
 
 #define K_S_LAUNCHER_ABOUT_SYSTEM      "Про систему"
+#define K_S_LAUNCHER_ABOUT             "Про пристрій"
+#define K_S_LAUNCHER_FIRMWARE_VERSION  "Версія прошивки"
+#define K_S_LAUNCHER_EASTER_EGG        "Сюрприз!"
+#define K_S_LAUNCHER_ABOUT_FMT \
+    "Keira: %s\n"              \
+    "SDK: %s\n"                \
+    "ESP-IDF: %s\n\n"         
+#define K_S_LAUNCHER_VERSION_FMT \
+    "Keira: %s\n"                \
+    "SDK: %s\n"                  \
+    "ESP-IDF: %s"
 #define K_S_LAUNCHER_DEVICE_INFO       "Інфо про пристрій"
+#define K_S_LAUNCHER_DEVICE_INFO_FMT \
+    "Пристрій: %s\n"                 \
+    "Чіп: %s\n"                      \
+    "Ревізія: %d\n"                  \
+    "Частота: %d МГц\n"              \
+    "Ядер: %d\n"                     \
+    "IP: %s"
 #define K_S_PARTITION_TABLE            "Таблиця розділів"
 #define K_S_LAUNCHER_LIGHT_SLEEP       "Light sleep"
 #define K_S_LAUNCHER_DEEP_SLEEP        "Deep sleep"
@@ -119,14 +141,6 @@
 #define K_S_LAUNCHER_SELECT_TX_POWER   "Оберіть потужність"
 
 #define K_S_LAUNCHER_ENABLE_WIFI_FIRST "Спочатку увімкніть WiFi-адаптер"
-
-#define K_S_LAUNCHER_DEVICE_INFO_FMT \
-    "Модель: %s\n"                   \
-    "Ревізія: %d\n"                  \
-    "Версія ESP-IDF: %s\n"           \
-    "Частота: %d МГц\n"              \
-    "Кількість ядер: %d\n"           \
-    "IP: %s"
 
 #define K_S_LAUNCHER_PARTITION_FMT "Адреса: 0x%s\nРозмір: 0x%s"
 

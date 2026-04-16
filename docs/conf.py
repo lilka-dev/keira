@@ -119,6 +119,4 @@ hoverxref_role_types = {
     "term": "tooltip",
 }
 
-# -- Images ------------------------------------------------------------------
-if os.name != 'nt': 
-    extensions.append("sphinxcontrib.images")
+

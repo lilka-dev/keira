@@ -1,15 +1,11 @@
 #include <ff.h>
 #include <FS.h>
+#include <qrcode.h>
 #include "keira/keira.h"
 #include "launcher.h"
 #include "keira/appmanager.h"
 
 #include "keira/servicemanager.h"
-// Services:
-// #include "services/network/network.h"
-// #include "services/ftp/ftp.h"
-// #include "services/telnet/telnet.h"
-// #include "services/web/web.h"
 // Demos:
 #include "apps/demos/lines/lines.h"
 #include "apps/demos/disk/disk.h"
@@ -324,8 +320,10 @@ void LauncherApp::run() {
                             }
                         ),
                     }),
-                    ITEM::MENU(K_S_LAUNCHER_ABOUT_SYSTEM, [this]() { this->about(); }),
-                    ITEM::MENU(K_S_LAUNCHER_DEVICE_INFO, [this]() { this->info(); }),
+                    ITEM::SUBMENU(K_S_LAUNCHER_ABOUT, {
+                        ITEM::MENU(K_S_OS_NAME, [this]() { this->about(); }),
+                        ITEM::MENU(K_S_LAUNCHER_DEVICE_INFO, [this]() { this->info(); }),
+                    }),
                     ITEM::MENU(K_S_LAUNCHER_LIGHT_SLEEP, []() {
                             lilka::board.enablePowerSavingMode();
                             esp_light_sleep_start();
@@ -487,7 +485,24 @@ void LauncherApp::wifiManager() {
 }
 
 void LauncherApp::about() {
-    alert(K_S_OS_NAME, K_S_OS_DESCRIPTION);
+    static int clickCount = 0;
+    clickCount++;
+
+    if (clickCount >= 5) {
+        clickCount = 0;
+        showEasterEgg();
+        return;
+    }
+
+    alert(
+        K_S_OS_NAME,
+        StringFormat(
+            K_S_LAUNCHER_ABOUT_FMT,
+            ksystem.getVersionStr().c_str(),
+            lilka::sdk.getVersionStr().c_str(),
+            esp_get_idf_version()
+        )
+    );
 }
 void LauncherApp::info() {
     NetworkService* networkService = static_cast<NetworkService*>(ksystem.services["network"]);
@@ -495,14 +510,69 @@ void LauncherApp::info() {
         K_S_LAUNCHER_DEVICE_INFO,
         StringFormat(
             K_S_LAUNCHER_DEVICE_INFO_FMT,
+            ARDUINO_BOARD,
             ESP.getChipModel(),
             ESP.getChipRevision(),
-            esp_get_idf_version(),
             ESP.getCpuFreqMHz(),
             ESP.getChipCores(),
             networkService ? networkService->getipAddr().c_str() : "0.0.0.0"
         )
     );
+}
+void LauncherApp::showEasterEgg() {
+    const char* url = "https://youtu.be/dQw4w9WgXcQ";
+
+    // Use a static variable to store QR code for display callback
+    static lilka::Canvas* qrCanvas = nullptr;
+    static int qrScale = 0;
+    static int qrOffsetX = 0;
+    static int qrOffsetY = 0;
+
+    qrCanvas = canvas;
+
+    auto displayFunc = [](esp_qrcode_handle_t qrcode) {
+        int size = esp_qrcode_get_size(qrcode);
+        qrScale = min((int)qrCanvas->width(), (int)(qrCanvas->height() - 40)) / size;
+        qrOffsetX = (qrCanvas->width() - size * qrScale) / 2;
+        qrOffsetY = 30 + (qrCanvas->height() - 40 - size * qrScale) / 2;
+
+        qrCanvas->fillScreen(lilka::colors::White);
+        qrCanvas->setTextColor(lilka::colors::Black);
+        qrCanvas->setFont(FONT_9x15);
+        qrCanvas->setTextBound(0, 0, qrCanvas->width(), qrCanvas->height());
+        qrCanvas->setCursor(qrCanvas->width() / 2 - 40, 20);
+        qrCanvas->print(K_S_LAUNCHER_EASTER_EGG);
+
+        for (int y = 0; y < size; y++) {
+            for (int x = 0; x < size; x++) {
+                if (esp_qrcode_get_module(qrcode, x, y)) {
+                    qrCanvas->fillRect(
+                        qrOffsetX + x * qrScale, qrOffsetY + y * qrScale, qrScale, qrScale, lilka::colors::Black
+                    );
+                }
+            }
+        }
+    };
+
+    esp_qrcode_config_t cfg = ESP_QRCODE_CONFIG_DEFAULT();
+    cfg.display_func = displayFunc;
+    cfg.max_qrcode_version = 10;
+    cfg.qrcode_ecc_level = ESP_QRCODE_ECC_LOW;
+
+    if (esp_qrcode_generate(&cfg, url) != ESP_OK) {
+        alert(K_S_ERROR, "Failed to generate QR code");
+        return;
+    }
+
+    queueDraw();
+
+    while (true) {
+        lilka::State state = lilka::controller.getState();
+        if (state.a.justPressed || state.b.justPressed || state.start.justPressed) {
+            break;
+        }
+        taskYIELD();
+    }
 }
 void LauncherApp::partitions() {
     // TODO : support more than 16 partitions

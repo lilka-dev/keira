@@ -61,12 +61,12 @@ private:
     template <typename T, typename... Args>
     void runApp(Args&&... args);
     void setWiFiTxPower();
-    void wifiToggle();
     void wifiManager();
     void setSpiSDSpeed();
-
+    void setMDNSHostname();
     void about();
     void info();
+    void showEasterEgg();
     void partitions();
     void formatSD();
 
