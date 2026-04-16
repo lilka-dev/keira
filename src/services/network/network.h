@@ -39,6 +39,7 @@ private:
     KMTX_SETER(int8_t, signalStrength, mtxNetwork);
     KMTX_SETER(String, lastPassword, mtxNetwork);
     KMTX_SETER(String, ipAddr, mtxNetwork);
+    KMTX_SETER(String, hostname, mtxNetwork);
 
     SemaphoreHandle_t mtxNetwork = xSemaphoreCreateMutex();
 
