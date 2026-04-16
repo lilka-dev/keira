@@ -32,8 +32,8 @@ void MDNSService::startMDNS() {
         MDNS_DBG lilka::serial.log("MDNSService: Failed to init mDNS: %s", esp_err_to_name(err));
         return;
     }
-    // TODO: set hostname from network service
-    err = mdns_hostname_set(hostname.c_str());
+
+    err = mdns_hostname_set(networkService->gethostname().c_str());
     if (err != ESP_OK) {
         MDNS_DBG lilka::serial.log("MDNSService: Failed to set hostname: %s", esp_err_to_name(err));
         mdns_free();

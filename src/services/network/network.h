@@ -22,6 +22,7 @@ public:
     void connect(String ssid, String password);
     // This one is special, cause takes stuff from NVS
     String getPassword(String ssid);
+    KMTX_GETER(String, hostname, mtxNetwork);
     KMTX_GETER(NetworkState, networkState, mtxNetwork);
     KMTX_GETER(int8_t, signalStrength, mtxNetwork);
     KMTX_GETER(String, ipAddr, mtxNetwork);
@@ -46,4 +47,5 @@ private:
     int8_t signalStrength = 0; // Value in range [0,3]
     String lastPassword = ""; // wtf is that
     String ipAddr = "";
+    String hostname = "";
 };
