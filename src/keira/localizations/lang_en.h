@@ -135,9 +135,16 @@
     "Cores: %d\n"\
     "IP: %s"
 #define K_S_PARTITION_TABLE            "Partition table"
-#define K_S_LAUNCHER_LIGHT_SLEEP       "Light sleep"
-#define K_S_LAUNCHER_DEEP_SLEEP        "Deep sleep"
+#define K_S_LAUNCHER_FACTORY_RESET     "Factory reset"
 #define K_S_LAUNCHER_REBOOT            "Reboot"
+
+#define K_S_LAUNCHER_FACTORY_RESET_DISCLAIMER_ALERT\
+    "ATTENTION: This will erase all settings!\n"\
+    "\nProceed?\n\nSTART - continue\nA - exit"
+
+#define K_S_LAUNCHER_FACTORY_RESET_SUCCESS_ALERT\
+    "Factory reset complete!\n\n"\
+    "System will reboot."
 
 #define K_S_LAUNCHER_SELECT_TX_POWER   "Set power"
 
