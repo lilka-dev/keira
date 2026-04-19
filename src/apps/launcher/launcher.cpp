@@ -57,6 +57,7 @@
 #include <WiFi.h> // for setWiFiTxPower
 #include <Preferences.h>
 #include <lilka/spi.h>
+#include <nvs_flash.h>
 
 #include "keira/ksystem.h"
 
@@ -390,16 +391,8 @@ void LauncherApp::run() {
                         ITEM::MENU(K_S_OS_NAME, [this]() { this->about(); }),
                         ITEM::MENU(K_S_LAUNCHER_DEVICE_INFO, [this]() { this->info(); }),
                     }),
-                    ITEM::MENU(K_S_LAUNCHER_LIGHT_SLEEP, []() {
-                            lilka::board.enablePowerSavingMode();
-                            esp_light_sleep_start();
-                    }),
-                    ITEM::MENU(K_S_LAUNCHER_DEEP_SLEEP, []() {
-                            lilka::board.enablePowerSavingMode();
-                            esp_deep_sleep_start();
-                     }),
-                    ITEM::MENU(K_S_LAUNCHER_REBOOT, []() { esp_restart();
-                     }),
+                    ITEM::MENU(K_S_LAUNCHER_FACTORY_RESET, [this]() { this->factoryReset(); }),
+                    ITEM::MENU(K_S_LAUNCHER_REBOOT, []() { esp_restart(); }),
                 },
                 &settings_img,
                 lilka::colors::Orchid
@@ -700,5 +693,18 @@ void LauncherApp::formatSD() {
         esp_restart();
     }
     this->alert(K_S_LAUNCHER_FORMAT, K_S_LAUNCHER_FORMAT_SUCCESS_ALLERT);
+    esp_restart();
+}
+
+void LauncherApp::factoryReset() {
+    if (!confirm(K_S_LAUNCHER_FACTORY_RESET, K_S_LAUNCHER_FACTORY_RESET_DISCLAIMER_ALERT)) return;
+
+    lilka::ProgressDialog dialog(K_S_LAUNCHER_FACTORY_RESET, K_S_LAUNCHER_PLEASE_STANDBY);
+    dialog.draw(canvas);
+    queueDraw();
+
+    nvs_flash_erase();
+
+    this->alert(K_S_LAUNCHER_FACTORY_RESET, K_S_LAUNCHER_FACTORY_RESET_SUCCESS_ALERT);
     esp_restart();
 }
