@@ -62,7 +62,7 @@ static void mjs_custom_load(struct mjs* mjs) {
     fseek(fp, 0, SEEK_END);
     size_t fileSize = ftell(fp);
     fseek(fp, 0, SEEK_SET);
-    char* source = (char*)malloc(fileSize + 1);
+    char* source = static_cast<char*>(malloc(fileSize + 1));
     if (!source) {
         fclose(fp);
         mjs_set_errorf(mjs, MJS_FILE_READ_ERROR, "out of memory loading \"%s\"", fullPath.c_str());
@@ -128,7 +128,7 @@ void MJSApp::run() {
         fseek(fp, 0, SEEK_END);
         size_t fileSize = ftell(fp);
         fseek(fp, 0, SEEK_SET);
-        char* source = (char*)malloc(fileSize + 1);
+        char* source = static_cast<char*>(malloc(fileSize + 1));
         if (!source) {
             fclose(fp);
             alert("mJS", String(K_S_MJS_ERROR) + "\nOut of memory");

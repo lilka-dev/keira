@@ -683,8 +683,11 @@ static void stripTrailingBoundary(const char* filePath) {
     // Boundary is typically < 80 bytes; check last 200 bytes
     long searchStart = fileSize > 200 ? fileSize - 200 : 0;
     long searchLen = fileSize - searchStart;
-    char* tail = (char*)malloc(searchLen);
-    if (!tail) { fclose(f); return; }
+    char* tail = static_cast<char*>(malloc(searchLen));
+    if (!tail) {
+        fclose(f);
+        return;
+    }
     fseek(f, searchStart, SEEK_SET);
     fread(tail, 1, searchLen, f);
     // Search backwards for \r\n-- which starts the trailing boundary
@@ -697,7 +700,7 @@ static void stripTrailingBoundary(const char* filePath) {
             if (end >= 2 && tail[end - 1] == '-' && tail[end - 2] == '-' && end - i > 6) {
                 long newSize = searchStart + i;
                 // Re-read the clean content and rewrite the file
-                char* clean = (char*)malloc(newSize);
+                char* clean = static_cast<char*>(malloc(newSize));
                 if (clean) {
                     fseek(f, 0, SEEK_SET);
                     fread(clean, 1, newSize, f);
