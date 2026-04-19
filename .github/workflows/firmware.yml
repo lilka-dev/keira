@@ -58,8 +58,7 @@ jobs:
             VERSION_TYPE="KEIRA_VERSION_TYPE_DEV"
           fi
 
-          mkdir -p lib/keira/include
-          cat > lib/keira/include/keira_version_auto_gen.h <<EOF
+          cat > src/keira/keira_version_auto_gen.h <<EOF
           #pragma once
           #ifndef KEIRA_VERSION_AUTO_GEN_H
           #define KEIRA_VERSION_AUTO_GEN_H
@@ -73,14 +72,7 @@ jobs:
           EOF
 
           echo "Generated version:"
-          cat lib/keira/include/keira_version_auto_gen.h
-
-          # Export outputs for later steps
-          echo "MAJOR=$MAJOR" >> $GITHUB_OUTPUT
-          echo "MINOR=$MINOR" >> $GITHUB_OUTPUT
-          echo "PATCH=$PATCH" >> $GITHUB_OUTPUT
-          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
-          echo "TYPE=$VERSION_TYPE" >> $GITHUB_OUTPUT
+          cat src/keira/keira_version_auto_gen.h
 
       - name: Build and package firmware
         run: |
