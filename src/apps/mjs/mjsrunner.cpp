@@ -21,30 +21,6 @@
 #include "keira/keira.h"
 #include <cstring>
 
-// Strip trailing multipart form boundary that may have been
-// appended to files uploaded via the web manager.
-// The boundary looks like: \r\n------WebKitFormBoundary...--\r\n
-static void stripTrailingBoundary(char* data, size_t& size) {
-    if (size < 10) return;
-    // Search backwards for the last "\r\n--" which starts the trailing boundary
-    for (int i = (int)size - 4; i >= 0 && i >= (int)size - 200; i--) {
-        if (data[i] == '\r' && data[i + 1] == '\n' && data[i + 2] == '-' && data[i + 3] == '-') {
-            // Check if remainder looks like a boundary (ends with --\r\n)
-            const char* tail = data + i + 4;
-            int tailLen = (int)size - i - 4;
-            if (tailLen > 4) {
-                const char* end = tail + tailLen;
-                if (end[-1] == '\n' && end[-2] == '\r' && end[-3] == '-' && end[-4] == '-') {
-                    // Looks like a multipart boundary - truncate here
-                    data[i] = '\0';
-                    size = i;
-                    return;
-                }
-            }
-        }
-    }
-}
-
 // Helper function to get the script directory from __dir__ global
 static String mjs_get_dir(struct mjs* mjs) {
     mjs_val_t dir_val = mjs_get(mjs, mjs_get_global(mjs), "__dir__", ~0);
@@ -96,7 +72,6 @@ static void mjs_custom_load(struct mjs* mjs) {
     fread(source, 1, fileSize, fp);
     fclose(fp);
     source[fileSize] = '\0';
-    stripTrailingBoundary(source, fileSize);
 
     mjs_val_t res = mjs_mk_undefined();
     mjs_err_t err = mjs_exec(mjs, source, &res);
@@ -161,7 +136,6 @@ void MJSApp::run() {
             fread(source, 1, fileSize, fp);
             fclose(fp);
             source[fileSize] = '\0';
-            stripTrailingBoundary(source, fileSize);
 
             mjs_err_t err = mjs_exec(mjs, source, &res);
             free(source);
