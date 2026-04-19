@@ -5,9 +5,7 @@ FileManagerApp::FileManagerApp(const String& path) :
     App("FileManager"),
     copyProgress(K_S_FMANAGER_COPYING, ""),
     md5Progress(K_S_FMANAGER_MD5_CALC, ""),
-    dirLoadProgress(K_S_FMANAGER_LOADING, ""),
-    mkdirInput(K_S_FMANAGER_ENTER_NEW_FOLDER_NAME),
-    renameInput(K_S_FMANAGER_ENTER_NEW_NAME) {
+    dirLoadProgress(K_S_FMANAGER_LOADING, "") {
     // MISC APP OPTIONS:
     setktStackSize(8192);
     // FILE OPTIONS MENU SETUP:
@@ -614,16 +612,7 @@ void FileManagerApp::onFileOptionsMenuMKDir() {
 
     FM_MENU_HANDLE_EXIT(fileOptionsMenu);
 
-    // TODO: input dialog()
-    // Ask user for a new name
-    mkdirInput.setValue(FM_DEFAULT_NEW_FOLDER_NAME);
-    while (!mkdirInput.isFinished()) {
-        mkdirInput.update();
-        mkdirInput.draw(canvas);
-        queueDraw();
-    }
-
-    auto dirName = mkdirInput.getValue();
+    auto dirName = input(K_S_FMANAGER_ENTER_NEW_FOLDER_NAME, FM_DEFAULT_NEW_FOLDER_NAME);
 
     // Check new Name validness
     if (dirName == "") {
@@ -714,15 +703,7 @@ void FileManagerApp::onFileOptionsMenuRename() {
         return;
     }
 
-    // TODO: app->input()
-    renameInput.setValue(currentEntry.name); // pass old name
-    while (!renameInput.isFinished()) {
-        renameInput.update();
-        renameInput.draw(canvas);
-        queueDraw();
-    }
-
-    auto newName = renameInput.getValue();
+    auto newName = input(K_S_FMANAGER_ENTER_NEW_NAME, currentEntry.name);
 
     // Skip empty and same names
     if (newName == "" || (strcmp(newName.c_str(), currentEntry.name) == 0)) {
