@@ -160,7 +160,6 @@ private:
     void fetchEntry();
     void removeEntry();
     void executeEntry();
-    void fileLoadAsRom(const String& path);
 
     // UI methods
     void showMainMenu();

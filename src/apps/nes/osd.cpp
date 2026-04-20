@@ -4,7 +4,7 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/timers.h>
 
-#include "utils/acquire.h"
+#include "keira/utils/acquire.h"
 #include "driver.h"
 
 #define OSD_OK          0

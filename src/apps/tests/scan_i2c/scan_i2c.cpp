@@ -3,6 +3,8 @@
 #include "keira/keira.h"
 #include "scan_i2c.h"
 
+#include "keira/utils/string.h"
+
 ScanI2CApp::ScanI2CApp() : App("I2C Scanner") {
 }
 

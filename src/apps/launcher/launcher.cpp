@@ -60,6 +60,7 @@
 #include <nvs_flash.h>
 
 #include "keira/ksystem.h"
+#include "keira/utils/string.h"
 
 LauncherApp::LauncherApp() : App("Launcher") {
     setktStackSize(8192); // Yeah, this one is heavy as fuck

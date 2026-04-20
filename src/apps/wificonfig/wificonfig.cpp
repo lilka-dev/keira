@@ -10,6 +10,8 @@
 #include "apps/icons/wifi_1.h"
 #include "apps/icons/wifi_2.h"
 #include "apps/icons/wifi_3.h"
+// Utils:
+#include "keira/utils/string.h"
 
 WiFiConfigApp::WiFiConfigApp() : App("WiFi") {
 }

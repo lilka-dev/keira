@@ -4,7 +4,7 @@
 #include "keira/ksystem.h"
 #include "sequencer.h"
 #include "lilka/serial.h"
-#include "utils/acquire.h"
+#include "keira/utils/acquire.h"
 #include "services/watchdog/watchdog.h"
 
 Sequencer::Sequencer(Sink* sink) :

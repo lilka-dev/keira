@@ -3,7 +3,7 @@
 #include <WiFi.h>
 #include <lilka/config.h>
 
-#include "utils/json.h"
+#include "keira/utils/json.h"
 
 LilCatalogApp::LilCatalogApp() : App(K_S_LILCATALOG_APP), currentEntry{}, iconBuffer{}, downloadBuffer{} {
     setktStackSize(16384);
@@ -889,7 +889,7 @@ void LilCatalogApp::executeEntry() {
             K_FT_LUA_SCRIPT_HANDLER(canonicalPath);
             break;
         case EXEC_TYPE_BINARY:
-            fileLoadAsRom(canonicalPath);
+            K_FT_BIN_HANDLER(canonicalPath);
             break;
         case EXEC_TYPE_DYNAPP:
             K_FT_SO_HANDLER(canonicalPath);
@@ -903,43 +903,6 @@ void LilCatalogApp::executeEntry() {
     }
 
     vTaskDelay(100 / portTICK_RATE_MS);
-}
-
-void LilCatalogApp::fileLoadAsRom(const String& path) {
-    lilka::ProgressDialog dialog(K_S_LILCATALOG_LOADING, path + "\n\n" + K_S_LILCATALOG_STARTING);
-    dialog.draw(canvas);
-    queueDraw();
-
-    int error = lilka::multiboot.start(path);
-    if (error) {
-        showAlert(String(K_S_LILCATALOG_ERROR_STAGE1) + error);
-        return;
-    }
-
-    dialog.setMessage(path + "\n\n" + K_S_LILCATALOG_SIZE + String(lilka::multiboot.getBytesTotal()));
-    dialog.draw(canvas);
-    queueDraw();
-
-    while ((error = lilka::multiboot.process()) > 0) {
-        int progress = lilka::multiboot.getBytesWritten() * 100 / lilka::multiboot.getBytesTotal();
-        dialog.setProgress(progress);
-        dialog.draw(canvas);
-        queueDraw();
-        if (lilka::controller.getState().a.justPressed) {
-            lilka::multiboot.cancel();
-            return;
-        }
-    }
-
-    if (error < 0) {
-        showAlert(String(K_S_LILCATALOG_ERROR_STAGE2) + error);
-        return;
-    }
-
-    error = lilka::multiboot.finishAndReboot();
-    if (error) {
-        showAlert(String(K_S_LILCATALOG_ERROR_STAGE3) + error);
-    }
 }
 
 // ================================
