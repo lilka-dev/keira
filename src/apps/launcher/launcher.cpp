@@ -51,6 +51,7 @@
 #include <WiFi.h> // for setWiFiTxPower
 #include <Preferences.h>
 #include <lilka/spi.h>
+#include <nvs_flash.h>
 
 #include "keira/ksystem.h"
 
@@ -148,7 +149,8 @@ void LauncherApp::run() {
                             ITEM::APP(K_S_LAUNCHER_EPILEPSY, [this]() { this->runApp<EpilepsyApp>(); }),
                             ITEM::APP(K_S_LAUNCHER_PET_PET, [this]() { this->runApp<PetPetApp>(); }),
                         },
-                        &app_group_img, lilka::colors::White
+                        &app_group_img,
+                        lilka::colors::White
                     ),
                     ITEM::SUBMENU(
                         K_S_LAUNCHER_TESTS,
@@ -159,7 +161,8 @@ void LauncherApp::run() {
                             ITEM::APP(K_S_LAUNCHER_COMBO, [this]() { this->runApp<ComboApp>(); }),
                             ITEM::APP(K_S_LAUNCHER_CALLBACK_TEST, [this]() { this->runApp<CallBackTestApp>(); }),
                         },
-                        &app_group_img, lilka::colors::White
+                        &app_group_img,
+                        lilka::colors::White
                     ),
                     ITEM::APP(K_S_LAUNCHER_LILCATALOG, [this]() { this->runApp<LilCatalogApp>(); }),
                     ITEM::APP(K_S_LAUNCHER_LILTRACKER, [this]() { this->runApp<LilTrackerApp>(); }),
@@ -179,10 +182,7 @@ void LauncherApp::run() {
                 lilka::colors::Arylide_yellow
             ),
             ITEM::APP(
-                K_S_LAUNCHER_USB_DRIVE,
-                [this]() { this->runApp<USBDriveApp>(); },
-                &memory_img,
-                lilka::colors::Mint
+                K_S_LAUNCHER_USB_DRIVE, [this]() { this->runApp<USBDriveApp>(); }, &memory_img, lilka::colors::Mint
             ),
             ITEM::SUBMENU(
                 K_S_LAUNCHER_DEV_MENU,
@@ -245,17 +245,17 @@ void LauncherApp::run() {
                                             menuItem->postfix = K_S_LAUNCHER_CLOCK_3;
                                             break;
                                     }
-                            }
-                        ),
-                        ITEM::MENU(
-                            K_S_LAUNCHER_MEM,
-                            [this]() {
+                                }
+                            ),
+                            ITEM::MENU(
+                                K_S_LAUNCHER_MEM,
+                                [this]() {
                                     auto statusBar = static_cast<StatusBarApp*>(ksystem.apps.getpanel());
                                     statusBar->setMemMode((statusBar->getMemMode() + 1));
-                            },
-                            nullptr,
-                            lilka::colors::White,
-                            [this](void* item) {
+                                },
+                                nullptr,
+                                lilka::colors::White,
+                                [this](void* item) {
                                     lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
                                     auto statusBar = static_cast<StatusBarApp*>(ksystem.apps.getpanel());
                                     switch (statusBar->getMemMode()) {
@@ -269,17 +269,17 @@ void LauncherApp::run() {
                                             menuItem->postfix = K_S_LAUNCHER_MEM_2;
                                             break;
                                     }
-                            }
-                        ),
-                        ITEM::MENU(
-                            K_S_LAUNCHER_NETWORK,
-                            [this]() {
+                                }
+                            ),
+                            ITEM::MENU(
+                                K_S_LAUNCHER_NETWORK,
+                                [this]() {
                                     auto statusBar = static_cast<StatusBarApp*>(ksystem.apps.getpanel());
                                     statusBar->setNetworkMode((statusBar->getNetworkMode() + 1));
-                            },
-                            nullptr,
-                            lilka::colors::White,
-                            [this](void* item) {
+                                },
+                                nullptr,
+                                lilka::colors::White,
+                                [this](void* item) {
                                     lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
                                     auto statusBar = static_cast<StatusBarApp*>(ksystem.apps.getpanel());
                                     switch (statusBar->getNetworkMode()) {
@@ -290,17 +290,17 @@ void LauncherApp::run() {
                                             menuItem->postfix = K_S_LAUNCHER_NETWORK_1;
                                             break;
                                     }
-                            }
-                        ),
-                        ITEM::MENU(
-                            K_S_LAUNCHER_BATTERY,
-                            [this]() {
+                                }
+                            ),
+                            ITEM::MENU(
+                                K_S_LAUNCHER_BATTERY,
+                                [this]() {
                                     auto statusBar = static_cast<StatusBarApp*>(ksystem.apps.getpanel());
                                     statusBar->setBatteryMode((statusBar->getBatteryMode() + 1));
-                            },
-                            nullptr,
-                            lilka::colors::White,
-                            [this](void* item) {
+                                },
+                                nullptr,
+                                lilka::colors::White,
+                                [this](void* item) {
                                     lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
                                     auto statusBar = static_cast<StatusBarApp*>(ksystem.apps.getpanel());
                                     switch (statusBar->getBatteryMode()) {
@@ -317,28 +317,24 @@ void LauncherApp::run() {
                                             menuItem->postfix = K_S_LAUNCHER_BATTERY_3;
                                             break;
                                     }
-                            }
-                        ),
-                    }),
-                    ITEM::SUBMENU(K_S_LAUNCHER_ABOUT, {
-                        ITEM::MENU(K_S_OS_NAME, [this]() { this->about(); }),
-                        ITEM::MENU(K_S_LAUNCHER_DEVICE_INFO, [this]() { this->info(); }),
-                    }),
-                    ITEM::MENU(K_S_LAUNCHER_LIGHT_SLEEP, []() {
-                            lilka::board.enablePowerSavingMode();
-                            esp_light_sleep_start();
-                    }),
-                    ITEM::MENU(K_S_LAUNCHER_DEEP_SLEEP, []() {
-                            lilka::board.enablePowerSavingMode();
-                            esp_deep_sleep_start();
-                     }),
-                    ITEM::MENU(K_S_LAUNCHER_REBOOT, []() { esp_restart();
-                     }),
+                                }
+                            ),
+                        }
+                    ),
+                    ITEM::SUBMENU(
+                        K_S_LAUNCHER_ABOUT,
+                        {
+                            ITEM::MENU(K_S_OS_NAME, [this]() { this->about(); }),
+                            ITEM::MENU(K_S_LAUNCHER_DEVICE_INFO, [this]() { this->info(); }),
+                        }
+                    ),
+                    ITEM::MENU(K_S_LAUNCHER_FACTORY_RESET, [this]() { this->factoryReset(); }),
+                    ITEM::MENU(K_S_LAUNCHER_REBOOT, []() { esp_restart(); }),
                 },
                 &settings_img,
                 lilka::colors::Orchid
             ),
-}
+        }
     );
     showMenu(root_item.name, root_item.submenu, false);
 }
@@ -610,5 +606,18 @@ void LauncherApp::formatSD() {
         esp_restart();
     }
     this->alert(K_S_LAUNCHER_FORMAT, K_S_LAUNCHER_FORMAT_SUCCESS_ALLERT);
+    esp_restart();
+}
+
+void LauncherApp::factoryReset() {
+    if (!confirm(K_S_LAUNCHER_FACTORY_RESET, K_S_LAUNCHER_FACTORY_RESET_DISCLAIMER_ALERT)) return;
+
+    lilka::ProgressDialog dialog(K_S_LAUNCHER_FACTORY_RESET, K_S_LAUNCHER_PLEASE_STANDBY);
+    dialog.draw(canvas);
+    queueDraw();
+
+    nvs_flash_erase();
+
+    this->alert(K_S_LAUNCHER_FACTORY_RESET, K_S_LAUNCHER_FACTORY_RESET_SUCCESS_ALERT);
     esp_restart();
 }

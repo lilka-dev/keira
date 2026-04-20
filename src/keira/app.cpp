@@ -82,6 +82,20 @@ bool App::confirm(const String& title, const String& description) {
 
     return confirmDialog.getButton() == K_BTN_CONFIRM;
 }
+//-----------------------------------------------------------------------------
+String App::input(const String& title, const String& value, bool masked) {
+    lilka::InputDialog inputDialog(title);
+    inputDialog.setMasked(masked);
+    inputDialog.setValue(value);
+
+    while (!inputDialog.isFinished()) {
+        inputDialog.update();
+        inputDialog.draw(canvas);
+        queueDraw();
+    }
+
+    return inputDialog.getValue();
+}
 ///////////////////////////////////////////////////////////////////////////////
 //=============================================================================
 //  App Canvas management

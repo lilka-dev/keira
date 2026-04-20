@@ -134,9 +134,16 @@
     "Ядер: %d\n"                     \
     "IP: %s"
 #define K_S_PARTITION_TABLE            "Таблиця розділів"
-#define K_S_LAUNCHER_LIGHT_SLEEP       "Light sleep"
-#define K_S_LAUNCHER_DEEP_SLEEP        "Deep sleep"
+#define K_S_LAUNCHER_FACTORY_RESET     "Скинути налаштування"
 #define K_S_LAUNCHER_REBOOT            "Перезавантаження"
+
+#define K_S_LAUNCHER_FACTORY_RESET_DISCLAIMER_ALERT\
+    "УВАГА: Це видалить всі налаштування!\n"\
+    "\nПродовжити?\n\nSTART - продовжити\nA - скасувати"
+
+#define K_S_LAUNCHER_FACTORY_RESET_SUCCESS_ALERT\
+    "Скидання налаштувань завершено!\n\n"\
+    "Систему буде перезавантажено."
 
 #define K_S_LAUNCHER_SELECT_TX_POWER   "Оберіть потужність"
 

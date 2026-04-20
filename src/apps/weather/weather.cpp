@@ -295,20 +295,16 @@ bool WeatherApp::runSettings() {
             exitSettings = true;
         } else {
             if (settingsMenu.getCursor() == 0 || settingsMenu.getCursor() == 1) {
-                lilka::InputDialog inputDialog(
-                    String(K_S_WEATHER_INPUT) + " " +
-                    (settingsMenu.getCursor() == 0 ? K_S_WEATHER_LATITUDE_S : K_S_WEATHER_LONGITUDE_S)
-                );
-                inputDialog.setValue(String(settingsMenu.getCursor() == 0 ? settings.lat : settings.lon));
-                while (!inputDialog.isFinished()) {
-                    inputDialog.update();
-                    inputDialog.draw(canvas);
-                    queueDraw();
-                }
+                auto inputTitle = String(K_S_WEATHER_INPUT) + " " +
+                                  (settingsMenu.getCursor() == 0 ? K_S_WEATHER_LATITUDE_S : K_S_WEATHER_LONGITUDE_S);
+                auto inputValue = String(settingsMenu.getCursor() == 0 ? settings.lat : settings.lon);
+
+                auto value = input(inputTitle, inputValue);
+
                 if (settingsMenu.getCursor() == 0) {
-                    settings.lat = inputDialog.getValue().toFloat();
+                    settings.lat = value.toFloat();
                 } else {
-                    settings.lon = inputDialog.getValue().toFloat();
+                    settings.lon = value.toFloat();
                 }
             } else if (settingsMenu.getCursor() == 2) {
                 saveSettings = true;

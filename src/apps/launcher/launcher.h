@@ -83,4 +83,5 @@ private:
 private:
     lilka::Menu servicesMenu;
     lilka::Menu* pServiceMenu = NULL;
+    void factoryReset();
 };

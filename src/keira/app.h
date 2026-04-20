@@ -57,6 +57,7 @@ protected:
     //========================================================================
     void alert(const String& title, const String& description);
     bool confirm(const String& title, const String& description);
+    String input(const String& title, const String& value = "", bool masked = false);
     //////////////////////////////////////////////////////////////////////////
     //========================================================================
     //  App Canvas management

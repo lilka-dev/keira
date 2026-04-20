@@ -884,6 +884,7 @@ String LilTrackerApp::filePicker(String ext, bool isSave) {
     if (isSave) {
         if (selectedItem == 0) {
             // Create new file
+            // TODO: oh my god...
             lilka::InputDialog dialog(K_S_LILTRACKER_ENTER_FILENAME);
             while (1) {
                 dialog.update();

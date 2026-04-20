@@ -270,8 +270,6 @@ private:
     lilka::ProgressDialog dirLoadProgress;
     lilka::ProgressDialog md5Progress;
     lilka::ProgressDialog copyProgress;
-    lilka::InputDialog mkdirInput;
-    lilka::InputDialog renameInput;
 
     // Menu handlers:
     void fileOpenWithMenuShow();
