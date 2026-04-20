@@ -12,8 +12,6 @@ void MultiBootApp::run() {
 }
 
 void MultiBootApp::fileLoadAsRom(const String& path) {
-    int progress = 0;
-
     // Draw Welcome message
     lilka::ProgressDialog dialog(K_S_FMANAGER_LOADING, path + "\n\n" K_S_FMANAGER_MULTIBOOT_STARTING);
     dialog.draw(canvas);
@@ -35,7 +33,7 @@ void MultiBootApp::fileLoadAsRom(const String& path) {
     queueDraw();
 
     while ((error = lilka::multiboot.process()) > 0) {
-        progress = lilka::multiboot.getBytesWritten() * 100 / lilka::multiboot.getBytesTotal();
+        int progress = lilka::multiboot.getBytesWritten() * 100 / lilka::multiboot.getBytesTotal();
         dialog.setProgress(progress);
         dialog.draw(canvas);
         queueDraw();

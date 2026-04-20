@@ -3,7 +3,7 @@
 
 class MultiBootApp : public App {
 public:
-    MultiBootApp(const String& path);
+    explicit MultiBootApp(const String& path);
 
     void run() override;
 
