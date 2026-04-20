@@ -672,6 +672,56 @@ static httpd_handle_t stream_httpd = NULL;
 static const char* contentLengthHeader = "Content-Length";
 static const char* fileHeaderDivider = "\r\n\r\n";
 static volatile bool pendingRestart = false;
+
+// Strip trailing multipart form boundary from an uploaded file.
+// The boundary looks like: \r\n------WebKitFormBoundary...--\r\n
+static void stripTrailingBoundary(const char* filePath) {
+    FILE* f = fopen(filePath, "r+b");
+    if (!f) return;
+    fseek(f, 0, SEEK_END);
+    long fileSize = ftell(f);
+    // Boundary is typically < 80 bytes; check last 200 bytes
+    long searchStart = fileSize > 200 ? fileSize - 200 : 0;
+    long searchLen = fileSize - searchStart;
+    char* tail = static_cast<char*>(malloc(searchLen));
+    if (!tail) {
+        fclose(f);
+        return;
+    }
+    fseek(f, searchStart, SEEK_SET);
+    fread(tail, 1, searchLen, f);
+    // Search backwards for \r\n-- which starts the trailing boundary
+    for (int i = (int)searchLen - 4; i >= 0; i--) {
+        if (tail[i] == '\r' && tail[i + 1] == '\n' && tail[i + 2] == '-' && tail[i + 3] == '-') {
+            int end = (int)searchLen;
+            // Strip optional trailing \r\n
+            if (end >= 2 && tail[end - 1] == '\n' && tail[end - 2] == '\r') end -= 2;
+            // Verify it ends with "--"
+            if (end >= 2 && tail[end - 1] == '-' && tail[end - 2] == '-' && end - i > 6) {
+                long newSize = searchStart + i;
+                // Re-read the clean content and rewrite the file
+                char* clean = static_cast<char*>(malloc(newSize));
+                if (clean) {
+                    fseek(f, 0, SEEK_SET);
+                    fread(clean, 1, newSize, f);
+                    fclose(f);
+                    f = fopen(filePath, "wb");
+                    if (f) {
+                        fwrite(clean, 1, newSize, f);
+                        fclose(f);
+                    }
+                    free(clean);
+                } else {
+                    fclose(f);
+                }
+                free(tail);
+                return;
+            }
+        }
+    }
+    free(tail);
+    fclose(f);
+}
 static volatile bool pendingMultiboot = false;
 static String pendingMultibootPath = "";
 static volatile int multibootProgress = -1; // -1=idle, -2=error, 0-100=progress
@@ -1160,7 +1210,14 @@ static esp_err_t sd_upload_handler(httpd_req_t* req) {
         }
     } while (len > 0);
 
-    if (file) fclose(file);
+    if (file) {
+        fclose(file);
+        if (err == ESP_OK) {
+            String fullPath = targetFolder.length() > 0 ? lilka::fileutils.joinPath(targetFolder, filename) : filename;
+            String filePath = lilka::fileutils.joinPath(root, fullPath);
+            stripTrailingBoundary(filePath.c_str());
+        }
+    }
     free(buf);
 
     if (err == ESP_OK) {
@@ -1226,7 +1283,10 @@ static esp_err_t multiboot_upload_handler(httpd_req_t* req) {
         }
     } while (len > 0);
 
-    if (file) fclose(file);
+    if (file) {
+        fclose(file);
+        if (err == ESP_OK) stripTrailingBoundary(filePath.c_str());
+    }
     free(buf);
 
     if (err == ESP_OK) {

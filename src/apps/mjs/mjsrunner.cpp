@@ -19,6 +19,7 @@
 #include "lilka.h"
 #include "mjs.h"
 #include "keira/keira.h"
+#include <cstring>
 
 // Helper function to get the script directory from __dir__ global
 static String mjs_get_dir(struct mjs* mjs) {
@@ -51,8 +52,30 @@ static void mjs_custom_load(struct mjs* mjs) {
         fullPath = dir + "/" + path;
     }
 
+    // Read file and strip any trailing multipart boundary
+    FILE* fp = fopen(fullPath.c_str(), "rb");
+    if (!fp) {
+        mjs_set_errorf(mjs, MJS_FILE_READ_ERROR, "failed to read file \"%s\"", fullPath.c_str());
+        mjs_return(mjs, mjs_mk_undefined());
+        return;
+    }
+    fseek(fp, 0, SEEK_END);
+    size_t fileSize = ftell(fp);
+    fseek(fp, 0, SEEK_SET);
+    char* source = static_cast<char*>(malloc(fileSize + 1));
+    if (!source) {
+        fclose(fp);
+        mjs_set_errorf(mjs, MJS_FILE_READ_ERROR, "out of memory loading \"%s\"", fullPath.c_str());
+        mjs_return(mjs, mjs_mk_undefined());
+        return;
+    }
+    fread(source, 1, fileSize, fp);
+    fclose(fp);
+    source[fileSize] = '\0';
+
     mjs_val_t res = mjs_mk_undefined();
-    mjs_err_t err = mjs_exec_file(mjs, fullPath.c_str(), &res);
+    mjs_err_t err = mjs_exec(mjs, source, &res);
+    free(source);
     if (err != MJS_OK) {
         mjs_prepend_errorf(mjs, err, "failed to load \"%s\"", fullPath.c_str());
     }
@@ -97,12 +120,36 @@ void MJSApp::run() {
     mjs_val_t global = mjs_get_global(mjs);
     mjs_set(mjs, global, "load", ~0, mjs_mk_foreign_func(mjs, (mjs_func_ptr_t)mjs_custom_load));
 
-    mjs_err_t err = mjs_exec_file(mjs, path.c_str(), &res);
-    if (err != MJS_OK) {
-        const char* error = mjs_strerror(mjs, err);
-        Serial.printf("mJS error %d: %s\n", err, error ? error : "unknown");
-        alert("mJS", String(K_S_MJS_ERROR) + err + "\n" + (error ? error : ""));
+    // Read file and strip any trailing multipart boundary from web uploads
+    FILE* fp = fopen(path.c_str(), "rb");
+    if (!fp) {
+        alert("mJS", String(K_S_MJS_ERROR) + "\nFailed to read file");
+    } else {
+        fseek(fp, 0, SEEK_END);
+        size_t fileSize = ftell(fp);
+        fseek(fp, 0, SEEK_SET);
+        char* source = static_cast<char*>(malloc(fileSize + 1));
+        if (!source) {
+            fclose(fp);
+            alert("mJS", String(K_S_MJS_ERROR) + "\nOut of memory");
+        } else {
+            fread(source, 1, fileSize, fp);
+            fclose(fp);
+            source[fileSize] = '\0';
+
+            mjs_err_t err = mjs_exec(mjs, source, &res);
+            free(source);
+            if (err != MJS_OK) {
+                const char* error = mjs_strerror(mjs, err);
+                Serial.printf("mJS error %d: %s\n", err, error ? error : "unknown");
+                alert("mJS", String(K_S_MJS_ERROR) + err + "\n" + (error ? error : ""));
+            }
+        }
     }
+
+    // Run full GC and destroy mJS instance to free all allocated memory
+    mjs_gc(mjs, 1);
+    mjs_destroy(mjs);
 
     // Cleanup audio
     lilka::audioPlayer.cleanup();
