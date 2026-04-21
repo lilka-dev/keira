@@ -1,64 +1,43 @@
 #include "ftp.h"
+
 #include "keira/ksystem.h"
+#include "keira/keira_lang.h"
 #include "services/network/network.h"
 
-FTPService::FTPService() : Service("ftp") {
-    NVS_LOCK;
-    Preferences prefs;
-    prefs.begin(getName(), true);
-    password = prefs.getString("password", "");
-    prefs.end();
-    NVS_UNLOCK;
-
-    if (password.isEmpty()) {
-        createPassword();
-    }
-
-    lilka::fileutils.initSD();
-}
+REG_SERVICE(ftp, FTPService, false);
+REG_CONFIG(ftp, password, KCONFIG_STRING, K_S_LAUNCHER_FTP_PASSWORD, "");
 
 FTPService::~FTPService() {
     if (ftpServer) {
         delete ftpServer;
     }
+    vSemaphoreDelete(ftpMtx);
+}
+
+void FTPService::onStart() {
+    KeiraRegistryEntry* entry = ksystem.registry[getName()];
+    setpassword(getConfig()["password"].s);
+    if (getpassword().isEmpty()) {
+        createPassword();
+    }
 }
 
 void FTPService::run() {
     // Await network service
+
     while (networkService == NULL) {
         networkService = static_cast<NetworkService*>(ksystem.services["network"]);
         vTaskDelay(10 / portTICK_PERIOD_MS);
     }
 
-    bool wasOnline = false;
+    ftpServer = new FtpServer();
+    ftpServer->begin(getuser().c_str(), getpassword().c_str());
+
     while (true) {
-        bool isOnline = networkService->getnetworkState() == NetworkState::NETWORK_STATE_ONLINE;
-        if ((getEnabled() && isOnline) && !wasOnline) {
-            ftpServer = new FtpServer();
-            ftpServer->begin(user.c_str(), password.c_str());
-            wasOnline = true;
-        } else if ((!getEnabled() || !isOnline) && wasOnline) {
-            ftpServer->end();
-            delete ftpServer;
-            ftpServer = nullptr;
-            wasOnline = false;
-        }
-
-        if (getEnabled() && isOnline) {
-            ftpServer->handleFTP();
-            taskYIELD();
-        } else {
-            vTaskDelay(500 / portTICK_PERIOD_MS);
-        }
+        // TODO: Ensure no need FTP recreate on network state change
+        ftpServer->handleFTP();
+        taskYIELD();
     }
-}
-
-String FTPService::getUser() {
-    return user;
-}
-
-String FTPService::getPassword() {
-    return password;
 }
 
 void FTPService::createPassword() {
@@ -67,16 +46,16 @@ void FTPService::createPassword() {
         pwd[i] = random(0, 2) == 0 ? random(48, 57) : random(97, 122);
     }
     pwd[FTP_PASSWORD_LENGTH] = 0;
-    NVS_LOCK;
-    Preferences prefs;
-    prefs.begin(getName(), false);
-    prefs.putString("password", pwd);
-    prefs.end();
-    NVS_UNLOCK;
 
-    password = String(pwd);
+    auto cfg = getConfig();
+
+    auto pwdEntry = cfg["password"];
+    pwdEntry.s = pwd;
+    cfg.set(pwdEntry);
+
+    setpassword(String(pwd));
 
     if (ftpServer) {
-        ftpServer->credentials(user.c_str(), password.c_str());
+        ftpServer->credentials(getuser().c_str(), getpassword().c_str());
     }
 }

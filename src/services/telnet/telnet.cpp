@@ -1,15 +1,14 @@
+/*
+#include "telnet.h"
+REG_SERVICE(telnet, TelnetService, false);
+
 #include <EscapeCodes.h>
 
-#include "telnet.h"
 #include "keira/ksystem.h"
 
 #define STR_HELPER(x) #x
 #define STR(x)        STR_HELPER(x)
-ESPTelnet* telnet = NULL;
 EscapeCodes ansi;
-
-TelnetService::TelnetService() : Service("telnet") {
-}
 
 TelnetService::~TelnetService() {
     if (telnet) {
@@ -323,27 +322,14 @@ void TelnetService::run() {
         vTaskDelay(10 / portTICK_PERIOD_MS);
     }
 
-    bool wasOnline = false;
-    while (1) {
-        bool isOnline = network->getnetworkState() == NetworkState::NETWORK_STATE_ONLINE;
-        if ((getEnabled() && isOnline) && !wasOnline) {
-            wasOnline = true;
-            // Start telnet server
-            telnet = new ESPTelnet();
-            setupEventHandlers();
-            telnet->begin(23);
-        } else if ((!getEnabled() || !isOnline) && wasOnline) {
-            wasOnline = false;
-            // Stop telnet server
-            telnet->stop();
-            delete telnet;
-            telnet = NULL;
-        }
-        if (getEnabled() && isOnline) {
-            telnet->loop();
-            taskYIELD();
-        } else {
-            vTaskDelay(500 / portTICK_PERIOD_MS);
-        }
+    telnet = new ESPTelnet();
+    setupEventHandlers();
+    telnet->begin(23);
+
+    while (true) {
+        // TODO: Ensure no need telnet recreate on network state change
+        telnet->loop();
+        taskYIELD();
     }
 }
+*/

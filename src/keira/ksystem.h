@@ -11,12 +11,11 @@
 #include "keira/threadmanager.h"
 #include "keira/servicemanager.h"
 #include "keira/appmanager.h"
+#include "registry.h"
 // Libraries
 #include <lilka.h>
-//#include <vector>
 
 // VFS(Virtual File Systems):
-//#include "keira/vfs/vfs.h"
 #include "keira/vfs/rootfs/rootfs.h"
 
 #define KEIRA_VERSION_TYPE_ACSTR lilka::SDK_VERSION_TYPE_ACSTR
@@ -48,7 +47,6 @@ public:
     //  Arduino-like entry points
     //========================================================================
     void setup();
-    void loop();
     //////////////////////////////////////////////////////////////////////////
 
     //========================================================================
@@ -57,6 +55,8 @@ public:
     ThreadManager threads;
     AppManager apps;
     ServiceManager services;
+    // Registry managing constructors of threads/services
+    KeiraRegistry registry;
     //////////////////////////////////////////////////////////////////////////
     // Yeah, we've to do that cause it doesn't support multithreading
     // TODO: move the fuck out from insane lib which have a begin/end
@@ -72,7 +72,6 @@ private:
     void verifyOTA();
     void registerFileSystems();
     void showWelcomeMessage();
-    void launchServices();
     //////////////////////////////////////////////////////////////////////////
 
     //========================================================================

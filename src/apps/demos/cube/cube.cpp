@@ -1,4 +1,5 @@
 #include "cube.h"
+#include <lilka/controller.h>
 
 CubeApp::CubeApp() : App("Cube") {
 }

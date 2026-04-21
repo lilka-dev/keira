@@ -7,9 +7,7 @@
 
 class ClockService : public Service {
 public:
-    ClockService();
-
-    struct tm getTime();
+    static struct tm getTime();
 
 private:
     void run() override;

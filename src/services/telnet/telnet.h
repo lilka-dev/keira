@@ -1,3 +1,5 @@
+/*
+
 #include <ESPTelnet.h>
 #include "Preferences.h"
 #include "keira/servicemanager.h"
@@ -6,10 +8,11 @@
 
 class TelnetService : public Service {
 public:
-    TelnetService();
     ~TelnetService();
 
 private:
+    ESPTelnet* telnet = NULL;
     void setupEventHandlers();
     void run() override;
 };
+*/

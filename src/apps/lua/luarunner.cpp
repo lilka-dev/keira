@@ -515,9 +515,6 @@ void LuaReplApp::run() {
 
     lilka::serial.log("lua: start REPL");
 
-    // TODO: This is a temporary fix: https://github.com/espressif/arduino-esp32/issues/9221
-    lilka::fileutils.initSD();
-
     bool quit = false;
     while (!quit) {
         String input;

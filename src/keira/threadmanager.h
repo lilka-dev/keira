@@ -27,12 +27,13 @@
 
 #include "keira/bits/threadmanager.h"
 // Uncomment to get debug information
-// #define KEIRA_THREADMANAGER_DEBUG
+//#define KEIRA_THREADMANAGER_DEBUG
 
 #define KT_PCAST(X) reinterpret_cast<KeiraThread*>(X)
 
 class ThreadManager : public KeiraThread {
 public:
+    ~ThreadManager();
     ThreadManager();
 
     // Spawns a new thread. Thread to be launched on next update
@@ -43,6 +44,14 @@ public:
 
     virtual void threadsClean();
     virtual void threadsRun();
+
+    std::vector<KeiraThread*>::iterator begin() {
+        return threads.begin();
+    }
+
+    std::vector<KeiraThread*>::iterator end() {
+        return threads.end();
+    }
 
     // Performs launch of thread updates. run in a separate thread
     void run() override;

@@ -3,7 +3,7 @@
 #include <AudioOutput.h>
 #include <AudioGenerator.h>
 #include <AudioFileSourcePROGMEM.h>
-
+#include "keira/thread.h"
 #include "sound.h"
 
 namespace lilka {
@@ -22,6 +22,7 @@ typedef struct {
 
 class AudioPlayer {
 public:
+    ~AudioPlayer();
     AudioPlayer();
     /// customOutput: NULL — створює власний AudioOutputI2S; інакше — caller відповідає за його життя.
     bool play(lilka::Sound* sound, AudioOutput* customOutput = nullptr);
@@ -38,7 +39,7 @@ public:
 
 private:
     static AudioGenerator* createGenerator(const char* type);
-    static void audioTaskFunc(void* arg);
+    void audioTaskFunc();
 
     AudioGenerator* generator = nullptr;
     AudioFileSourcePROGMEM* source = nullptr;
@@ -46,7 +47,7 @@ private:
     bool ownsOutput = false;
     lilka::Sound* playingSound = nullptr;
 
-    TaskHandle_t taskHandle = nullptr;
+    KeiraThread* audioPlayerThread = nullptr;
     QueueHandle_t commandQueue = nullptr;
     SemaphoreHandle_t mutex = nullptr;
 

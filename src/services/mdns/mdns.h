@@ -4,7 +4,14 @@
 #include "services/network/network.h"
 #include "keira/service.h"
 
-#define MDNS_DEFAULT_HOSTNAME "lilka"
+// Uncomment this line to get debuging info
+#define MDNS_DEBUG
+
+#ifdef MDNS_DEBUG
+#    define MDNS_DBG if (1)
+#else
+#    define MDNS_DBG if (0)
+#endif
 
 class MDNSService : public Service {
 private:
@@ -13,11 +20,7 @@ private:
     bool mdnsStarted = false;
 
 public:
-    MDNSService();
-
-    String getHostname();
-    void setHostname(const String& newHostname);
-    String getFullHostname(); // Returns hostname.local
+    ~MDNSService();
 
 private:
     void run() override;

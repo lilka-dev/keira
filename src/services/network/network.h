@@ -1,7 +1,9 @@
 #pragma once
 
 #include <WiFi.h>
+
 #include "keira/service.h"
+#include "keira/servicemanager.h"
 
 #include "keira/mutex.h"
 
@@ -14,11 +16,13 @@ enum NetworkState {
 
 class NetworkService : public Service {
 public:
-    NetworkService();
+    ~NetworkService();
+
     bool connect(String ssid);
     void connect(String ssid, String password);
     // This one is special, cause takes stuff from NVS
     String getPassword(String ssid);
+    KMTX_GETER(String, hostname, mtxNetwork);
     KMTX_GETER(NetworkState, networkState, mtxNetwork);
     KMTX_GETER(int8_t, signalStrength, mtxNetwork);
     KMTX_GETER(String, ipAddr, mtxNetwork);
@@ -35,6 +39,7 @@ private:
     KMTX_SETER(int8_t, signalStrength, mtxNetwork);
     KMTX_SETER(String, lastPassword, mtxNetwork);
     KMTX_SETER(String, ipAddr, mtxNetwork);
+    KMTX_SETER(String, hostname, mtxNetwork);
 
     SemaphoreHandle_t mtxNetwork = xSemaphoreCreateMutex();
 
@@ -43,4 +48,5 @@ private:
     int8_t signalStrength = 0; // Value in range [0,3]
     String lastPassword = ""; // wtf is that
     String ipAddr = "";
+    String hostname = "";
 };

@@ -1,10 +1,11 @@
 
 #include "keira/app.h"
-
 #include <lilka/colors565.h>
 #include <lilka/display.h>
 #include <lilka/controller.h>
 #include "services/watchdog/watchdog.h"
+
+#include "keira/keira.h"
 
 //=============================================================================
 // App Constructors/Destructors
@@ -29,6 +30,7 @@ App::~App() {
     if (backCanvas) delete backCanvas;
 
     KMTX_UNLOCK(canvasMutex);
+    vSemaphoreDelete(canvasMutex);
 }
 ///////////////////////////////////////////////////////////////////////////////
 

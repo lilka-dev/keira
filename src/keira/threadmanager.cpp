@@ -1,7 +1,11 @@
 #include "threadmanager.h"
 
+ThreadManager::~ThreadManager() {
+    vSemaphoreDelete(lock);
+}
+
 ThreadManager::ThreadManager() {
-    //    setName(KEIRA_THREADMANAGER_NAME);
+    setName(KEIRA_THREADMANAGER_NAME);
     setktPriority(KEIRA_THREADMANAGER_PRIORITY);
     setktCore(KEIRA_THREADMANAGER_CORE);
 }
@@ -22,6 +26,7 @@ void ThreadManager::spawn(KeiraThread* thread, bool autoSuspend) {
     }
 };
 
+// TODO: improve via utilzing compile time crc32
 KeiraThread* ThreadManager::operator[](const char* name) {
     KMTX_LOCK(lock);
     for (auto& thread : threads) {

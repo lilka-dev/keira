@@ -1,27 +1,34 @@
 // TODO: Add enable/disable methods instead of deallocating WiFi from apps like LilTracker
 // TODO: Use the mutex, Luke!
+#include "network.h"
 
 #include <Preferences.h>
 #include <esp_wifi.h>
 #include "keira/ksystem.h"
-#include "network.h"
+#include "keira/keira_lang.h"
 
 // Macro magic used to convert decimal constant to char[] constant
 #define STRX(x)               #x
 #define STR(x)                STRX(x)
 #define LILKA_HOSTNAME_PREFIX "LilkaV"
 
+REG_SERVICE(network, NetworkService, false);
+REG_CONFIG(network, txPower, KCONFIG_INT, K_S_LAUNCHER_WIFI_TX_POWER, WIFI_POWER_19_5dBm);
+REG_CONFIG(network, last_ssid, KCONFIG_STRING, "Last SSID", "");
+
 // EEPROM preferences used:
 // - keira.last_ssid - last connected SSID
 // - keira.[SSID_hash]_pw - password of known network with a given SSID
 
-NetworkService::NetworkService() : Service("network") {
+NetworkService::~NetworkService() {
+    setnetworkState(NETWORK_STATE_DISABLED);
+    WiFi.disconnect(true, true);
+    WiFi.mode(WIFI_OFF);
+    vSemaphoreDelete(mtxNetwork);
 }
 
 void NetworkService::run() {
     // Loading settings from NVS
-
-    bool enabled = getEnabled();
     NVS_LOCK;
     Preferences prefs;
     prefs.begin(getName(), true);
@@ -39,6 +46,7 @@ void NetworkService::run() {
     WiFi.macAddress(mac);
     char cstrMac[50];
     sprintf(cstrMac, LILKA_HOSTNAME_PREFIX STR(LILKA_VERSION) "_%02X%02X%02X", mac[3], mac[4], mac[5]);
+    this->sethostname(cstrMac);
     WiFi.setHostname(cstrMac);
 
     // Handling events
@@ -108,17 +116,9 @@ void NetworkService::run() {
         }
     });
 
-    if (enabled) {
-        lilka::serial.log("NetworkService: WiFi is enabled, starting auto connection");
-        setnetworkState(NETWORK_STATE_OFFLINE);
-        WiFi.mode(WIFI_STA);
-        autoConnect();
-    } else {
-        lilka::serial.log("NetworkService: WiFi is disabled, not starting auto connection");
-        setnetworkState(NETWORK_STATE_DISABLED);
-        WiFi.disconnect(true, true);
-        WiFi.mode(WIFI_OFF);
-    }
+    setnetworkState(NETWORK_STATE_OFFLINE);
+    WiFi.mode(WIFI_STA);
+    autoConnect();
 
     while (1) {
         // Check if WiFi is deallocated
@@ -148,19 +148,6 @@ void NetworkService::run() {
                 } else {
                     setsignalStrength(0);
                 }
-            }
-        }
-
-        bool stateChanged = getEnabled() != enabled;
-        if (stateChanged) {
-            enabled = !enabled; // toggle to new state
-            if (enabled) {
-                setnetworkState(NETWORK_STATE_OFFLINE);
-                WiFi.mode(WIFI_STA);
-                autoConnect();
-            } else {
-                WiFi.disconnect(true, true);
-                WiFi.mode(WIFI_OFF);
             }
         }
 

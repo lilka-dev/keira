@@ -1,6 +1,9 @@
 #include "web.h"
+#include "keira/registry.h"
 #include "esp_http_server.h"
 #include "keira/ksystem.h"
+
+REG_SERVICE(web, WebService, false);
 
 // TODO: html to header generator with compression
 
@@ -1624,7 +1627,10 @@ static esp_err_t boot_handler(httpd_req_t* req) {
 
 static void stopWebServer() {
     lilka::serial.log("Stopping web service");
-    httpd_stop(stream_httpd);
+    if (stream_httpd) {
+        httpd_stop(stream_httpd);
+        stream_httpd = NULL;
+    }
 }
 
 static void startWebServer() {
@@ -1665,11 +1671,12 @@ static void startWebServer() {
     }
 }
 
-WebService::WebService() : Service("web") {
+WebService::WebService() {
     setktStackSize(8192);
 }
 
 WebService::~WebService() {
+    stopWebServer();
 }
 
 void WebService::run() {
@@ -1679,7 +1686,7 @@ void WebService::run() {
         vTaskDelay(10 / portTICK_PERIOD_MS);
     }
 
-    bool wasOnline = false;
+    startWebServer();
 
     while (true) {
         if (pendingRestart) {
@@ -1690,6 +1697,7 @@ void WebService::run() {
         if (pendingMultiboot && pendingMultibootPath.length() > 0) {
             // Stop HTTP server before multiboot
 
+            // TODO: move to separate multiboot app
             // Create dedicated task for multiboot (like catalog app does)
             String pathCopy = pendingMultibootPath;
             pendingMultiboot = false;
@@ -1752,21 +1760,6 @@ void WebService::run() {
                 1,
                 NULL
             );
-        }
-
-        if (!networkService) {
-            vTaskDelay(1000 / portTICK_PERIOD_MS);
-            continue;
-        }
-
-        bool isOnline = networkService->getnetworkState() == NetworkState::NETWORK_STATE_ONLINE;
-
-        if (getEnabled() && isOnline && !wasOnline) {
-            startWebServer();
-            wasOnline = true;
-        } else if ((!getEnabled() || !isOnline) && wasOnline) {
-            wasOnline = false;
-            stopWebServer();
         }
 
         vTaskDelay(500 / portTICK_PERIOD_MS);

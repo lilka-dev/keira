@@ -6,12 +6,6 @@
 #include "keira/appmanager.h"
 
 #include "keira/servicemanager.h"
-// Services:
-#include "services/network/network.h"
-#include "services/ftp/ftp.h"
-#include "services/telnet/telnet.h"
-#include "services/web/web.h"
-#include "services/mdns/mdns.h"
 // Demos:
 #include "apps/demos/lines/lines.h"
 #include "apps/demos/disk/disk.h"
@@ -61,8 +55,69 @@
 
 #include "keira/ksystem.h"
 
+#define TOGGLE_SERVICE(SERVICE_NAME) \
+    ksystem.services.status(SERVICE_NAME) ? ksystem.services.down(SERVICE_NAME) : ksystem.services.up(SERVICE_NAME)
+
 LauncherApp::LauncherApp() : App("Launcher") {
-    setktStackSize(8192); // Yeah, this one is heavy as fuck
+    setktStackSize(8192);
+}
+
+void LauncherApp::onAnyServiceMenuItem() {
+    if (servicesMenu.getButton() == K_BTN_BACK) return;
+    // Find selected service by index
+    int index = servicesMenu.getCursor();
+    int i = 0;
+    const char* selectedName = nullptr;
+
+    ksystem.registry.lock();
+    for (auto& unit : ksystem.registry) {
+        if (unit.type != KREG_SERVICE) continue;
+        if (i == index) {
+            selectedName = unit.name;
+            break;
+        }
+        i++;
+    }
+    ksystem.registry.unlock();
+
+    if (!selectedName) return;
+
+    auto cfg = ksystem.registry[selectedName]->config;
+
+    // // Show config menu for selected service
+    // pServiceMenu = cfg->getMenu();
+
+    // while (!pServiceMenu->isFinished()) {
+    //     pServiceMenu->update();
+    //     pServiceMenu->draw(canvas);
+    //     queueDraw();
+    // }
+}
+
+void LauncherApp::showServicesMenu() {
+    servicesMenu.clearItems();
+    servicesMenu.setTitle(K_S_LAUNCHER_SERVICES);
+    servicesMenu.addActivationButton(K_BTN_BACK);
+
+    ksystem.registry.lock();
+    for (auto& unit : ksystem.registry) {
+        if (unit.type != KREG_SERVICE) continue;
+        servicesMenu.addItem(
+            unit.name,
+            nullptr,
+            ksystem.services.status(unit.name) ? lilka::colors::Green : lilka::colors::Red,
+            "",
+            LILKA_MENU_CLBK_CAST(&LauncherApp::onAnyServiceMenuItem),
+            LILKA_MENU_CLBK_DATA_CAST(this)
+        );
+    }
+    ksystem.registry.unlock();
+
+    while (!servicesMenu.isFinished()) {
+        servicesMenu.update();
+        servicesMenu.draw(canvas);
+        queueDraw();
+    }
 }
 
 void LauncherApp::run() {
@@ -141,180 +196,39 @@ void LauncherApp::run() {
             ITEM::SUBMENU(
                 K_S_SETTINGS,
                 {
-                    ITEM::SUBMENU(
-                        K_S_LAUNCHER_WIFI,
-                        {
-                            ITEM::MENU(
-                                K_S_LAUNCHER_WIFI_ADAPTER,
-                                [this]() { this->wifiToggle(); },
-                                nullptr,
-                                lilka::colors::White,
-                                [this](void* item) {
+                    ITEM::SUBMENU(K_S_LAUNCHER_WIFI, {
+                        ITEM::MENU(
+                            K_S_LAUNCHER_WIFI_ADAPTER,
+                            [this]() { TOGGLE_SERVICE("network"); },
+                            nullptr,
+                            lilka::colors::White,
+                            [this](void* item) {
                                     lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
-                                    NetworkService* networkService =
-                                        static_cast<NetworkService*>(ksystem.services["network"]);
-                                    menuItem->postfix = networkService->getEnabled() ? K_S_ON : K_S_OFF;
-                                }
-                            ),
-                            ITEM::MENU(K_S_LAUNCHER_WIFI_NETWORKS, [this]() { this->wifiManager(); }),
-                            ITEM::MENU(K_S_LAUNCHER_WIFI_TX_POWER, [this]() { this->setWiFiTxPower(); }),
-                        }
-                    ),
-                    ITEM::SUBMENU(
-                        K_S_LAUNCHER_SD,
-                        {
-                            ITEM::MENU(K_S_PARTITION_TABLE, [this]() { this->partitions(); }),
-                            ITEM::MENU(K_S_LAUNCHER_SD_FORMAT, [this]() { this->formatSD(); }),
-                            ITEM::MENU(K_S_LAUNCHER_SD_SPEED, [this]() { this->setSpiSDSpeed(); }),
-                        }
-                    ),
+                                    menuItem->postfix = ksystem.services.status("network") ? K_S_ON : K_S_OFF;
+                            }
+                        ),
+                        ITEM::MENU(K_S_LAUNCHER_WIFI_NETWORKS, [this]() { this->wifiManager(); }),
+                        ITEM::MENU(K_S_LAUNCHER_WIFI_TX_POWER, [this]() { this->setWiFiTxPower(); }),
+                    }),
+                    ITEM::SUBMENU(K_S_LAUNCHER_SD, {
+                        ITEM::MENU(K_S_PARTITION_TABLE, [this]() { this->partitions(); }),
+                        ITEM::MENU(K_S_LAUNCHER_SD_FORMAT, [this]() { this->formatSD(); }),
+                        ITEM::MENU(K_S_LAUNCHER_SD_SPEED, [this]() { this->setSpiSDSpeed(); }),
+                    }),
                     ITEM::MENU(K_S_LAUNCHER_SOUND, [this]() { this->runApp<SoundConfigApp>(); }),
-                    ITEM::SUBMENU(
-                        K_S_LAUNCHER_SERVICES,
-                        {
-                            ITEM::SUBMENU(
-                                K_S_LAUNCHER_WEB,
-                                {
-                                    ITEM::MENU(
-                                        K_S_STATUS,
-                                        [this]() {
-                                            WebService* webService = static_cast<WebService*>(ksystem.services["web"]);
-                                            webService->setEnabled(!webService->getEnabled());
-                                        },
-                                        nullptr,
-                                        lilka::colors::White,
-                                        [this](void* item) {
-                                            lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
-                                            WebService* webService = static_cast<WebService*>(ksystem.services["web"]);
-                                            menuItem->postfix = webService->getEnabled() ? K_S_ON : K_S_OFF;
-                                        }
-                                    ),
-                                }
-                            ),
-                            ITEM::SUBMENU(
-                                K_S_LAUNCHER_TELNET,
-                                {
-                                    ITEM::MENU(
-                                        K_S_STATUS,
-                                        [this]() {
-                                            TelnetService* telnetService =
-                                                static_cast<TelnetService*>(ksystem.services["telnet"]);
-                                            telnetService->setEnabled(!telnetService->getEnabled());
-                                        },
-                                        nullptr,
-                                        lilka::colors::White,
-                                        [this](void* item) {
-                                            lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
-                                            TelnetService* telnetService =
-                                                static_cast<TelnetService*>(ksystem.services["telnet"]);
-                                            menuItem->postfix = telnetService->getEnabled() ? K_S_ON : K_S_OFF;
-                                        }
-                                    ),
-                                }
-                            ),
-                            ITEM::SUBMENU(
-                                K_S_LAUNCHER_FTP,
-                                {
-                                    ITEM::MENU(
-                                        K_S_STATUS,
-                                        [this]() {
-                                            FTPService* ftpService = static_cast<FTPService*>(ksystem.services["ftp"]);
-                                            ftpService->setEnabled(!ftpService->getEnabled());
-                                        },
-                                        nullptr,
-                                        lilka::colors::White,
-                                        [this](void* item) {
-                                            lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
-                                            FTPService* ftpService = static_cast<FTPService*>(ksystem.services["ftp"]);
-                                            menuItem->postfix = ftpService->getEnabled() ? K_S_ON : K_S_OFF;
-                                        }
-                                    ),
-                                    ITEM::MENU(
-                                        K_S_LAUNCHER_FTP_USER,
-                                        nullptr,
-                                        nullptr,
-                                        lilka::colors::White,
-                                        [this](void* item) {
-                                            lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
-                                            FTPService* ftpService = static_cast<FTPService*>(ksystem.services["ftp"]);
-                                            menuItem->postfix = ftpService->getUser();
-                                        }
-                                    ),
-                                    ITEM::MENU(
-                                        K_S_LAUNCHER_FTP_PASSWORD,
-                                        [this]() {
-                                            FTPService* ftpService = static_cast<FTPService*>(ksystem.services["ftp"]);
-                                            ftpService->createPassword();
-                                        },
-                                        nullptr,
-                                        lilka::colors::White,
-                                        [this](void* item) {
-                                            lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
-                                            FTPService* ftpService = static_cast<FTPService*>(ksystem.services["ftp"]);
-                                            menuItem->postfix = ftpService->getPassword();
-                                        }
-                                    ),
-                                    ITEM::MENU(
-                                        K_S_LAUNCHER_FTP_IP,
-                                        nullptr,
-                                        nullptr,
-                                        lilka::colors::White,
-                                        [this](void* item) {
-                                            lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
-                                            NetworkService* networkService =
-                                                static_cast<NetworkService*>(ksystem.services["network"]);
-                                            menuItem->postfix = networkService->getipAddr();
-                                        }
-                                    ),
-                                }
-                            ),
-                            ITEM::SUBMENU(
-                                K_S_LAUNCHER_MDNS,
-                                {
-                                    ITEM::MENU(
-                                        K_S_STATUS,
-                                        [this]() {
-                                            MDNSService* mdnsService =
-                                                static_cast<MDNSService*>(ksystem.services["mdns"]);
-                                            mdnsService->setEnabled(!mdnsService->getEnabled());
-                                        },
-                                        nullptr,
-                                        lilka::colors::White,
-                                        [this](void* item) {
-                                            lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
-                                            MDNSService* mdnsService =
-                                                static_cast<MDNSService*>(ksystem.services["mdns"]);
-                                            menuItem->postfix = mdnsService->getEnabled() ? K_S_ON : K_S_OFF;
-                                        }
-                                    ),
-                                    ITEM::MENU(
-                                        K_S_LAUNCHER_MDNS_HOSTNAME,
-                                        [this]() { this->setMDNSHostname(); },
-                                        nullptr,
-                                        lilka::colors::White,
-                                        [this](void* item) {
-                                            lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
-                                            MDNSService* mdnsService =
-                                                static_cast<MDNSService*>(ksystem.services["mdns"]);
-                                            menuItem->postfix = mdnsService->getFullHostname();
-                                        }
-                                    ),
-                                }
-                            ),
-                        }
-                    ),
-                    ITEM::SUBMENU(
-                        K_S_LAUNCHER_STATUSBAR,
-                        {
-                            ITEM::MENU(
-                                K_S_LAUNCHER_CLOCK,
-                                [this]() {
+
+
+                    ITEM::MENU(K_S_LAUNCHER_SERVICES, [this]() { this->showServicesMenu(); }),
+                    ITEM::SUBMENU(K_S_LAUNCHER_STATUSBAR, {
+                        ITEM::MENU(
+                            K_S_LAUNCHER_CLOCK,
+                            [this]() {
                                     auto statusBar = static_cast<StatusBarApp*>(ksystem.apps.getpanel());
                                     statusBar->setClockMode((statusBar->getClockMode() + 1));
-                                },
-                                nullptr,
-                                lilka::colors::White,
-                                [this](void* item) {
+                            },
+                            nullptr,
+                            lilka::colors::White,
+                            [this](void* item) {
                                     lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
                                     auto statusBar = static_cast<StatusBarApp*>(ksystem.apps.getpanel());
                                     switch (statusBar->getClockMode()) {
@@ -511,8 +425,7 @@ void LauncherApp::setWiFiTxPower() {
     // Save value to NVS
     NVS_LOCK;
     Preferences prefs;
-    // This is a bit dumb, stor somewhere
-    prefs.begin(ksystem.services["network"]->getName(), false);
+    prefs.begin("network", false);
     prefs.putInt("txPower", static_cast<int>(values[index]));
     prefs.end();
     NVS_UNLOCK;
@@ -559,37 +472,14 @@ void LauncherApp::setSpiSDSpeed() {
     alert("", K_S_CHANGE_ON_NEXT_BOOT);
 }
 
-void LauncherApp::wifiToggle() {
-    NetworkService* networkService = static_cast<NetworkService*>(ksystem.services["network"]);
-    networkService->setEnabled(!networkService->getEnabled());
-}
-
-void LauncherApp::setMDNSHostname() {
-    MDNSService* mdnsService = static_cast<MDNSService*>(ksystem.services["mdns"]);
-
-    lilka::InputDialog inputDialog(K_S_LAUNCHER_MDNS_ENTER_HOSTNAME);
-    inputDialog.setValue(mdnsService->getHostname());
-
-    while (!inputDialog.isFinished()) {
-        inputDialog.update();
-        inputDialog.draw(canvas);
-        queueDraw();
-    }
-
-    String newHostname = inputDialog.getValue();
-    if (!newHostname.isEmpty()) {
-        mdnsService->setHostname(newHostname);
-    }
-}
-
 void LauncherApp::wifiManager() {
-    NetworkService* networkService = static_cast<NetworkService*>(ksystem.services["network"]);
-    if (!networkService->getEnabled()) {
+    if (!ksystem.services.status("network")) {
         alert(K_S_ERROR, K_S_LAUNCHER_ENABLE_WIFI_FIRST);
         return;
     }
     ksystem.apps.spawn(new WiFiConfigApp());
 }
+
 void LauncherApp::about() {
     static int clickCount = 0;
     clickCount++;
@@ -621,7 +511,7 @@ void LauncherApp::info() {
             ESP.getChipRevision(),
             ESP.getCpuFreqMHz(),
             ESP.getChipCores(),
-            networkService->getipAddr().c_str()
+            networkService ? networkService->getipAddr().c_str() : "0.0.0.0"
         )
     );
 }
