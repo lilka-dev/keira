@@ -1,5 +1,5 @@
 #include "synth.h"
-#include "utils/acquire.h"
+#include "keira/utils/acquire.h"
 #include "keira/mutex.h"
 
 Synth::Synth() : xMutex(xSemaphoreCreateMutex()), currentSample(0) {
