@@ -45,3 +45,7 @@ void KeiraVFS::umount() {
     if (this->mounted) esp_vfs_unregister(mountPoint);
     this->mounted = false;
 }
+
+const char* KeiraVFS::getMountPoint() {
+    return mountPoint;
+}

@@ -154,13 +154,19 @@ protected:
 public:
     KeiraVFS() {
     } // empty canstructor
+    virtual ~KeiraVFS() {
+    }
     explicit KeiraVFS(const char* path);
     // Mounts VFS implementation
     void mount();
     // Unmounts VFS implementation
     void umount();
+    // Returns mount point
+    const char* getMountPoint();
 
     // local storage for file/dirs fds
 
     bool mounted = false;
 };
+
+// TODO: REG_VFS(CLASS, NAME, PATH) macro

@@ -85,7 +85,7 @@ private:
     //========================================================================
     //  VFS (Virtual File Systems)
     //========================================================================
-    // std::vector<KeiraVFS*> vfs;
+    std::vector<KeiraVFS*> vfs;
     //
     // special case, might require reg/unreg after each VFS reg as well as
     // might work normally, we don't know it yet, and this need to check
