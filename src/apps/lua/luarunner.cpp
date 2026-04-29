@@ -23,6 +23,9 @@
 #include "lualilka_ui.h"
 #include "lualilka_crypto.h"
 #include "lualilka_audio.h"
+#include "lualilka_socket.h"
+#include "lualilka_mqtt.h"
+#include "lualilka_httpserver.h"
 #include "keira/ksound/sound.h"
 #define SERIAL_DELAY 1000
 
@@ -174,6 +177,9 @@ void AbstractLuaRunnerApp::luaSetup(const char* dir) {
     lualilka_UI_register_progress(L);
     lualilka_crypto_register(L);
     lualilka_audio_register(L);
+    lualilka_socket_register(L);
+    lualilka_mqtt_register(L);
+    lualilka_httpserver_register(L);
     lualilka_state_register(L);
 
     // lilka::serial.log("lua: init canvas");
