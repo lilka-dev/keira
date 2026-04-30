@@ -880,13 +880,48 @@ SPIRamVFS::SPIRamVFS(const char* mountPoint) : KeiraVFS(mountPoint) {
 
 //================================================================================================
 SPIRamVFS::~SPIRamVFS() {
-    // Oh-boy, I can feel it...
+    // Cleanup
+    SPIRamNode* cur = pRoot;
 
-    // Recursively walk all nodes, and, for each node we've to cleanup
-    // file blocks
+    while (cur) {
+        if (cur->pChild) {
+            // Not a leaf yet — go deeper
+            cur = cur->pChild;
+            continue;
+        }
 
-    // time to delete pRoot
-    delete pRoot;
+        // cur is a leaf: free its SPIRAM blocks
+        for (auto* block : cur->blocks)
+            heap_caps_free(block);
+
+        // Save where to go next before we delete cur
+        SPIRamNode* next = cur->pNext; // sibling in same dir, or NULL
+        SPIRamNode* parent = cur->pParent;
+
+        // Detach from parent so the parent is now a leaf once all its
+        // children have been processed
+        if (parent && parent != cur) {
+            // Unlink cur from the head of the sibling list.
+            // createNode() prepends, so cur might not be pChild anymore
+            // (a later sibling already got deleted and set parent->pChild = cur->pNext).
+            // Just advance parent->pChild past cur.
+            if (parent->pChild == cur) parent->pChild = cur->pNext;
+        }
+
+        delete cur;
+        KSVFS_DBG printf("[SPIRamVFS] ~SPIRamVFS: deleted node\n");
+
+        if (next) {
+            // Continue with next sibling
+            cur = next;
+        } else {
+            // No more siblings — bubble up to parent, which is now a leaf
+            // (all its children are gone). Stop when we've deleted pRoot itself.
+            cur = (parent && parent != cur) ? parent : NULL;
+        }
+    }
+
+    pRoot = NULL;
 }
 //-------------------------------------------------------------------------------------- (^_^)==\~
 

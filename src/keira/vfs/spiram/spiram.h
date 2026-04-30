@@ -25,8 +25,6 @@
 // #define KEIRA_SPIRAM_VFS_DEBUG
 //==========================================================
 
-// TODO: add quota for max memory usage
-
 #ifdef KEIRA_SPIRAM_VFS_DEBUG
 #    define KSVFS_DBG if (1)
 #else
