@@ -305,7 +305,7 @@ int SPIRamVFS::fstat(int fd, struct stat* st) {
         return ERR_BYTES_COUNT;
     }
 
-    SPIRamNode* pNode = pfds[fd].pNode;
+    const SPIRamNode* pNode = pfds[fd].pNode;
 
     fillNodeStat(pNode, st);
 
