@@ -48,7 +48,7 @@ ssize_t SPIRamVFS::write(int fd, void* src, size_t size) {
     }
 
     // Adjust offset
-    if (desc.flags & O_APPEND) desc.offset = (long)pNode->fsize;
+    if (desc.flags & O_APPEND) desc.offset = static_cast<long>(pNode->fsize);
 
     size_t writeEnd = (size_t)desc.offset + size;
     size_t blocksNeeded = (writeEnd + VFS_SPIRAM_BLOCK_SIZE - 1) / VFS_SPIRAM_BLOCK_SIZE;
@@ -93,7 +93,7 @@ ssize_t SPIRamVFS::write(int fd, void* src, size_t size) {
 
     // Advance offset and fileSize
     if (writeEnd > pNode->fsize) pNode->fsize = writeEnd;
-    desc.offset = (long)pos;
+    desc.offset = static_cast<long>(pos);
 
     KSVFS_DBG printf("[SPIRamVFS] write(%d, %zu) offset=%ld fsize=%zu\n", fd, size, desc.offset, pNode->fsize);
 
@@ -113,13 +113,13 @@ off_t SPIRamVFS::lseek(int fd, off_t offset, int mode) {
 
     switch (mode) {
         case SEEK_SET:
-            newOffset = (long)offset;
+            newOffset = static_cast<long>(offset);
             break;
         case SEEK_CUR:
-            newOffset = desc.offset + (long)offset;
+            newOffset = desc.offset + static_cast<long>(offset);
             break;
         case SEEK_END:
-            newOffset = (long)desc.pNode->fsize + (long)offset;
+            newOffset = static_cast<long>(desc.pNode->fsize) + static_cast<long>(offset);
             break;
         default:
             errno = EINVAL;
@@ -132,8 +132,8 @@ off_t SPIRamVFS::lseek(int fd, off_t offset, int mode) {
     }
 
     desc.offset = newOffset;
-    KSVFS_DBG printf("[SPIRamVFS] lseek(%d, %ld, %d) -> %ld\n", fd, (long)offset, mode, newOffset);
-    return (off_t)newOffset;
+    KSVFS_DBG printf("[SPIRamVFS] lseek(%d, %ld, %d) -> %ld\n", fd, static_cast<long>(offset), mode, newOffset);
+    return static_cast<off_t>(newOffset);
 }
 //-------------------------------------------------------------------------------------- (^_^)==\~
 
@@ -186,7 +186,7 @@ ssize_t SPIRamVFS::read(int fd, void* dst, size_t size) {
         remaining -= chunk;
     }
 
-    desc.offset += (long)toRead;
+    desc.offset += static_cast<long>(toRead);
 
     // update access time
     pNode->atime = time(NULL);
@@ -262,7 +262,7 @@ int SPIRamVFS::open(const char* path, int flags, int mode) {
 
     if (!FD_ISVALID(fd)) return ERR_BYTES_COUNT;
 
-    if (flags & O_APPEND) pfds[fd].offset = (long)pNode->fsize;
+    if (flags & O_APPEND) pfds[fd].offset = static_cast<long>(pNode->fsize);
 
     return fd;
 }
@@ -320,7 +320,7 @@ int SPIRamVFS::stat(const char* path, struct stat* st) {
         return ERR_BYTES_COUNT;
     }
 
-    SPIRamNode* pNode = findNode(path);
+    const SPIRamNode* pNode = findNode(path);
     if (!pNode) {
         errno = ENOENT;
         return ERR_BYTES_COUNT;
@@ -369,7 +369,7 @@ kvfs_dir_t* SPIRamVFS::opendir(const char* name) {
     }
 
     SPIRamDir* pDir = new SPIRamDir();
-    pDir->offset = (long)pNode->pChild;
+    pDir->offset = pNode->pChild;
     pDir->pNode = pNode;
     pNode->refcount++;
 
@@ -384,13 +384,13 @@ struct dirent* SPIRamVFS::readdir(kvfs_dir_t* pdir) {
         return NULL;
     }
 
-    SPIRamDir* d = (SPIRamDir*)pdir;
-    SPIRamNode* cur = (SPIRamNode*)d->offset;
+    SPIRamDir* d = reinterpret_cast<SPIRamDir*>(pdir);
+    SPIRamNode* cur = d->offset;
 
     if (!cur) return NULL; // end of directory
 
     // advance to next
-    d->offset = (long)cur->pNext;
+    d->offset = cur->pNext;
 
     // fill dirent
     static struct dirent entry;
@@ -409,10 +409,10 @@ struct dirent* SPIRamVFS::readdir(kvfs_dir_t* pdir) {
 int SPIRamVFS::closedir(kvfs_dir_t* pdir) {
     if (!pdir) {
         errno = EINVAL;
-        return -1;
+        return ERR_BYTES_COUNT;
     }
 
-    SPIRamDir* d = (SPIRamDir*)pdir;
+    SPIRamDir* d = reinterpret_cast<SPIRamDir*>(pdir);
     SPIRamNode* pNode = d->pNode;
 
     pNode->refcount--;
@@ -427,19 +427,26 @@ int SPIRamVFS::closedir(kvfs_dir_t* pdir) {
 
 //================================================================================================
 long SPIRamVFS::telldir(kvfs_dir_t* pdir) {
-    if (!pdir) {
+    const SPIRamDir* pDir = reinterpret_cast<SPIRamDir*>(pdir);
+
+    if (!pDir) {
         errno = EINVAL;
-        return -1;
+        return ERR_BYTES_COUNT;
     }
-    return ((SPIRamDir*)pdir)->offset;
+    return reinterpret_cast<long>(pDir->offset);
 }
 //-------------------------------------------------------------------------------------- (^_^)==\~
 
 //================================================================================================
 void SPIRamVFS::seekdir(kvfs_dir_t* pdir, long offset) {
-    if (!pdir) return;
-    if (offset == 0) ((SPIRamDir*)pdir)->offset = (long)((SPIRamDir*)pdir)->pNode->pChild;
-    else ((SPIRamDir*)pdir)->offset = offset;
+    SPIRamDir* pDir = reinterpret_cast<SPIRamDir*>(pdir);
+    SPIRamNode* pNodeOffset = reinterpret_cast<SPIRamNode*>(offset);
+
+    if (!pDir) return;
+    // espidf calls seekdir(dir, 0) on rewinddir, since we use offset for other purpose, we've to
+    // workarround
+    if (!pNodeOffset) pDir->offset = pDir->pNode->pChild;
+    else pDir->offset = pNodeOffset;
 }
 //-------------------------------------------------------------------------------------- (^_^)==\~
 
@@ -447,7 +454,7 @@ void SPIRamVFS::seekdir(kvfs_dir_t* pdir, long offset) {
 int SPIRamVFS::mkdir(const char* path, mode_t mode) {
     if (!path) {
         errno = EINVAL;
-        return -1;
+        return ERR_BYTES_COUNT;
     }
 
     const char* lastSlash = strrchr(path, '/');
@@ -455,7 +462,7 @@ int SPIRamVFS::mkdir(const char* path, mode_t mode) {
 
     if (basename[0] == '\0') {
         errno = ENOENT;
-        return -1;
+        return ERR_BYTES_COUNT;
     }
 
     SPIRamNode* pParent;
@@ -467,12 +474,12 @@ int SPIRamVFS::mkdir(const char* path, mode_t mode) {
         pParent = findNode(dirBuffer);
         if (!pParent) {
             errno = ENOENT;
-            return -1;
+            return ERR_BYTES_COUNT;
         }
     }
 
-    SPIRamNode* pNode = createNode(basename, VFS_SPIRAM_DIR_MODE_DEFAULT, pParent);
-    if (!pNode) return -1; // errno set by createNode
+    const SPIRamNode* pNode = createNode(basename, VFS_SPIRAM_DIR_MODE_DEFAULT, pParent);
+    if (!pNode) return ERR_BYTES_COUNT; // errno set by createNode
 
     KSVFS_DBG printf("[SPIRamVFS] mkdir '%s'\n", path);
     return 0;
@@ -483,29 +490,29 @@ int SPIRamVFS::mkdir(const char* path, mode_t mode) {
 int SPIRamVFS::rmdir(const char* path) {
     if (!path) {
         errno = EINVAL;
-        return -1;
+        return ERR_BYTES_COUNT;
     }
 
     SPIRamNode* pNode = findNode(path);
     if (!pNode) {
         errno = ENOENT;
-        return -1;
+        return ERR_BYTES_COUNT;
     }
     if (!S_ISDIR(pNode->mode)) {
         errno = ENOTDIR;
-        return -1;
+        return ERR_BYTES_COUNT;
     }
     if (pNode == pRoot) {
         errno = EBUSY;
-        return -1;
+        return ERR_BYTES_COUNT;
     }
     if (pNode->pChild) {
         errno = ENOTEMPTY;
-        return -1;
+        return ERR_BYTES_COUNT;
     }
     if (pNode->refcount) {
         errno = EBUSY;
-        return -1;
+        return ERR_BYTES_COUNT;
     }
 
     deleteNode(pNode);
@@ -518,17 +525,17 @@ int SPIRamVFS::rmdir(const char* path) {
 int SPIRamVFS::rename(const char* src, const char* dst) {
     if (!src || !dst) {
         errno = EINVAL;
-        return -1;
+        return ERR_BYTES_COUNT;
     }
 
     SPIRamNode* pNode = findNode(src);
     if (!pNode) {
         errno = ENOENT;
-        return -1;
+        return ERR_BYTES_COUNT;
     }
     if (pNode == pRoot) {
         errno = EBUSY;
-        return -1;
+        return ERR_BYTES_COUNT;
     }
 
     // find dst parent and basename
@@ -537,7 +544,7 @@ int SPIRamVFS::rename(const char* src, const char* dst) {
 
     if (basename[0] == '\0') {
         errno = ENOENT;
-        return -1;
+        return ERR_BYTES_COUNT;
     }
 
     SPIRamNode* pDstParent;
@@ -549,7 +556,7 @@ int SPIRamVFS::rename(const char* src, const char* dst) {
         pDstParent = findNode(dirBuffer);
         if (!pDstParent) {
             errno = ENOENT;
-            return -1;
+            return ERR_BYTES_COUNT;
         }
     }
 
@@ -559,12 +566,12 @@ int SPIRamVFS::rename(const char* src, const char* dst) {
         // if dst exists and is a non-empty dir, fail
         if (S_ISDIR(pDstNode->mode) && pDstNode->pChild) {
             errno = ENOTEMPTY;
-            return -1;
+            return ERR_BYTES_COUNT;
         }
         // if types mismatch
         if (S_ISDIR(pNode->mode) != S_ISDIR(pDstNode->mode)) {
             errno = S_ISDIR(pNode->mode) ? ENOTDIR : EISDIR;
-            return -1;
+            return ERR_BYTES_COUNT;
         }
         deleteNode(pDstNode);
     }
@@ -677,13 +684,13 @@ SPIRamNode* SPIRamVFS::findNode(const char* path, SPIRamNode* pStart) {
 int SPIRamVFS::access(const char* path, int amode) {
     if (!path) {
         errno = EINVAL;
-        return -1;
+        return ERR_BYTES_COUNT;
     }
 
-    SPIRamNode* pNode = findNode(path);
+    const SPIRamNode* pNode = findNode(path);
     if (!pNode) {
         errno = ENOENT;
-        return -1;
+        return ERR_BYTES_COUNT;
     }
 
     // F_OK — just check existence, already done above
@@ -694,15 +701,15 @@ int SPIRamVFS::access(const char* path, int amode) {
 
     if ((amode & R_OK) && !(m & S_IRUSR)) {
         errno = EACCES;
-        return -1;
+        return ERR_BYTES_COUNT;
     }
     if ((amode & W_OK) && !(m & S_IWUSR)) {
         errno = EACCES;
-        return -1;
+        return ERR_BYTES_COUNT;
     }
     if ((amode & X_OK) && !(m & S_IXUSR)) {
         errno = EACCES;
-        return -1;
+        return ERR_BYTES_COUNT;
     }
 
     return 0;
@@ -761,7 +768,7 @@ SPIRamNode* SPIRamVFS::createNode(const char* name, mode_t mode, SPIRamNode* pPa
 void SPIRamVFS::fillNodeStat(const SPIRamNode* pNode, struct stat* st) {
     memset(st, 0, sizeof(*st));
     st->st_mode = pNode->mode;
-    st->st_size = (off_t)pNode->fsize;
+    st->st_size = static_cast<off_t>(pNode->fsize);
     st->st_atime = pNode->atime;
     st->st_mtime = pNode->mtime;
     st->st_ctime = pNode->ctime;
@@ -813,7 +820,7 @@ int SPIRamVFS::allocfd(SPIRamNode* pNode, int flags) {
         }
     }
     errno = EMFILE;
-    return -1;
+    return ERR_BYTES_COUNT;
 }
 //-------------------------------------------------------------------------------------- (^_^)==\~
 

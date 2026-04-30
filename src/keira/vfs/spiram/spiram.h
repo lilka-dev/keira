@@ -187,8 +187,9 @@ typedef struct {
     SPIRamNode* pNode;
     //------------------------------------------------------
     // current position for telldir/seekdir
+    // Practically that's a pointer to pNode->pChild
     //------------------------------------------------------
-    long offset;
+    SPIRamNode* offset;
 } SPIRamDir;
 //------------------------------------------------ (^_^)==\~
 
