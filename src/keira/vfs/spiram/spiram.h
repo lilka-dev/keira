@@ -22,8 +22,11 @@
 //==========================================================
 // Uncomment this line to get debug information
 //==========================================================
-#define KEIRA_SPIRAM_VFS_DEBUG
+// #define KEIRA_SPIRAM_VFS_DEBUG
 //==========================================================
+
+// TODO: add quota for max memory usage
+
 #ifdef KEIRA_SPIRAM_VFS_DEBUG
 #    define KSVFS_DBG if (1)
 #else
@@ -52,6 +55,12 @@
 #    define VFS_SPIRAM_BLOCK_SIZE 512
 #endif
 //==========================================================
+// Amount of space in spiram reserved for other purposes
+//==========================================================
+#ifndef VFS_SPIRAM_RESERVED_SPACE
+#    define VFS_SPIRAM_RESERVED_SPACE 1 * 1024 * 1024 // 1MB
+#endif
+//==========================================================
 // Crypto algorithm used for fast node search
 //==========================================================
 #define VFS_SPIRAM_HASH_INITAL                         FNV_1A_INITIAL_HVAL
@@ -72,9 +81,6 @@ typedef struct {
     uint8_t data[VFS_SPIRAM_BLOCK_SIZE];
 } SPIRamFileBlock;
 //------------------------------------------------ (^_^)==\~
-
-// TODO: reuse someting for that
-typedef enum { SPIRAM_DIR, SPIRAM_FILE } SPIRamNodeType;
 
 //==========================================================
 // File node on a filesystem
@@ -194,26 +200,26 @@ private:
     //======================================================
     // FAPI implementation [ # > man 2 <method_name> ]
     //======================================================
-    ssize_t write(int fd, void* src, size_t size) override; // ok
+    ssize_t write(int fd, void* src, size_t size) override;
     //------------------------------------------------------
-    off_t lseek(int fd, off_t offset, int mode) override; // ok
-    //------------------------------------------------------   // ok
-    ssize_t read(int fd, void* dst, size_t size) override; //ok
+    off_t lseek(int fd, off_t offset, int mode) override;
     //------------------------------------------------------
-    int open(const char* path, int flags, int mode) override; //ok
+    ssize_t read(int fd, void* dst, size_t size) override;
     //------------------------------------------------------
-    int close(int fd) override; // ok
+    int open(const char* path, int flags, int mode) override;
     //------------------------------------------------------
-    int fstat(int fd, struct stat* st) override; // ok
+    int close(int fd) override;
+    //------------------------------------------------------
+    int fstat(int fd, struct stat* st) override;
     //------------------------------------------------------
 #ifdef CONFIG_VFS_SUPPORT_DIR
-    int stat(const char* path, struct stat* st) override; // ok
+    int stat(const char* path, struct stat* st) override;
     //------------------------------------------------------
-    int unlink(const char* path) override; // ok
+    int unlink(const char* path) override;
     //------------------------------------------------------
     int rename(const char* src, const char* dst) override;
     //------------------------------------------------------
-    kvfs_dir_t* opendir(const char* name) override; // ok
+    kvfs_dir_t* opendir(const char* name) override;
     //------------------------------------------------------
     struct dirent* readdir(kvfs_dir_t* pdir) override;
     //------------------------------------------------------
@@ -236,7 +242,7 @@ private:
     //======================================================
     // Seeks node in a tree by given @path
     //------------------------------------------------------
-    SPIRamNode* findNode(const char* path, SPIRamNode* pStart = NULL); // ok
+    SPIRamNode* findNode(const char* path, SPIRamNode* pStart = NULL);
     //------------------------------------------------------
     // Creates node and attaches it to a directory tree
     //------------------------------------------------------
@@ -256,8 +262,18 @@ private:
     //======================================================
     // Allocating file descriptor associated with node
     //------------------------------------------------------
-    int allocfd(SPIRamNode* pNode, int flags); // ok
-
+    int allocfd(SPIRamNode* pNode, int flags);
+    //======================================================
+    // Misc helper routines
+    //======================================================
+    // Helper used to calculate node hash from full path, or part of it
+    //------------------------------------------------------
+    static uint32_t spiram_vfs_hash(const char* rpath, uint32_t parentHash = VFS_SPIRAM_HASH_INITAL);
+    //======================================================
+    // Special memory allocator working with quota
+    //------------------------------------------------------
+    static void* spiram_vfs_mem_alloc(size_t size);
+    //------------------------------------------- (^_^)==\~~
     //======================================================
     // Storage
     //======================================================
@@ -276,7 +292,7 @@ private:
     SPIRamFileDescriptor pfds[VFS_SPIRAM_MAX_FD];
     //------------------------------------------- (^_^)==\~~
     //======================================================
-    // static buffer for path manipulations [findNode()]
+    // static buffers for path manipulations
     //======================================================
     // used in open()
     char dirBuffer[PATH_MAX];
@@ -285,7 +301,7 @@ private:
     //------------------------------------------- (^_^)==\~~
 
 public:
-    explicit SPIRamVFS(const char* mountPoint); // ok
+    explicit SPIRamVFS(const char* mountPoint);
     ~SPIRamVFS();
 };
 //------------------------------------------------ (^_^)==\~

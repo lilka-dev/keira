@@ -27,37 +27,6 @@
 //-------------------------------------------------------------------------------------- (^_^)==\~
 
 //================================================================================================
-// Helper used to calculate node hash from full path, or part of it
-//================================================================================================
-static uint32_t nodeNameHash(const char* rpath, uint32_t parentHash = VFS_SPIRAM_HASH_INITAL) {
-    uint32_t hash = parentHash;
-
-    while (*rpath) {
-        // skip begining slashes
-        while (*rpath == '/')
-            ++rpath;
-
-        if (*rpath == '\0') break;
-
-        const char* start = rpath;
-
-        // find component end
-        while (*rpath && *rpath != '/')
-            ++rpath;
-
-        size_t len = (size_t)(rpath - start);
-
-        hash = VFS_SPIRAM_NAME_HASH(start, len, hash);
-
-        // Append separator for both file and dir, cause, it doesn't actually matter
-        hash = VFS_SPIRAM_NAME_HASH("/", 1, hash);
-    }
-
-    return hash;
-}
-//-------------------------------------------------------------------------------------- (^_^)==\~
-
-//================================================================================================
 ssize_t SPIRamVFS::write(int fd, void* src, size_t size) {
     // Do the harlem check
     if (!(FD_ISVALID(fd) && FD_ISWRITABLE(fd))) {
@@ -86,9 +55,7 @@ ssize_t SPIRamVFS::write(int fd, void* src, size_t size) {
 
     // allocate new file blocks if needed
     while (pNode->blocks.size() < blocksNeeded) {
-        SPIRamFileBlock* pBlock = static_cast<SPIRamFileBlock*>(
-            heap_caps_malloc(sizeof(SPIRamFileBlock), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT)
-        );
+        SPIRamFileBlock* pBlock = static_cast<SPIRamFileBlock*>(spiram_vfs_mem_alloc(sizeof(SPIRamFileBlock)));
         // Ensure we still have memory
         if (!pBlock) {
             errno = ENOMEM;
@@ -229,6 +196,8 @@ ssize_t SPIRamVFS::read(int fd, void* dst, size_t size) {
     return (ssize_t)toRead;
 }
 //-------------------------------------------------------------------------------------- (^_^)==\~
+
+//================================================================================================
 int SPIRamVFS::open(const char* path, int flags, int mode) {
     if (!path) {
         errno = EINVAL;
@@ -297,6 +266,7 @@ int SPIRamVFS::open(const char* path, int flags, int mode) {
 
     return fd;
 }
+//-------------------------------------------------------------------------------------- (^_^)==\~
 
 //================================================================================================
 int SPIRamVFS::close(int fd) {
@@ -613,7 +583,7 @@ int SPIRamVFS::rename(const char* src, const char* dst) {
     // reattach to dst parent
     strncpy(pNode->name, basename, VFS_SPIRAM_NAME_MAX - 1);
     pNode->name[VFS_SPIRAM_NAME_MAX - 1] = '\0';
-    pNode->nhash = nodeNameHash(basename, pDstParent->nhash);
+    pNode->nhash = spiram_vfs_hash(basename, pDstParent->nhash);
     pNode->pParent = pDstParent;
     pNode->pNext = pDstParent->pChild;
     pDstParent->pChild = pNode;
@@ -677,7 +647,7 @@ SPIRamNode* SPIRamVFS::findNode(const char* path, SPIRamNode* pStart) {
         }
 
         // calculate hash for current path
-        uint32_t curHash = nodeNameHash(token, pNode->nhash);
+        uint32_t curHash = spiram_vfs_hash(token, pNode->nhash);
 
         SPIRamNode* pChild = pNode->pChild;
         pNode = NULL;
@@ -756,7 +726,7 @@ SPIRamNode* SPIRamVFS::createNode(const char* name, mode_t mode, SPIRamNode* pPa
         return NULL;
     }
 
-    uint32_t nHash = nodeNameHash(name, pParent->nhash);
+    uint32_t nHash = spiram_vfs_hash(name, pParent->nhash);
 
     // Check node existence
     SPIRamNode* scan = pParent->pChild;
@@ -844,6 +814,43 @@ int SPIRamVFS::allocfd(SPIRamNode* pNode, int flags) {
     }
     errno = EMFILE;
     return -1;
+}
+//-------------------------------------------------------------------------------------- (^_^)==\~
+
+//================================================================================================
+void* SPIRamVFS::spiram_vfs_mem_alloc(size_t size) {
+    uint32_t caps = MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT;
+    if (heap_caps_get_free_size(caps) > VFS_SPIRAM_RESERVED_SPACE) return heap_caps_malloc(size, caps);
+    else return NULL;
+}
+//-------------------------------------------------------------------------------------- (^_^)==\~
+
+//================================================================================================
+uint32_t SPIRamVFS::spiram_vfs_hash(const char* rpath, uint32_t parentHash) {
+    uint32_t hash = parentHash;
+
+    while (*rpath) {
+        // skip begining slashes
+        while (*rpath == '/')
+            ++rpath;
+
+        if (*rpath == '\0') break;
+
+        const char* start = rpath;
+
+        // find component end
+        while (*rpath && *rpath != '/')
+            ++rpath;
+
+        size_t len = (size_t)(rpath - start);
+
+        hash = VFS_SPIRAM_NAME_HASH(start, len, hash);
+
+        // Append separator for both file and dir, cause, it doesn't actually matter
+        hash = VFS_SPIRAM_NAME_HASH("/", 1, hash);
+    }
+
+    return hash;
 }
 //-------------------------------------------------------------------------------------- (^_^)==\~
 
