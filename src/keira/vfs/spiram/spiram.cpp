@@ -81,7 +81,7 @@ ssize_t SPIRamVFS::write(int fd, void* src, size_t size) {
         size_t chunk = VFS_SPIRAM_BLOCK_SIZE - byteIdx;
         if (chunk > remaining) chunk = remaining;
 
-        memcpy(&pNode->blocks[blockIdx]->data[byteIdx], (const uint8_t*)src + srcOff, chunk);
+        memcpy(&pNode->blocks[blockIdx]->data[byteIdx], reinterpret_cast<const uint8_t*>(src) + srcOff, chunk);
 
         pos += chunk;
         srcOff += chunk;
@@ -179,7 +179,7 @@ ssize_t SPIRamVFS::read(int fd, void* dst, size_t size) {
         size_t chunk = VFS_SPIRAM_BLOCK_SIZE - byteIdx;
         if (chunk > remaining) chunk = remaining;
 
-        memcpy((uint8_t*)dst + dstOff, &pNode->blocks[blockIdx]->data[byteIdx], chunk);
+        memcpy(reinterpret_cast<uint8_t*>(dst) + dstOff, &pNode->blocks[blockIdx]->data[byteIdx], chunk);
 
         pos += chunk;
         dstOff += chunk;

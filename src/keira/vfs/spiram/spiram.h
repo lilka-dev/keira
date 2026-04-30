@@ -296,9 +296,9 @@ private:
     // static buffers for path manipulations
     //======================================================
     // used in open()
-    char dirBuffer[PATH_MAX];
+    char dirBuffer[PATH_MAX] = {};
     // used in findNode()
-    char buffToken[VFS_SPIRAM_NAME_MAX];
+    char buffToken[VFS_SPIRAM_NAME_MAX] = {};
     //------------------------------------------- (^_^)==\~~
 
 public:
