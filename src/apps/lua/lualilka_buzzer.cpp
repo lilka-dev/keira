@@ -1,6 +1,7 @@
 #include <csetjmp>
 
 #include "lualilka_buzzer.h"
+#include "keira/keira.h"
 
 extern jmp_buf stopjmp;
 
@@ -8,7 +9,7 @@ int lualilka_buzzer_play(lua_State* L) {
     // Takes 1 or 2 args: frequency or frequency and duration
     int n = lua_gettop(L);
     if (n < 1 || n > 2) {
-        return luaL_error(L, "Очікується 1 або 2 аргументи, отримано %d", n);
+        return luaL_error(L, K_S_LUA_BUZZER_ARGS_1_OR_2_FMT, n);
     }
     int freq = luaL_checkinteger(L, 1);
     if (n == 1) {
@@ -25,7 +26,7 @@ int lualilka_buzzer_playMelody(lua_State* L) {
     // Convert them to array of arrays
     int n = lua_gettop(L);
     if (n != 2) {
-        return luaL_error(L, "Очікується 2 аргументи, отримано %d", n);
+        return luaL_error(L, K_S_LUA_BUZZER_ARGS_2_FMT, n);
     }
     luaL_checktype(L, 1, LUA_TTABLE);
     luaL_checktype(L, 2, LUA_TNUMBER);

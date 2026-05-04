@@ -1,4 +1,5 @@
 #include "lualilka_display.h"
+#include "keira/keira.h"
 #include "keira/app.h"
 #include "lualilka_imageTransform.h"
 
@@ -57,7 +58,7 @@ int lualilka_display_setFont(lua_State* L) {
             return 0;
         }
     }
-    return luaL_error(L, "Невідомий шрифт - %s", fontName);
+    return luaL_error(L, K_S_LUA_DISPLAY_UNKNOWN_FONT_FMT, fontName);
 }
 
 int lualilka_display_setTextSize(lua_State* L) {
@@ -243,7 +244,7 @@ int lualilka_display_drawImage(lua_State* L) {
 
     // TODO: Check if crap ain't broken since the user may pass anything here and this often causes core panic
     if (!lua_islightuserdata(L, -1)) {
-        return luaL_error(L, "Некоректне зображення");
+        return luaL_error(L, K_S_LUA_DISPLAY_INVALID_IMAGE);
     }
 
     lilka::Image* image = (lilka::Image*)lua_touserdata(L, -1);
@@ -273,7 +274,7 @@ int lualilka_display_drawImageTransformed(lua_State* L) {
     // Check if value is a valid pointer
     if (!lua_islightuserdata(L, -1)) {
         lua_pop(L, 1); // Pop the invalid value
-        return luaL_error(L, "Invalid image pointer");
+        return luaL_error(L, K_S_LUA_DISPLAY_INVALID_IMAGE);
     }
 
     lilka::Image* image = static_cast<lilka::Image*>(lua_touserdata(L, -1));
