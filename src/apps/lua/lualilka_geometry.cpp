@@ -1,9 +1,10 @@
 #include "lualilka_geometry.h"
+#include "keira/keira.h"
 
 int lualilka_geometry_intersectLines(lua_State* L) {
     int n = lua_gettop(L);
     if (n != 8) {
-        return luaL_error(L, "Очікується 8 аргументів, отримано %d", n);
+        return luaL_error(L, K_S_LUA_GEOMETRY_ARGS_8_FMT, n);
     }
 
     float ax = luaL_checknumber(L, 1);
@@ -37,7 +38,7 @@ int lualilka_geometry_intersectLines(lua_State* L) {
 int lualilka_geometry_intersectAABB(lua_State* L) {
     int n = lua_gettop(L);
     if (n != 8) {
-        return luaL_error(L, "Очікується 8 аргументів, отримано %d", n);
+        return luaL_error(L, K_S_LUA_GEOMETRY_ARGS_8_FMT, n);
     }
 
     float ax = luaL_checknumber(L, 1);

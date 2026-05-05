@@ -5,12 +5,13 @@
 #include "WiFi.h"
 #include "lualilka_wifi.h"
 #include <lilka.h>
+#include "keira/keira.h"
 
 int lualilka_wifi_connect(lua_State* L) {
     int n = lua_gettop(L);
 
     if (n != 2) {
-        return luaL_error(L, "Очікується 2 аргументи, отримано %d", n);
+        return luaL_error(L, K_S_LUA_WIFI_ARGS_2_FMT, n);
     }
 
     const char* ssid = lua_tostring(L, 1);
@@ -45,7 +46,7 @@ int lualilka_wifi_scan_networks(lua_State* L) {
 int lualilka_wifi_get_rssi(lua_State* L) {
     int n = lua_gettop(L);
     if (n != 1) {
-        return luaL_error(L, "Очікується 1 аргументи, отримано %d", n);
+        return luaL_error(L, K_S_LUA_WIFI_ARGS_1_FMT, n);
     }
 
     int wifiAccessPoint = lua_tointeger(L, 1) - 1; /* In lua indices start at 1 */
@@ -58,7 +59,7 @@ int lualilka_wifi_get_rssi(lua_State* L) {
 int lualilka_wifi_get_encryption_type(lua_State* L) {
     int n = lua_gettop(L);
     if (n != 1) {
-        return luaL_error(L, "Очікується 1 аргументи, отримано %d", n);
+        return luaL_error(L, K_S_LUA_WIFI_ARGS_1_FMT, n);
     }
 
     int wifiAccessPoint = lua_tointeger(L, 1) - 1; /* In lua indices start at 1 */
@@ -99,7 +100,7 @@ int lualilka_wifi_get_ip(lua_State* L) {
 int lualilka_wifi_set_config(lua_State* L) {
     int n = lua_gettop(L);
     if (n != 5) {
-        return luaL_error(L, "Очікується 5 аргументів, отримано %d", n);
+        return luaL_error(L, K_S_LUA_WIFI_ARGS_5_FMT, n);
     }
     IPAddress ip, gateway, subnet, dns1, dns2;
 
