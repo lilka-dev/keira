@@ -18,10 +18,5 @@ private:
     void run() override;
     void onExit() override;
 
-    /// Register Keira API symbols for the loaded app
-    void registerAppSymbols();
-    /// Unregister Keira API symbols
-    void unregisterAppSymbols();
-
     String filePath;
 };
