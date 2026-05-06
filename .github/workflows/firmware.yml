@@ -121,6 +121,7 @@ jobs:
           files: out/*.bin
 
   github-releases-to-discord:
+    needs: keira
     runs-on: ubuntu-latest
     if: github.event_name == 'release'
     steps:
@@ -133,7 +134,6 @@ jobs:
           color: "2105893"
           username: "Release Changelog KeiraOS"
           avatar_url: "https://avatars.githubusercontent.com/u/213694258?s=48&v=4"
-          content: "||@everyone||"
           footer_title: "Changelog"
           footer_icon_url: "https://avatars.githubusercontent.com/u/213694258?s=48&v=4"
           footer_timestamp: true
