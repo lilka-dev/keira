@@ -1,4 +1,6 @@
 #include <HTTPClient.h>
+#include <WiFiClientSecure.h>
+#include <WiFiClient.h>
 #include "lualilka_http.h"
 
 #define STR_HELPER(x) #x
@@ -47,12 +49,20 @@ static int lualilka_http_execute(lua_State* L) {
         }
     }
 
-    WiFiClientSecure client;
-    client.setInsecure();
+    bool isHttps = url != nullptr && strncmp(url, "https://", 8) == 0;
 
     HTTPClient http;
     http.setUserAgent(defaultUserAgent);
-    http.begin(client, url);
+
+    WiFiClientSecure secureClient;
+    WiFiClient plainClient;
+
+    if (isHttps) {
+        secureClient.setInsecure();
+        http.begin(secureClient, url);
+    } else {
+        http.begin(plainClient, url);
+    }
 
     int statusCode;
     if (body == nullptr) {
