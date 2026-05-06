@@ -74,6 +74,7 @@ typedef struct {
 typedef enum {
     LILCATALOG_MAIN_MENU, // Main menu with options
     LILCATALOG_LIST, // Single-item view with left/right scroll
+    LILCATALOG_INSTALLED_LIST, // Scrollable list of installed apps
     LILCATALOG_ENTRY, // Entry details menu
     LILCATALOG_DESCRIPTION // Full description view
 } LilCatalogState;
@@ -84,6 +85,7 @@ public:
 
 private:
     LilCatalogState state = LILCATALOG_LIST;
+    LilCatalogState entryReturnState = LILCATALOG_LIST; // State to return to from LILCATALOG_ENTRY
 
     String path_catalog_folder;
 
@@ -111,6 +113,7 @@ private:
 
     // Menus
     lilka::Menu mainMenu;
+    lilka::Menu installedMenu;
     lilka::Menu entryMenu;
 
     // Network methods
@@ -166,6 +169,7 @@ private:
     void drawAppView();
     void drawLoadingAnimation();
     void handleInput();
+    void showInstalledMenu();
     void showEntry();
     void showDescription();
     void drawDescription();

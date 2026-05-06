@@ -1,6 +1,7 @@
 #include <ff.h>
 #include <FS.h>
 #include <qrcode.h>
+#include "keira/utils/json.h"
 #include "keira/keira.h"
 #include "launcher.h"
 #include "keira/appmanager.h"
@@ -78,49 +79,49 @@ void LauncherApp::run() {
         lilka::controller.setAutoRepeat(button, 10, 300);
     }
 
+    ITEM_LIST appsItems = {
+        ITEM::SUBMENU(
+            K_S_LAUNCHER_DEMOS,
+            {
+                ITEM::APP(K_S_LAUNCHER_LINES, [this]() { this->runApp<DemoLines>(); }),
+                ITEM::APP(K_S_LAUNCHER_DISK, [this]() { this->runApp<DiskApp>(); }),
+                ITEM::APP(K_S_LAUNCHER_TRANSFORM, [this]() { this->runApp<TransformApp>(); }),
+                ITEM::APP(K_S_LAUNCHER_BALL, [this]() { this->runApp<BallApp>(); }),
+                ITEM::APP(K_S_LAUNCHER_CUBE, [this]() { this->runApp<CubeApp>(); }),
+                ITEM::APP(K_S_LAUNCHER_EPILEPSY, [this]() { this->runApp<EpilepsyApp>(); }),
+                ITEM::APP(K_S_LAUNCHER_PET_PET, [this]() { this->runApp<PetPetApp>(); }),
+            },
+            &app_group_img,
+            lilka::colors::White
+        ),
+        ITEM::SUBMENU(
+            K_S_LAUNCHER_TESTS,
+            {
+                ITEM::APP(K_S_LAUNCHER_KEYBOARD, [this]() { this->runApp<KeyboardApp>(); }),
+                ITEM::APP(K_S_LAUNCHER_SPI_TEST, [this]() { this->runApp<UserSPIApp>(); }),
+                ITEM::APP(K_S_LAUNCHER_I2C_SCANNER, [this]() { this->runApp<ScanI2CApp>(); }),
+                ITEM::APP(K_S_LAUNCHER_COMBO, [this]() { this->runApp<ComboApp>(); }),
+                ITEM::APP(K_S_LAUNCHER_CALLBACK_TEST, [this]() { this->runApp<CallBackTestApp>(); }),
+            },
+            &app_group_img,
+            lilka::colors::White
+        ),
+        ITEM::APP(K_S_LAUNCHER_LILCATALOG, [this]() { this->runApp<LilCatalogApp>(); }),
+        ITEM::APP(K_S_LAUNCHER_LILTRACKER, [this]() { this->runApp<LilTrackerApp>(); }),
+        ITEM::APP(K_S_LAUNCHER_LETRIS, [this]() { this->runApp<LetrisApp>(); }),
+        ITEM::APP(K_S_LAUNCHER_TAMAGOTCHI, [this]() { this->runApp<TamagotchiApp>(); }),
+        ITEM::APP(K_S_LAUNCHER_WEATHER, [this]() { this->runApp<WeatherApp>(); }),
+        ITEM::APP(K_S_LAUNCHER_PASTEBIN, [this]() { this->runApp<pastebinApp>(); }),
+        ITEM::APP(K_S_LAUNCHER_GPIO_MANAGER, [this]() { this->runApp<GPIOManagerApp>(); }),
+    };
+    for (auto& item : loadCatalogItems()) {
+        appsItems.push_back(std::move(item));
+    }
+
     item_t root_item = ITEM::SUBMENU(
         K_S_LAUNCHER_MAIN_MENU,
         {
-            ITEM::SUBMENU(
-                K_S_LAUNCHER_APPS,
-                {
-                    ITEM::SUBMENU(
-                        K_S_LAUNCHER_DEMOS,
-                        {
-                            ITEM::APP(K_S_LAUNCHER_LINES, [this]() { this->runApp<DemoLines>(); }),
-                            ITEM::APP(K_S_LAUNCHER_DISK, [this]() { this->runApp<DiskApp>(); }),
-                            ITEM::APP(K_S_LAUNCHER_TRANSFORM, [this]() { this->runApp<TransformApp>(); }),
-                            ITEM::APP(K_S_LAUNCHER_BALL, [this]() { this->runApp<BallApp>(); }),
-                            ITEM::APP(K_S_LAUNCHER_CUBE, [this]() { this->runApp<CubeApp>(); }),
-                            ITEM::APP(K_S_LAUNCHER_EPILEPSY, [this]() { this->runApp<EpilepsyApp>(); }),
-                            ITEM::APP(K_S_LAUNCHER_PET_PET, [this]() { this->runApp<PetPetApp>(); }),
-                        },
-                        &app_group_img,
-                        lilka::colors::White
-                    ),
-                    ITEM::SUBMENU(
-                        K_S_LAUNCHER_TESTS,
-                        {
-                            ITEM::APP(K_S_LAUNCHER_KEYBOARD, [this]() { this->runApp<KeyboardApp>(); }),
-                            ITEM::APP(K_S_LAUNCHER_SPI_TEST, [this]() { this->runApp<UserSPIApp>(); }),
-                            ITEM::APP(K_S_LAUNCHER_I2C_SCANNER, [this]() { this->runApp<ScanI2CApp>(); }),
-                            ITEM::APP(K_S_LAUNCHER_COMBO, [this]() { this->runApp<ComboApp>(); }),
-                            ITEM::APP(K_S_LAUNCHER_CALLBACK_TEST, [this]() { this->runApp<CallBackTestApp>(); }),
-                        },
-                        &app_group_img,
-                        lilka::colors::White
-                    ),
-                    ITEM::APP(K_S_LAUNCHER_LILCATALOG, [this]() { this->runApp<LilCatalogApp>(); }),
-                    ITEM::APP(K_S_LAUNCHER_LILTRACKER, [this]() { this->runApp<LilTrackerApp>(); }),
-                    ITEM::APP(K_S_LAUNCHER_LETRIS, [this]() { this->runApp<LetrisApp>(); }),
-                    ITEM::APP(K_S_LAUNCHER_TAMAGOTCHI, [this]() { this->runApp<TamagotchiApp>(); }),
-                    ITEM::APP(K_S_LAUNCHER_WEATHER, [this]() { this->runApp<WeatherApp>(); }),
-                    ITEM::APP(K_S_LAUNCHER_PASTEBIN, [this]() { this->runApp<pastebinApp>(); }),
-                    ITEM::APP(K_S_LAUNCHER_GPIO_MANAGER, [this]() { this->runApp<GPIOManagerApp>(); }),
-                },
-                &demos_img,
-                lilka::colors::Pink
-            ),
+            ITEM::SUBMENU(K_S_LAUNCHER_APPS, appsItems, &demos_img, lilka::colors::Pink),
             ITEM::APP(
                 K_S_LAUNCHER_FMANAGER,
                 [this]() { this->runApp<FileManagerApp>("/"); },
@@ -470,6 +471,136 @@ template <typename T, typename... Args>
 void LauncherApp::runApp(Args&&... args) {
     ksystem.apps.spawn(new T(std::forward<Args>(args)...));
 }
+
+ITEM_LIST LauncherApp::loadCatalogItems() {
+    struct ScanEntry {
+        String name;
+        String execPath;
+        ExecutionType type;
+    };
+    std::vector<ScanEntry> scanned;
+
+    DIR* dir = opendir("/sd/lilcatalog/manifests");
+    if (!dir) {
+        return {};
+    }
+
+    const struct dirent* de;
+    while ((de = readdir(dir)) != nullptr) {
+        String filename = de->d_name;
+        if (!filename.endsWith(".json")) {
+            continue;
+        }
+
+        String entryId = filename.substring(0, filename.length() - 5);
+        String manifestPath = "/sd/lilcatalog/manifests/" + filename;
+
+        FILE* f = fopen(manifestPath.c_str(), "r");
+        if (!f) {
+            continue;
+        }
+
+        fseek(f, 0, SEEK_END);
+        long fileSize = ftell(f);
+        fseek(f, 0, SEEK_SET);
+
+        if (fileSize <= 0 || fileSize > 8192) {
+            fclose(f);
+            continue;
+        }
+
+        String json;
+        char buf[256];
+        size_t n;
+        while ((n = fread(buf, 1, sizeof(buf) - 1, f)) > 0) {
+            buf[n] = '\0';
+            json += buf;
+        }
+        fclose(f);
+
+        JsonDocument doc(&spiRamAllocator);
+        if (deserializeJson(doc, json)) {
+            continue;
+        }
+
+        String name = doc["name"].as<String>();
+        if (name.isEmpty()) {
+            continue;
+        }
+
+        String execTypeStr;
+        String execLocation;
+        if (doc.containsKey("entryfile")) {
+            execTypeStr = doc["entryfile"]["type"].as<String>();
+            execLocation = doc["entryfile"]["location"].as<String>();
+        }
+        if (execLocation.isEmpty()) {
+            continue;
+        }
+
+        String execPath = "/sd/lilcatalog/" + entryId + "/" + execLocation;
+        FILE* execCheck = fopen(execPath.c_str(), "r");
+        if (!execCheck) {
+            continue;
+        }
+        fclose(execCheck);
+
+        ExecutionType execType = EXEC_TYPE_UNKNOWN;
+        if (execTypeStr == "lua") {
+            execType = EXEC_TYPE_LUA;
+        } else if (execTypeStr == "binary") {
+            execType = EXEC_TYPE_BINARY;
+        } else if (execTypeStr == "dynapp" || execTypeStr == "so") {
+            execType = EXEC_TYPE_DYNAPP;
+        } else {
+            String loc = execLocation;
+            loc.toLowerCase();
+            if (loc.endsWith(".lua")) execType = EXEC_TYPE_LUA;
+            else if (loc.endsWith(".bin")) execType = EXEC_TYPE_BINARY;
+            else if (loc.endsWith(".so")) execType = EXEC_TYPE_DYNAPP;
+        }
+
+        if (execType == EXEC_TYPE_UNKNOWN) {
+            continue;
+        }
+
+        scanned.push_back({name, execPath, execType});
+    }
+    closedir(dir);
+
+    ITEM_LIST items;
+    catalogItemNames_.reserve(scanned.size());
+    for (auto& e : scanned) {
+        catalogItemNames_.push_back(e.name);
+        const char* nameCStr = catalogItemNames_.back().c_str();
+        String execPath = e.execPath;
+        ExecutionType execType = e.type;
+        items.push_back(
+            ITEM::APP(
+                nameCStr,
+                [this, execPath, execType]() {
+                    switch (execType) {
+                        case EXEC_TYPE_LUA:
+                            ksystem.apps.spawn(new LuaFileRunnerApp(execPath));
+                            break;
+                        case EXEC_TYPE_BINARY:
+                            ksystem.apps.spawn(new MultiBootApp(execPath));
+                            break;
+                        case EXEC_TYPE_DYNAPP:
+                            ksystem.apps.spawn(new DynApp(execPath));
+                            break;
+                        default:
+                            break;
+                    }
+                },
+                nullptr,
+                lilka::colors::Aquamarine
+            )
+        );
+    }
+    return items;
+}
+
 void LauncherApp::setWiFiTxPower() {
     String names[] = {
         "19.5 dBm", "19 dBm", "18.5 dBm", "17 dBm", "15 dBm", "13 dBm", "11 dBm", "8.5 dBm", "7 dBm", "2 dBm", "-1 dBm"
