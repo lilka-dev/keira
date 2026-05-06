@@ -74,38 +74,22 @@
 #define D                       !!(flags & FLAG_D)
 #define I                       !!(flags & FLAG_I)
 
-#define SET_C()          \
-    {                    \
-        flags |= FLAG_C; \
-    }
-#define CLEAR_C()         \
-    {                     \
-        flags &= ~FLAG_C; \
-    }
-#define SET_Z()          \
-    {                    \
-        flags |= FLAG_Z; \
-    }
-#define CLEAR_Z()         \
-    {                     \
-        flags &= ~FLAG_Z; \
-    }
-#define SET_D()          \
-    {                    \
-        flags |= FLAG_D; \
-    }
-#define CLEAR_D()         \
-    {                     \
-        flags &= ~FLAG_D; \
-    }
-#define SET_I()          \
-    {                    \
-        flags |= FLAG_I; \
-    }
-#define CLEAR_I()         \
-    {                     \
-        flags &= ~FLAG_I; \
-    }
+#define SET_C() \
+    { flags |= FLAG_C; }
+#define CLEAR_C() \
+    { flags &= ~FLAG_C; }
+#define SET_Z() \
+    { flags |= FLAG_Z; }
+#define CLEAR_Z() \
+    { flags &= ~FLAG_Z; }
+#define SET_D() \
+    { flags |= FLAG_D; }
+#define CLEAR_D() \
+    { flags &= ~FLAG_D; }
+#define SET_I() \
+    { flags |= FLAG_I; }
+#define CLEAR_I() \
+    { flags &= ~FLAG_I; }
 
 #define REG_CLK_INT_FACTOR_FLAGS     0xF00
 #define REG_SW_INT_FACTOR_FLAGS      0xF01

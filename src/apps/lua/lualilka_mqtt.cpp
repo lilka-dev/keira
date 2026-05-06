@@ -7,8 +7,8 @@
 #include <cstring>
 #include <cstdlib>
 
-#define MQTT_MT              "lualilka_mqtt_client"
-#define MQTT_QUEUE_CAPACITY  16
+#define MQTT_MT             "lualilka_mqtt_client"
+#define MQTT_QUEUE_CAPACITY 16
 
 struct MqttMsg {
     char* topic;
@@ -30,11 +30,9 @@ static void mqtt_drain_queue(LuaMqttClient* ctx) {
     }
 }
 
-static void mqtt_event_cb(
-    void* arg, esp_event_base_t /*base*/, int32_t event_id, void* event_data
-) {
-    LuaMqttClient* ctx = (LuaMqttClient*)arg;
-    esp_mqtt_event_handle_t event = (esp_mqtt_event_handle_t)event_data;
+static void mqtt_event_cb(void* arg, esp_event_base_t /*base*/, int32_t event_id, void* event_data) {
+    LuaMqttClient* ctx = static_cast<LuaMqttClient*>(arg);
+    esp_mqtt_event_handle_t event = static_cast<esp_mqtt_event_handle_t>(event_data);
 
     switch ((esp_mqtt_event_id_t)event_id) {
         case MQTT_EVENT_CONNECTED:
@@ -49,14 +47,14 @@ static void mqtt_event_cb(
             if (!event->topic || event->topic_len <= 0) break;
 
             MqttMsg msg = {};
-            msg.topic = (char*)malloc((size_t)event->topic_len + 1);
+            msg.topic = static_cast<char*>(malloc((size_t)event->topic_len + 1));
             if (!msg.topic) break;
             memcpy(msg.topic, event->topic, (size_t)event->topic_len);
             msg.topic[event->topic_len] = '\0';
 
             msg.payload_len = event->data_len;
             if (msg.payload_len > 0) {
-                msg.payload = (char*)malloc((size_t)msg.payload_len + 1);
+                msg.payload = static_cast<char*>(malloc((size_t)msg.payload_len + 1));
                 if (!msg.payload) {
                     free(msg.topic);
                     break;
@@ -140,7 +138,7 @@ static int lualilka_mqtt_connect(lua_State* L) {
     if (lua_isnumber(L, -1)) keepalive = (int)lua_tointeger(L, -1);
     lua_pop(L, 1);
 
-    LuaMqttClient* ctx = (LuaMqttClient*)lua_newuserdata(L, sizeof(LuaMqttClient));
+    LuaMqttClient* ctx = static_cast<LuaMqttClient*>(lua_newuserdata(L, sizeof(LuaMqttClient)));
     memset(ctx, 0, sizeof(LuaMqttClient));
 
     ctx->queue = xQueueCreate(MQTT_QUEUE_CAPACITY, sizeof(MqttMsg));
@@ -169,9 +167,7 @@ static int lualilka_mqtt_connect(lua_State* L) {
         return 2;
     }
 
-    esp_mqtt_client_register_event(
-        ctx->handle, (esp_mqtt_event_id_t)ESP_EVENT_ANY_ID, mqtt_event_cb, ctx
-    );
+    esp_mqtt_client_register_event(ctx->handle, (esp_mqtt_event_id_t)ESP_EVENT_ANY_ID, mqtt_event_cb, ctx);
 
     esp_err_t err = esp_mqtt_client_start(ctx->handle);
     if (err != ESP_OK) {
@@ -191,14 +187,14 @@ static int lualilka_mqtt_connect(lua_State* L) {
 
 // mqtt.connected(client) -> bool
 static int lualilka_mqtt_connected(lua_State* L) {
-    LuaMqttClient* ctx = (LuaMqttClient*)luaL_checkudata(L, 1, MQTT_MT);
+    LuaMqttClient* ctx = static_cast<LuaMqttClient*>(luaL_checkudata(L, 1, MQTT_MT));
     lua_pushboolean(L, ctx->connected ? 1 : 0);
     return 1;
 }
 
 // mqtt.subscribe(client, topic [, qos]) -> true | nil, errmsg
 static int lualilka_mqtt_subscribe(lua_State* L) {
-    LuaMqttClient* ctx = (LuaMqttClient*)luaL_checkudata(L, 1, MQTT_MT);
+    LuaMqttClient* ctx = static_cast<LuaMqttClient*>(luaL_checkudata(L, 1, MQTT_MT));
     const char* topic = luaL_checkstring(L, 2);
     int qos = (int)luaL_optinteger(L, 3, 0);
 
@@ -214,7 +210,7 @@ static int lualilka_mqtt_subscribe(lua_State* L) {
 
 // mqtt.unsubscribe(client, topic)
 static int lualilka_mqtt_unsubscribe(lua_State* L) {
-    LuaMqttClient* ctx = (LuaMqttClient*)luaL_checkudata(L, 1, MQTT_MT);
+    LuaMqttClient* ctx = static_cast<LuaMqttClient*>(luaL_checkudata(L, 1, MQTT_MT));
     const char* topic = luaL_checkstring(L, 2);
     esp_mqtt_client_unsubscribe(ctx->handle, topic);
     return 0;
@@ -222,7 +218,7 @@ static int lualilka_mqtt_unsubscribe(lua_State* L) {
 
 // mqtt.publish(client, topic, payload [, qos [, retain]]) -> true | nil, errmsg
 static int lualilka_mqtt_publish(lua_State* L) {
-    LuaMqttClient* ctx = (LuaMqttClient*)luaL_checkudata(L, 1, MQTT_MT);
+    LuaMqttClient* ctx = static_cast<LuaMqttClient*>(luaL_checkudata(L, 1, MQTT_MT));
     const char* topic = luaL_checkstring(L, 2);
     size_t len;
     const char* payload = luaL_checklstring(L, 3, &len);
@@ -241,7 +237,7 @@ static int lualilka_mqtt_publish(lua_State* L) {
 
 // mqtt.receive(client) -> {topic, payload} | nil
 static int lualilka_mqtt_receive(lua_State* L) {
-    LuaMqttClient* ctx = (LuaMqttClient*)luaL_checkudata(L, 1, MQTT_MT);
+    LuaMqttClient* ctx = static_cast<LuaMqttClient*>(luaL_checkudata(L, 1, MQTT_MT));
     MqttMsg msg;
     if (xQueueReceive(ctx->queue, &msg, 0) != pdTRUE) {
         lua_pushnil(L);
@@ -265,7 +261,7 @@ static int lualilka_mqtt_receive(lua_State* L) {
 
 // mqtt.disconnect(client)
 static int lualilka_mqtt_disconnect(lua_State* L) {
-    LuaMqttClient* ctx = (LuaMqttClient*)luaL_checkudata(L, 1, MQTT_MT);
+    LuaMqttClient* ctx = static_cast<LuaMqttClient*>(luaL_checkudata(L, 1, MQTT_MT));
     if (ctx->handle) {
         esp_mqtt_client_stop(ctx->handle);
         esp_mqtt_client_destroy(ctx->handle);
@@ -281,7 +277,7 @@ static int lualilka_mqtt_disconnect(lua_State* L) {
 }
 
 static int lualilka_mqtt_gc(lua_State* L) {
-    LuaMqttClient* ctx = (LuaMqttClient*)luaL_checkudata(L, 1, MQTT_MT);
+    LuaMqttClient* ctx = static_cast<LuaMqttClient*>(luaL_checkudata(L, 1, MQTT_MT));
     if (ctx->handle) {
         esp_mqtt_client_stop(ctx->handle);
         esp_mqtt_client_destroy(ctx->handle);

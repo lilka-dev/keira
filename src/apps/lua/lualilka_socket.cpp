@@ -82,7 +82,7 @@ static int lualilka_net_receive(lua_State* L) {
         setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
     }
 
-    char* buf = (char*)malloc((size_t)max_bytes);
+    char* buf = static_cast<char*>(malloc((size_t)max_bytes));
     if (!buf) {
         lua_pushnil(L);
         lua_pushstring(L, "out of memory");
@@ -141,7 +141,7 @@ static int lualilka_net_listen(lua_State* L) {
     addr.sin_addr.s_addr = htonl(INADDR_ANY);
     addr.sin_port = htons((uint16_t)port);
 
-    if (bind(fd, (struct sockaddr*)&addr, sizeof(addr)) != 0) {
+    if (bind(fd, reinterpret_cast<struct sockaddr*>(&addr), sizeof(addr)) != 0) {
         close(fd);
         lua_pushnil(L);
         lua_pushfstring(L, "bind() failed: errno %d", errno);
@@ -173,7 +173,7 @@ static int lualilka_net_accept(lua_State* L) {
 
     struct sockaddr_in client_addr = {};
     socklen_t addr_len = sizeof(client_addr);
-    int client_fd = accept(server_fd, (struct sockaddr*)&client_addr, &addr_len);
+    int client_fd = accept(server_fd, reinterpret_cast<struct sockaddr*>(&client_addr), &addr_len);
     if (client_fd < 0) {
         int saved_errno = errno;
         lua_pushnil(L);

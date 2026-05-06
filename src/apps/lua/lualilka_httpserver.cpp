@@ -31,7 +31,7 @@ static int lualilka_httpserver_listen(lua_State* L) {
     addr.sin_addr.s_addr = htonl(INADDR_ANY);
     addr.sin_port = htons((uint16_t)port);
 
-    if (bind(fd, (struct sockaddr*)&addr, sizeof(addr)) != 0) {
+    if (bind(fd, reinterpret_cast<struct sockaddr*>(&addr), sizeof(addr)) != 0) {
         close(fd);
         lua_pushnil(L);
         lua_pushfstring(L, "bind() failed: errno %d", errno);
@@ -53,7 +53,7 @@ static int lualilka_httpserver_listen(lua_State* L) {
 static char* recv_http_headers(int fd, size_t* out_len) {
     size_t capacity = 1024;
     size_t len = 0;
-    char* buf = (char*)malloc(capacity);
+    char* buf = static_cast<char*>(malloc(capacity));
     if (!buf) return nullptr;
 
     while (len < HTTPSERVER_MAX_HEADER_BYTES) {
@@ -62,14 +62,20 @@ static char* recv_http_headers(int fd, size_t* out_len) {
             if (new_cap > HTTPSERVER_MAX_HEADER_BYTES + 4) {
                 new_cap = HTTPSERVER_MAX_HEADER_BYTES + 4;
             }
-            char* nb = (char*)realloc(buf, new_cap);
-            if (!nb) { free(buf); return nullptr; }
+            char* nb = static_cast<char*>(realloc(buf, new_cap));
+            if (!nb) {
+                free(buf);
+                return nullptr;
+            }
             buf = nb;
             capacity = new_cap;
         }
 
         ssize_t n = recv(fd, buf + len, 1, 0);
-        if (n <= 0) { free(buf); return nullptr; }
+        if (n <= 0) {
+            free(buf);
+            return nullptr;
+        }
         len++;
         buf[len] = '\0';
 
@@ -98,7 +104,7 @@ static int lualilka_httpserver_accept(lua_State* L) {
 
     struct sockaddr_in client_addr = {};
     socklen_t addr_len = sizeof(client_addr);
-    int client_fd = accept(server_fd, (struct sockaddr*)&client_addr, &addr_len);
+    int client_fd = accept(server_fd, reinterpret_cast<struct sockaddr*>(&client_addr), &addr_len);
     if (client_fd < 0) {
         int saved_errno = errno;
         lua_pushnil(L);
@@ -146,7 +152,7 @@ static int lualilka_httpserver_accept(lua_State* L) {
     // Split path and query string
     char path[512] = {};
     char query[512] = {};
-    char* qmark = strchr(full_path, '?');
+    const char* qmark = strchr(full_path, '?');
     if (qmark) {
         size_t plen = (size_t)(qmark - full_path);
         if (plen >= sizeof(path)) plen = sizeof(path) - 1;
@@ -191,7 +197,8 @@ static int lualilka_httpserver_accept(lua_State* L) {
         if (colon) {
             *colon = '\0';
             char* val = colon + 1;
-            while (*val == ' ' || *val == '\t') val++;
+            while (*val == ' ' || *val == '\t')
+                val++;
 
             // Lowercase the header name in-place
             for (char* p = cursor; *p; p++) {
@@ -217,7 +224,7 @@ static int lualilka_httpserver_accept(lua_State* L) {
 
     // Read body if Content-Length is set and within limit
     if (content_length > 0 && content_length <= HTTPSERVER_MAX_BODY_BYTES) {
-        char* body = (char*)malloc((size_t)content_length + 1);
+        char* body = static_cast<char*>(malloc((size_t)content_length + 1));
         if (body) {
             int received = 0;
             while (received < content_length) {
@@ -265,7 +272,7 @@ static int lualilka_httpserver_respond(lua_State* L) {
 
     // Build response header into a heap buffer to avoid stack overflow
     size_t head_cap = 2048;
-    char* head = (char*)malloc(head_cap);
+    char* head = static_cast<char*>(malloc(head_cap));
     if (!head) {
         close(fd);
         return luaL_error(L, "out of memory");
@@ -288,8 +295,7 @@ static int lualilka_httpserver_respond(lua_State* L) {
     }
 
     int written = snprintf(
-        head + head_len, head_cap - (size_t)head_len,
-        "Content-Length: %d\r\nConnection: close\r\n\r\n", (int)body_len
+        head + head_len, head_cap - (size_t)head_len, "Content-Length: %d\r\nConnection: close\r\n\r\n", (int)body_len
     );
     if (written > 0) head_len += written;
 
