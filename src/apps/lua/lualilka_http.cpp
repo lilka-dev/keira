@@ -2,6 +2,7 @@
 #include <WiFiClientSecure.h>
 #include <WiFiClient.h>
 #include "lualilka_http.h"
+#include "keira/keira.h"
 
 #define STR_HELPER(x) #x
 #define STR(x)        STR_HELPER(x)
@@ -10,11 +11,11 @@ const char* defaultUserAgent = "Lilka/" STR(LILKA_VERSION);
 static int lualilka_http_execute(lua_State* L) {
     int n = lua_gettop(L);
     if (n != 1) {
-        return luaL_error(L, "Очікується 1 аргумент, отримано %d", n);
+        return luaL_error(L, K_S_LUA_HTTP_ARGS_1_FMT, n);
     }
 
     if (!lua_istable(L, 1)) {
-        return luaL_error(L, "Агрумент має бути таблицею");
+        return luaL_error(L, K_S_LUA_HTTP_ARG_MUST_BE_TABLE);
     }
 
     const char* url = nullptr;
@@ -78,20 +79,20 @@ static int lualilka_http_execute(lua_State* L) {
     if (statusCode == HTTP_CODE_OK) {
         if (fileName != 0) {
             WiFiClient* stream = http.getStreamPtr();
-            File file = SD.open(fileName, FILE_WRITE, true);
+            FILE* file = fopen(fileName, "wb");
             if (!file) {
                 http.end();
-                return luaL_error(L, "Не вдалося відкрити %s", fileName);
+                return luaL_error(L, K_S_LUA_HTTP_CANT_OPEN_FILE_FMT, fileName);
             }
 
             uint8_t buffer[128];
             while (stream->connected() && stream->available()) {
                 size_t bytes = stream->readBytes(buffer, sizeof(buffer));
                 if (bytes > 0) {
-                    file.write(buffer, bytes);
+                    fwrite(buffer, 1, bytes, file);
                 }
             }
-            file.close();
+            fclose(file);
         } else {
             String response = http.getString();
             lua_pushstring(L, "response");

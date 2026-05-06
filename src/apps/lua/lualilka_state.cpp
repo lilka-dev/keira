@@ -1,4 +1,5 @@
 #include "lualilka_state.h"
+#include "keira/keira.h"
 
 #define STATE_METATABLE "state_mt"
 
@@ -34,7 +35,7 @@ static int lualilka_state_meta_newindex(lua_State* L) {
     const char* key = lua_tostring(L, 2);
     if (key && (strcmp(key, "save") == 0 || strcmp(key, "reset") == 0 || strcmp(key, "clear") == 0 ||
                 strcmp(key, "path") == 0)) {
-        return luaL_error(L, "Неможливо перезаписати state.%s", key);
+        return luaL_error(L, K_S_LUA_STATE_CANT_OVERWRITE_FMT, key);
     }
     lua_rawset(L, 1);
     return 0;
@@ -149,7 +150,7 @@ static int lualilka_state_save_lua(lua_State* L) {
     lua_getfield(L, LUA_REGISTRYINDEX, "state_path");
     if (!lua_isstring(L, -1)) {
         lua_pop(L, 1);
-        return luaL_error(L, "Збереження стану доступне лише при запуску з файлу");
+        return luaL_error(L, K_S_LUA_STATE_SAVE_FROM_FILE_ONLY);
     }
     const char* path = lua_tostring(L, -1);
     lua_pop(L, 1);
@@ -157,13 +158,13 @@ static int lualilka_state_save_lua(lua_State* L) {
     lua_getglobal(L, "state");
     if (!lua_istable(L, -1)) {
         lua_pop(L, 1);
-        return luaL_error(L, "Таблиця state не визначена");
+        return luaL_error(L, K_S_LUA_STATE_TABLE_UNDEFINED);
     }
     lua_pop(L, 1);
 
     int result = lualilka_state_save(L, path);
     if (result != 0) {
-        return luaL_error(L, "Не вдалося зберегти стан у файл %s", path);
+        return luaL_error(L, K_S_LUA_STATE_SAVE_ERROR_FMT, path);
     }
     return 0;
 }
@@ -173,7 +174,7 @@ static int lualilka_state_reset_lua(lua_State* L) {
     lua_getfield(L, LUA_REGISTRYINDEX, "state_path");
     if (!lua_isstring(L, -1)) {
         lua_pop(L, 1);
-        return luaL_error(L, "Скидання стану доступне лише при запуску з файлу");
+        return luaL_error(L, K_S_LUA_STATE_RESET_FROM_FILE_ONLY);
     }
     const char* path = lua_tostring(L, -1);
     lua_pop(L, 1);
@@ -193,7 +194,7 @@ static int lualilka_state_clear_lua(lua_State* L) {
     lua_getfield(L, LUA_REGISTRYINDEX, "state_path");
     if (!lua_isstring(L, -1)) {
         lua_pop(L, 1);
-        return luaL_error(L, "Очищення стану доступне лише при запуску з файлу");
+        return luaL_error(L, K_S_LUA_STATE_CLEAR_FROM_FILE_ONLY);
     }
     const char* path = lua_tostring(L, -1);
     lua_pop(L, 1);

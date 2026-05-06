@@ -1,5 +1,6 @@
 #include "lualilka_sdcard.h"
 #include "lilka.h"
+#include "keira/keira.h"
 
 static int lualilka_create_object_file(lua_State* L) {
     String path = luaL_checkstring(L, 1);
@@ -29,7 +30,7 @@ static int lualilka_file_size(lua_State* L) {
         lua_pushinteger(L, size);
         return 1;
     }
-    return luaL_error(L, "Size read error");
+    return luaL_error(L, K_S_LUA_SDCARD_SIZE_READ_ERROR);
 }
 
 static int lualilka_file_seek(lua_State* L) {
@@ -39,7 +40,7 @@ static int lualilka_file_seek(lua_State* L) {
         fseek(filePointer, seek, SEEK_SET);
         return 0;
     }
-    return luaL_error(L, "seek error");
+    return luaL_error(L, K_S_LUA_SDCARD_SEEK_ERROR);
 }
 
 static int lualilka_file_read(lua_State* L) {
@@ -52,13 +53,13 @@ static int lualilka_file_read(lua_State* L) {
         size_t bytesRead = fread(bufPtr.get(), 1, maxBytes, filePointer);
 
         if (bytesRead < maxBytes && ferror(filePointer)) {
-            return luaL_error(L, "помилка читання з файлу");
+            return luaL_error(L, K_S_LUA_SDCARD_READ_FILE_ERROR);
         }
 
         lua_pushlstring(L, bufPtr.get(), bytesRead);
         return 1;
     }
-    return luaL_error(L, "read error");
+    return luaL_error(L, K_S_LUA_SDCARD_READ_ERROR);
 }
 
 static int lualilka_file_exists(lua_State* L) {
@@ -76,25 +77,25 @@ static int lualilka_file_write(lua_State* L) {
 
         return 0;
     }
-    return luaL_error(L, "write error");
+    return luaL_error(L, K_S_LUA_SDCARD_WRITE_ERROR);
 }
 
 int lualilka_sdcard_list_dir(lua_State* L) {
     int n = lua_gettop(L);
 
     if (n != 1) {
-        return luaL_error(L, "Очікується 1 аргумент, отримано %d", n);
+        return luaL_error(L, K_S_LUA_SDCARD_ARGS_1_FMT, n);
     }
 
     if (!lilka::fileutils.isSDAvailable()) {
-        return luaL_error(L, "SD card not found");
+        return luaL_error(L, K_S_LUA_SDCARD_NOT_FOUND);
     }
 
     String path = lua_tostring(L, 1);
 
     size_t _numEntries = lilka::fileutils.getEntryCount(&SD, path);
     if (_numEntries == 0) {
-        return luaL_error(L, "Директорія порожня, або сталася помилка читання директорії");
+        return luaL_error(L, K_S_LUA_SDCARD_DIR_EMPTY_OR_ERROR);
     }
 
     lilka::Entry* entries = new lilka::Entry[_numEntries];
@@ -103,7 +104,7 @@ int lualilka_sdcard_list_dir(lua_State* L) {
     std::unique_ptr<lilka::Entry[]> entriesPtr(entries);
 
     if (_numEntries != numEntries) {
-        return luaL_error(L, "Не вдалося прочитати директорію");
+        return luaL_error(L, K_S_LUA_SDCARD_DIR_READ_ERROR);
     }
 
     lua_createtable(L, numEntries, 0);
@@ -120,11 +121,11 @@ int lualilka_sdcard_remove(lua_State* L) {
     int n = lua_gettop(L);
 
     if (n != 1) {
-        return luaL_error(L, "Очікується 1 аргумент, отримано %d", n);
+        return luaL_error(L, K_S_LUA_SDCARD_ARGS_1_FMT, n);
     }
 
     if (!lilka::fileutils.isSDAvailable()) {
-        return luaL_error(L, "SD card not found");
+        return luaL_error(L, K_S_LUA_SDCARD_NOT_FOUND);
     }
 
     String path = lua_tostring(L, 1);
@@ -132,7 +133,7 @@ int lualilka_sdcard_remove(lua_State* L) {
     int ret = remove((lilka::fileutils.getSDRoot() + path).c_str());
 
     if (ret != 0) {
-        return luaL_error(L, "Error remove file: %d", ret);
+        return luaL_error(L, K_S_LUA_SDCARD_REMOVE_ERROR_FMT, ret);
     }
 
     return 0;
@@ -142,11 +143,11 @@ int lualilka_sdcard_rename(lua_State* L) {
     int n = lua_gettop(L);
 
     if (n != 2) {
-        return luaL_error(L, "Очікується 1 аргумент, отримано %d", n);
+        return luaL_error(L, K_S_LUA_SDCARD_ARGS_2_FMT, n);
     }
 
     if (!lilka::fileutils.isSDAvailable()) {
-        return luaL_error(L, "SD card not found");
+        return luaL_error(L, K_S_LUA_SDCARD_NOT_FOUND);
     }
 
     String old_name = lua_tostring(L, 1);
@@ -156,7 +157,7 @@ int lualilka_sdcard_rename(lua_State* L) {
         rename((lilka::fileutils.getSDRoot() + old_name).c_str(), (lilka::fileutils.getSDRoot() + new_name).c_str());
 
     if (ret != 0) {
-        return luaL_error(L, "Error renaming file: %d", ret);
+        return luaL_error(L, K_S_LUA_SDCARD_RENAME_ERROR_FMT, ret);
     }
 
     return 0;
