@@ -1,5 +1,6 @@
 #include <HTTPClient.h>
-#include <lilka.h>
+#include <WiFiClientSecure.h>
+#include <WiFiClient.h>
 #include "lualilka_http.h"
 #include "keira/keira.h"
 
@@ -49,14 +50,20 @@ static int lualilka_http_execute(lua_State* L) {
         }
     }
 
-    // NOTE: setInsecure() disables TLS certificate verification (MITM risk).
-    // TODO: replace with esp_http_client using esp_crt_bundle_attach for proper cert validation.
-    WiFiClientSecure client;
-    client.setInsecure();
+    bool isHttps = url != nullptr && strncmp(url, "https://", 8) == 0;
 
     HTTPClient http;
     http.setUserAgent(defaultUserAgent);
-    http.begin(client, url);
+
+    WiFiClientSecure secureClient;
+    WiFiClient plainClient;
+
+    if (isHttps) {
+        secureClient.setInsecure();
+        http.begin(secureClient, url);
+    } else {
+        http.begin(plainClient, url);
+    }
 
     int statusCode;
     if (body == nullptr) {
