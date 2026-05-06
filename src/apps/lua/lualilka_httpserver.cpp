@@ -127,14 +127,14 @@ static int lualilka_httpserver_accept(lua_State* L) {
         lua_pushstring(L, "malformed request line");
         return 2;
     }
-    String method    = request_line.substring(0, (unsigned int)sp1);
+    String method = request_line.substring(0, (unsigned int)sp1);
     String full_path = request_line.substring((unsigned int)(sp1 + 1), (unsigned int)sp2);
 
     // Split path and query string
     String path, query;
     int qmark = full_path.indexOf('?');
     if (qmark >= 0) {
-        path  = full_path.substring(0, (unsigned int)qmark);
+        path = full_path.substring(0, (unsigned int)qmark);
         query = full_path.substring((unsigned int)(qmark + 1));
     } else {
         path = full_path;
@@ -172,7 +172,7 @@ static int lualilka_httpserver_accept(lua_State* L) {
         String hdr_line = raw_headers.substring((unsigned int)hdr_pos, (unsigned int)eol);
         int colon = hdr_line.indexOf(':');
         if (colon > 0) {
-            String name  = hdr_line.substring(0, (unsigned int)colon);
+            String name = hdr_line.substring(0, (unsigned int)colon);
             String value = hdr_line.substring((unsigned int)(colon + 1));
             name.toLowerCase();
             value.trim();
