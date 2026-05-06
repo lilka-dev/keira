@@ -1,15 +1,14 @@
 #include "lualilka_httpserver.h"
 
+#include <WString.h>
 #include <lwip/sockets.h>
 #include <lwip/inet.h>
 #include <cerrno>
-#include <cstring>
-#include <cstdlib>
-#include <cstdio>
 
 #define HTTPSERVER_MAX_HEADER_BYTES 8192
 #define HTTPSERVER_MAX_BODY_BYTES   65536
 #define HTTPSERVER_CLIENT_TIMEOUT_S 10
+#define HTTPSERVER_CHUNK_SIZE       1024
 
 // httpserver.listen(port [, backlog]) -> fd | nil, errmsg
 static int lualilka_httpserver_listen(lua_State* L) {
@@ -49,44 +48,23 @@ static int lualilka_httpserver_listen(lua_State* L) {
     return 1;
 }
 
-// Read until \r\n\r\n; returns malloc'd buffer (caller frees) or NULL on error.
-static char* recv_http_headers(int fd, size_t* out_len) {
-    size_t capacity = 1024;
-    size_t len = 0;
-    char* buf = static_cast<char*>(malloc(capacity));
-    if (!buf) return nullptr;
-
-    while (len < HTTPSERVER_MAX_HEADER_BYTES) {
-        if (len + 2 >= capacity) {
-            size_t new_cap = capacity * 2;
-            if (new_cap > HTTPSERVER_MAX_HEADER_BYTES + 4) {
-                new_cap = HTTPSERVER_MAX_HEADER_BYTES + 4;
-            }
-            char* nb = static_cast<char*>(realloc(buf, new_cap));
-            if (!nb) {
-                free(buf);
-                return nullptr;
-            }
-            buf = nb;
-            capacity = new_cap;
-        }
-
-        ssize_t n = recv(fd, buf + len, 1, 0);
-        if (n <= 0) {
-            free(buf);
-            return nullptr;
-        }
-        len++;
-        buf[len] = '\0';
-
-        if (len >= 4 && memcmp(buf + len - 4, "\r\n\r\n", 4) == 0) {
-            *out_len = len;
-            return buf;
+// Reads HTTP headers in chunks until \r\n\r\n is found.
+// Returns false on error. `headers` contains everything up to and including \r\n\r\n.
+// `body_prefix` contains any bytes received past \r\n\r\n in the last chunk.
+static bool recv_http_headers(int fd, String& headers, String& body_prefix) {
+    char chunk[HTTPSERVER_CHUNK_SIZE];
+    while (headers.length() <= HTTPSERVER_MAX_HEADER_BYTES) {
+        ssize_t n = recv(fd, chunk, sizeof(chunk), 0);
+        if (n <= 0) return false;
+        headers.concat(chunk, (unsigned int)n);
+        int idx = headers.indexOf("\r\n\r\n");
+        if (idx >= 0) {
+            body_prefix = headers.substring((unsigned int)(idx + 4));
+            headers = headers.substring(0, (unsigned int)(idx + 4));
+            return true;
         }
     }
-
-    free(buf);
-    return nullptr; // header too large
+    return false;
 }
 
 // httpserver.accept(server_fd [, timeout_ms]) -> request | nil, errmsg
@@ -123,10 +101,9 @@ static int lualilka_httpserver_accept(lua_State* L) {
     setsockopt(client_fd, SOL_SOCKET, SO_RCVTIMEO, &io_tv, sizeof(io_tv));
     setsockopt(client_fd, SOL_SOCKET, SO_SNDTIMEO, &io_tv, sizeof(io_tv));
 
-    // Read headers
-    size_t hdr_len;
-    char* hdr_buf = recv_http_headers(client_fd, &hdr_len);
-    if (!hdr_buf) {
+    // Read headers in chunks
+    String raw_headers, body_prefix;
+    if (!recv_http_headers(client_fd, raw_headers, body_prefix)) {
         close(client_fd);
         lua_pushnil(L);
         lua_pushstring(L, "failed to read request headers");
@@ -134,32 +111,33 @@ static int lualilka_httpserver_accept(lua_State* L) {
     }
 
     // Parse request line: METHOD SP path SP HTTP/x.y\r\n
-    char* line_end = strstr(hdr_buf, "\r\n");
-    if (!line_end) {
-        free(hdr_buf);
+    int crlf1 = raw_headers.indexOf("\r\n");
+    if (crlf1 < 0) {
         close(client_fd);
         lua_pushnil(L);
         lua_pushstring(L, "malformed request line");
         return 2;
     }
-
-    *line_end = '\0';
-    char method[16] = {};
-    char full_path[512] = {};
-    sscanf(hdr_buf, "%15s %511s", method, full_path);
-    *line_end = '\r';
+    String request_line = raw_headers.substring(0, (unsigned int)crlf1);
+    int sp1 = request_line.indexOf(' ');
+    int sp2 = request_line.lastIndexOf(' ');
+    if (sp1 < 0 || sp2 <= sp1) {
+        close(client_fd);
+        lua_pushnil(L);
+        lua_pushstring(L, "malformed request line");
+        return 2;
+    }
+    String method    = request_line.substring(0, (unsigned int)sp1);
+    String full_path = request_line.substring((unsigned int)(sp1 + 1), (unsigned int)sp2);
 
     // Split path and query string
-    char path[512] = {};
-    char query[512] = {};
-    const char* qmark = strchr(full_path, '?');
-    if (qmark) {
-        size_t plen = (size_t)(qmark - full_path);
-        if (plen >= sizeof(path)) plen = sizeof(path) - 1;
-        memcpy(path, full_path, plen);
-        strncpy(query, qmark + 1, sizeof(query) - 1);
+    String path, query;
+    int qmark = full_path.indexOf('?');
+    if (qmark >= 0) {
+        path  = full_path.substring(0, (unsigned int)qmark);
+        query = full_path.substring((unsigned int)(qmark + 1));
     } else {
-        strncpy(path, full_path, sizeof(path) - 1);
+        path = full_path;
     }
 
     // Get client IP
@@ -175,69 +153,52 @@ static int lualilka_httpserver_accept(lua_State* L) {
     lua_pushstring(L, client_ip);
     lua_setfield(L, -2, "client_ip");
 
-    lua_pushstring(L, method);
+    lua_pushstring(L, method.c_str());
     lua_setfield(L, -2, "method");
 
-    lua_pushstring(L, path);
+    lua_pushstring(L, path.c_str());
     lua_setfield(L, -2, "path");
 
-    lua_pushstring(L, query);
+    lua_pushstring(L, query.c_str());
     lua_setfield(L, -2, "query");
 
     // Parse headers into sub-table (keys lowercased)
     lua_createtable(L, 0, 8);
     int content_length = 0;
-    char* cursor = line_end + 2; // skip \r\n after request line
-    while (*cursor && !(*cursor == '\r' && *(cursor + 1) == '\n')) {
-        char* hdr_eol = strstr(cursor, "\r\n");
-        if (!hdr_eol) break;
-        *hdr_eol = '\0';
-
-        char* colon = strchr(cursor, ':');
-        if (colon) {
-            *colon = '\0';
-            char* val = colon + 1;
-            while (*val == ' ' || *val == '\t')
-                val++;
-
-            // Lowercase the header name in-place
-            for (char* p = cursor; *p; p++) {
-                if (*p >= 'A' && *p <= 'Z') *p += 32;
+    int hdr_pos = crlf1 + 2;
+    while (hdr_pos < (int)raw_headers.length()) {
+        int eol = raw_headers.indexOf("\r\n", (unsigned int)hdr_pos);
+        if (eol < 0 || eol == hdr_pos) break;
+        String hdr_line = raw_headers.substring((unsigned int)hdr_pos, (unsigned int)eol);
+        int colon = hdr_line.indexOf(':');
+        if (colon > 0) {
+            String name  = hdr_line.substring(0, (unsigned int)colon);
+            String value = hdr_line.substring((unsigned int)(colon + 1));
+            name.toLowerCase();
+            value.trim();
+            lua_pushstring(L, value.c_str());
+            lua_setfield(L, -2, name.c_str());
+            if (name == "content-length") {
+                content_length = value.toInt();
             }
-
-            lua_pushstring(L, val);
-            lua_setfield(L, -2, cursor);
-
-            if (strcmp(cursor, "content-length") == 0) {
-                content_length = atoi(val);
-            }
-
-            *colon = ':';
         }
-
-        *hdr_eol = '\r';
-        cursor = hdr_eol + 2;
+        hdr_pos = eol + 2;
     }
     lua_setfield(L, -2, "headers");
 
-    free(hdr_buf);
-
-    // Read body if Content-Length is set and within limit
+    // Read body if Content-Length is present and within limit
     if (content_length > 0 && content_length <= HTTPSERVER_MAX_BODY_BYTES) {
-        char* body = static_cast<char*>(malloc((size_t)content_length + 1));
-        if (body) {
-            int received = 0;
-            while (received < content_length) {
-                ssize_t n = recv(client_fd, body + received, (size_t)(content_length - received), 0);
-                if (n <= 0) break;
-                received += (int)n;
-            }
-            body[received] = '\0';
-            lua_pushlstring(L, body, (size_t)received);
-            free(body);
-        } else {
-            lua_pushstring(L, "");
+        String body = body_prefix;
+        char body_chunk[HTTPSERVER_CHUNK_SIZE];
+        while ((int)body.length() < content_length) {
+            ssize_t n = recv(client_fd, body_chunk, sizeof(body_chunk), 0);
+            if (n <= 0) break;
+            body.concat(body_chunk, (unsigned int)n);
         }
+        if ((int)body.length() > content_length) {
+            body = body.substring(0, (unsigned int)content_length);
+        }
+        lua_pushlstring(L, body.c_str(), body.length());
     } else {
         lua_pushstring(L, "");
     }
@@ -270,37 +231,32 @@ static int lualilka_httpserver_respond(lua_State* L) {
         body = lua_tolstring(L, 4, &body_len);
     }
 
-    // Build response header into a heap buffer to avoid stack overflow
-    size_t head_cap = 2048;
-    char* head = static_cast<char*>(malloc(head_cap));
-    if (!head) {
-        close(fd);
-        return luaL_error(L, "out of memory");
-    }
-
-    int head_len = snprintf(head, head_cap, "HTTP/1.1 %d %s\r\n", status, status_text);
+    // Build response header
+    String head = "HTTP/1.1 ";
+    head += status;
+    head += " ";
+    head += status_text;
+    head += "\r\n";
 
     // Custom headers from table argument
     if (lua_istable(L, 3)) {
         lua_pushnil(L);
         while (lua_next(L, 3) != 0) {
             if (lua_isstring(L, -2) && lua_isstring(L, -1)) {
-                const char* k = lua_tostring(L, -2);
-                const char* v = lua_tostring(L, -1);
-                int written = snprintf(head + head_len, head_cap - (size_t)head_len, "%s: %s\r\n", k, v);
-                if (written > 0) head_len += written;
+                head += lua_tostring(L, -2);
+                head += ": ";
+                head += lua_tostring(L, -1);
+                head += "\r\n";
             }
             lua_pop(L, 1);
         }
     }
 
-    int written = snprintf(
-        head + head_len, head_cap - (size_t)head_len, "Content-Length: %d\r\nConnection: close\r\n\r\n", (int)body_len
-    );
-    if (written > 0) head_len += written;
+    head += "Content-Length: ";
+    head += (int)body_len;
+    head += "\r\nConnection: close\r\n\r\n";
 
-    send(fd, head, (size_t)head_len, 0);
-    free(head);
+    send(fd, head.c_str(), head.length(), 0);
 
     if (body && body_len > 0) {
         send(fd, body, body_len, 0);
