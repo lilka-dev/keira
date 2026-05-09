@@ -117,55 +117,27 @@
 #define K_S_LAUNCHER_ABOUT             "Про пристрій"
 #define K_S_LAUNCHER_FIRMWARE_VERSION  "Версія прошивки"
 #define K_S_LAUNCHER_EASTER_EGG        "Сюрприз!"
-#define K_S_LAUNCHER_ABOUT_FMT \
-    "Keira: %s\n"              \
-    "SDK: %s\n"                \
-    "ESP-IDF: %s\n\n"         
-#define K_S_LAUNCHER_VERSION_FMT \
-    "Keira: %s\n"                \
-    "SDK: %s\n"                  \
-    "ESP-IDF: %s"
+#define K_S_LAUNCHER_ABOUT_FMT         "Keira: %s\nSDK: %s\nESP-IDF: %s\n\n"         
+#define K_S_LAUNCHER_VERSION_FMT       "Keira: %s\nSDK: %s\nESP-IDF: %s"
 #define K_S_LAUNCHER_DEVICE_INFO       "Інфо про пристрій"
-#define K_S_LAUNCHER_DEVICE_INFO_FMT \
-    "Пристрій: %s\n"                 \
-    "Чіп: %s\n"                      \
-    "Ревізія: %d\n"                  \
-    "Частота: %d МГц\n"              \
-    "Ядер: %d\n"                     \
-    "IP: %s"
+#define K_S_LAUNCHER_DEVICE_INFO_FMT   "Пристрій: %s\nЧіп: %s\nРевізія: %d\nЧастота: %d МГц\nЯдер: %d\nIP: %s"
 #define K_S_PARTITION_TABLE            "Таблиця розділів"
 #define K_S_LAUNCHER_FACTORY_RESET     "Скинути налаштування"
 #define K_S_LAUNCHER_REBOOT            "Перезавантаження"
 
-#define K_S_LAUNCHER_FACTORY_RESET_DISCLAIMER_ALERT\
-    "УВАГА: Це видалить всі налаштування!\n"\
-    "\nПродовжити?\n\nSTART - продовжити\nA - скасувати"
-
-#define K_S_LAUNCHER_FACTORY_RESET_SUCCESS_ALERT\
-    "Скидання налаштувань завершено!\n\n"\
-    "Систему буде перезавантажено."
-
+#define K_S_LAUNCHER_FACTORY_RESET_DISCLAIMER_ALERT "УВАГА: Це видалить всі налаштування!\n\nПродовжити?\n\nSTART - продовжити\nA - скасувати"
+#define K_S_LAUNCHER_FACTORY_RESET_SUCCESS_ALERT    "Скидання налаштувань завершено!\n\nСистему буде перезавантажено."
 #define K_S_LAUNCHER_SELECT_TX_POWER   "Оберіть потужність"
-
 #define K_S_LAUNCHER_ENABLE_WIFI_FIRST "Спочатку увімкніть WiFi-адаптер"
-
 #define K_S_LAUNCHER_PARTITION_FMT "Адреса: 0x%s\nРозмір: 0x%s"
-
 #define K_S_LAUNCHER_FORMAT        "Форматування"
-
-#define K_S_LAUNCHER_FORMAT_DISCLAIMER_ALERT    \
-    "УВАГА: Це очистить ВСІ дані з SD-карти!\n" \
-    "\nПродовжити?\n\nSTART - продовжити\nA - скасувати"
+#define K_S_LAUNCHER_FORMAT_DISCLAIMER_ALERT    "УВАГА: Це очистить ВСІ дані з SD-карти!\n\nПродовжити?\n\nSTART - продовжити\nA - скасувати"
 
 #define K_S_LAUNCHER_PLEASE_STANDBY K_S_PLEASE_STANDBY
 
-#define K_S_LAUNCHER_FORMAT_ERROR_ALERT    \
-    "Не вдалося форматувати SD-карту.\n\n" \
-    "Систему буде перезавантажено."
+#define K_S_LAUNCHER_FORMAT_ERROR_ALERT    "Не вдалося форматувати SD-карту.\n\nСистему буде перезавантажено."
 
-#define K_S_LAUNCHER_FORMAT_SUCCESS_ALLERT \
-    "Форматування SD-карти завершено!\n\n" \
-    "Систему буде перезавантажено."
+#define K_S_LAUNCHER_FORMAT_SUCCESS_ALLERT "Форматування SD-карти завершено!\n\nСистему буде перезавантажено."
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // apps/wifi_config.cpp ///////////////////////////////////////////////////////////////////////////////
@@ -173,16 +145,9 @@
 #define K_S_WIFI_CONFIG_SCAN_ERROR_CODE_FMT "Не вдалося сканувати мережі, код помилки: %d"
 #define K_S_WIFI_CONFIG_NETWORKS            "Мережі"
 
-#define K_S_WIFI_CONFIG_ABOUT_NETWORK_FMT \
-    "Канал: %d\n"                         \
-    "Сила сигналу: %ddb\n"                \
-    "MAC: %s\n"                           \
-    "Захист: %s"
+#define K_S_WIFI_CONFIG_ABOUT_NETWORK_FMT   "Канал: %d\nСила сигналу: %ddb\nMAC: %s\nЗахист: %s"
 
-#define K_S_WIFI_CONFIG_CONNECTING_TO_OPEN_INSECURE_NETWORK_FMT \
-    "Ви під'єднуєтеся до незахищеної мережі %s\n\n"             \
-    "A - продовжити\n"                                          \
-    "B - обрати іншу мережу"
+#define K_S_WIFI_CONFIG_CONNECTING_TO_OPEN_INSECURE_NETWORK_FMT "Ви під'єднуєтеся до незахищеної мережі %s\n\nA - продовжити\nB - обрати іншу мережу"
 
 #define K_S_WIFI_CONFIG_ENTER_PASSWORD              "Введіть пароль:"
 #define K_S_WIFI_CONFIG_CONNECTING                  "Під'єднуємось..."
@@ -234,15 +199,10 @@
 #define K_S_FMANAGER_ARE_YOU_SURE_ALERT                   "Ви впевнені?"
 #define K_S_FMANAGER_THIS_OP_WOULD_DELETE_FILE_FMT        "Ця операція видалить файл %s\nПродовжити: START\nВихід: B"
 #define K_S_FMANAGER_THIS_OP_WOULD_DELETE_COUNT_FILES_FMT "Ця операція видалить %d файлів\nПродовжити: START\nВихід: B"
-#define K_S_FMANAGER_SELECTED_ENTRIES_EXIT_FMT "Вибрано %d файлів\nПідтвердити вихід: START\nПовернутися: B"
-#define K_S_FMANAGER_ABOUT_DIR_FMT \
-    "Тип: директорія\n"            \
-    "Шлях: %s"
+#define K_S_FMANAGER_SELECTED_ENTRIES_EXIT_FMT            "Вибрано %d файлів\nПідтвердити вихід: START\nПовернутися: B"
+#define K_S_FMANAGER_ABOUT_DIR_FMT                        "Тип: директорія\nШлях: %s"
 
-#define K_S_FMANAGER_ABOUT_FILE_FMT \
-    "Тип: файл\n"                   \
-    "Розмір: %s\n" \
-    "MD5: %s\n"
+#define K_S_FMANAGER_ABOUT_FILE_FMT                       "Тип: файл\nРозмір: %s\nMD5: %s\n"
 // TODO: MOVE MULTIBOOT TO SEPARATE APP
 #define K_S_FMANAGER_MULTIBOOT_ABOUT_FMT            "%s\n\nРозмір: %s"
 
