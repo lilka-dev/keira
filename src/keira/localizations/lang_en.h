@@ -467,8 +467,101 @@
 #define K_S_LUA_AWAIT_CODE_FROM_UART              "REPL:\nAwaiting code\nfrom UART...\n\nPress [A]\nto exit."
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// apps/lua/lualilka_resources.cpp ////////////////////////////////////////////////////////////////////
+#define K_S_LUA_RESOURCES_LOAD_IMAGE_ERROR_FMT    "Failed to load image %s"
+#define K_S_LUA_RESOURCES_INVALID_IMAGE           "Invalid image"
+#define K_S_LUA_RESOURCES_UNSUPPORTED_AUDIO_FMT   "Unsupported audio format: %s"
+#define K_S_LUA_RESOURCES_OPEN_AUDIO_ERROR_FMT    "Failed to open audio file %s"
+#define K_S_LUA_RESOURCES_EMPTY_AUDIO_FMT         "Audio file is empty: %s"
+#define K_S_LUA_RESOURCES_NO_MEMORY_AUDIO_FMT     "Not enough memory for audio file %s (%d bytes)"
+#define K_S_LUA_RESOURCES_READ_AUDIO_ERROR_FMT    "Failed to read audio file %s"
+#define K_S_LUA_RESOURCES_READ_FILE_ERROR_FMT     "Failed to read file %s"
+#define K_S_LUA_RESOURCES_WRITE_FILE_ERROR_FMT    "Failed to write file %s"
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
 // apps/tests/keyboard/keyboard.cpp //////////////////////////////////////////////////////////////////
 #define K_S_KEYBOARD_ENTER_TEXT                    "Enter text: "
 #define K_S_KEYBOARD_YOU_ENTERED                   "You entered:"
 //////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// apps/lua/lualilka_state.cpp //////////////////////////////////////////////////////////////////////
+#define K_S_LUA_STATE_CANT_OVERWRITE_FMT           "Cannot overwrite state.%s"
+#define K_S_LUA_STATE_SAVE_FROM_FILE_ONLY          "State save is only available when running from a file"
+#define K_S_LUA_STATE_TABLE_UNDEFINED              "State table is not defined"
+#define K_S_LUA_STATE_SAVE_ERROR_FMT               "Failed to save state to file %s"
+#define K_S_LUA_STATE_RESET_FROM_FILE_ONLY         "State reset is only available when running from a file"
+#define K_S_LUA_STATE_CLEAR_FROM_FILE_ONLY         "State clear is only available when running from a file"
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// apps/lua/lualilka_geometry.cpp ///////////////////////////////////////////////////////////////////
+#define K_S_LUA_GEOMETRY_ARGS_8_FMT                "Expected 8 arguments, got %d"
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// apps/lua/lualilka_sdcard.cpp /////////////////////////////////////////////////////////////////////
+#define K_S_LUA_SDCARD_NOT_FOUND                   "SD card not found"
+#define K_S_LUA_SDCARD_SIZE_READ_ERROR             "Size read error"
+#define K_S_LUA_SDCARD_SEEK_ERROR                  "Seek error"
+#define K_S_LUA_SDCARD_READ_ERROR                  "Read error"
+#define K_S_LUA_SDCARD_WRITE_ERROR                 "Write error"
+#define K_S_LUA_SDCARD_READ_FILE_ERROR             "File read error"
+#define K_S_LUA_SDCARD_REMOVE_ERROR_FMT            "Error removing file: %d"
+#define K_S_LUA_SDCARD_RENAME_ERROR_FMT            "Error renaming file: %d"
+#define K_S_LUA_SDCARD_DIR_EMPTY_OR_ERROR          "Directory is empty or read error occurred"
+#define K_S_LUA_SDCARD_DIR_READ_ERROR              "Failed to read directory"
+#define K_S_LUA_SDCARD_ARGS_1_FMT                  "Expected 1 argument, got %d"
+#define K_S_LUA_SDCARD_ARGS_2_FMT                  "Expected 2 arguments, got %d"
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// apps/lua/lualilka_audio.cpp //////////////////////////////////////////////////////////////////////
+#define K_S_LUA_AUDIO_INVALID_RESOURCE             "Invalid audio resource"
+#define K_S_LUA_AUDIO_UNSUPPORTED_FORMAT_FMT       "Unsupported audio format: %s"
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// apps/lua/lualilka_wifi.cpp ///////////////////////////////////////////////////////////////////////
+#define K_S_LUA_WIFI_ARGS_1_FMT                    "Expected 1 argument, got %d"
+#define K_S_LUA_WIFI_ARGS_2_FMT                    "Expected 2 arguments, got %d"
+#define K_S_LUA_WIFI_ARGS_5_FMT                    "Expected 5 arguments, got %d"
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// apps/lua/lualilka_buzzer.cpp /////////////////////////////////////////////////////////////////////
+#define K_S_LUA_BUZZER_ARGS_1_OR_2_FMT             "Expected 1 or 2 arguments, got %d"
+#define K_S_LUA_BUZZER_ARGS_2_FMT                  "Expected 2 arguments, got %d"
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// apps/lua/lualilka_http.cpp ///////////////////////////////////////////////////////////////////////
+#define K_S_LUA_HTTP_ARGS_1_FMT                    "Expected 1 argument, got %d"
+#define K_S_LUA_HTTP_ARG_MUST_BE_TABLE             "Argument must be a table"
+#define K_S_LUA_HTTP_CANT_OPEN_FILE_FMT            "Failed to open %s"
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// apps/lua/lualilka_math.cpp ///////////////////////////////////////////////////////////////////////
+#define K_S_LUA_MATH_ARGS_0_1_2_FMT                "Expected 0, 1 or 2 arguments, got %d"
+#define K_S_LUA_MATH_ARGS_1_FMT                    "Expected 1 argument, got %d"
+#define K_S_LUA_MATH_ARGS_1_OR_2_FMT               "Expected 1 or 2 arguments, got %d"
+#define K_S_LUA_MATH_ARGS_2_FMT                    "Expected 2 arguments, got %d"
+#define K_S_LUA_MATH_ARGS_3_FMT                    "Expected 3 arguments, got %d"
+#define K_S_LUA_MATH_ARGS_4_FMT                    "Expected 4 arguments, got %d"
+#define K_S_LUA_MATH_ARGS_5_FMT                    "Expected 5 arguments, got %d"
+#define K_S_LUA_MATH_ARG_MUST_BE_TABLE             "Argument must be a table"
+#define K_S_LUA_MATH_TABLE_CANT_BE_EMPTY           "Table cannot be empty"
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// apps/lua/lualilka_display.cpp ////////////////////////////////////////////////////////////////////
+#define K_S_LUA_DISPLAY_UNKNOWN_FONT_FMT           "Unknown font - %s"
+#define K_S_LUA_DISPLAY_INVALID_IMAGE              "Invalid image"
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// apps/lua/lualilka_crypto.cpp /////////////////////////////////////////////////////////////////////
+#define K_S_LUA_CRYPTO_ARGS_1_FMT                  "Expected 1 argument, got %d"
+#define K_S_LUA_CRYPTO_ARGS_2_FMT                  "Expected 2 arguments, got %d"
+#define K_S_LUA_CRYPTO_KEY_SIZE_FMT                "Key must be 16, 24 or 32 bytes, got %d"
+#define K_S_LUA_CRYPTO_ALLOC_ERROR                 "Memory allocation failed"
+#define K_S_LUA_CRYPTO_AES_INIT_ERROR_FMT          "AES initialization error: %d"
+#define K_S_LUA_CRYPTO_AES_ENCRYPT_ERROR_FMT       "AES encryption error: %d"
+#define K_S_LUA_CRYPTO_AES_DECRYPT_ERROR_FMT       "AES decryption error: %d"
+#define K_S_LUA_CRYPTO_INVALID_DATA_FORMAT         "Invalid encrypted data format"
+#define K_S_LUA_CRYPTO_INVALID_HEX_STRING          "Invalid hex string"
+#define K_S_LUA_CRYPTO_INVALID_DATA_SIZE           "Invalid encrypted data size"
+#define K_S_LUA_CRYPTO_INVALID_KEY_OR_DATA         "Invalid key or corrupted data"
+///////////////////////////////////////////////////////////////////////////////////////////////////////
 // clang-format on

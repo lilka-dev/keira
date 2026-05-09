@@ -9,7 +9,9 @@
 
 // Services:
 #include "services/clock/clock.h"
-#include "utils/json.h"
+// Utils:
+#include "keira/utils/json.h"
+#include "keira/utils/string.h"
 
 // Icons:
 #include "icons/weather_icons.h"

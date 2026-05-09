@@ -4,8 +4,8 @@
 #include "note.h"
 #include "i2s_sink.h"
 #include "wav_sink.h"
-#include "utils/defer.h"
-
+#include "keira/utils/defer.h"
+#include "keira/utils/string.h"
 #include "icons/liltracker_icons.h"
 
 #define LILTRACKER_DIR "/liltracker"

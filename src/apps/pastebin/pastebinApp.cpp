@@ -2,6 +2,8 @@
 #include <HTTPClient.h>
 #include <lilka/config.h>
 
+#include "keira/utils/string.h"
+
 pastebinApp::pastebinApp() : App("pastebin loader") {
 }
 

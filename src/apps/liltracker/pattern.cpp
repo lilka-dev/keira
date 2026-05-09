@@ -2,7 +2,7 @@
 #include <freertos/queue.h>
 
 #include "pattern.h"
-#include "utils/acquire.h"
+#include "keira/utils/acquire.h"
 #include "keira/mutex.h"
 
 #define WRITE_TO_BUFFER(buffer, value)              \

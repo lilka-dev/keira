@@ -2,6 +2,8 @@
 #include "keira/keira.h"
 #include <math.h>
 
+#include "keira/utils/string.h"
+
 TransformApp::TransformApp() : App("Transform") {
 }
 

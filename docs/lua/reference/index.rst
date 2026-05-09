@@ -22,4 +22,7 @@ Lua API
     wifi
     serial
     http
+    httpserver
+    net
+    mqtt
     crypto

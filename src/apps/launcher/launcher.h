@@ -57,6 +57,8 @@ public:
 
 private:
     void run() override;
+    ITEM_LIST loadCatalogItems();
+    std::vector<String> catalogItemNames_;
 
     void showMenu(const char* title, ITEM_LIST& menu, bool back = true);
     template <typename T, typename... Args>

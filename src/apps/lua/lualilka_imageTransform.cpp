@@ -76,25 +76,26 @@ static int lualilka_imageTransform_get_matrix(lua_State* L) {
 }
 
 static int lualilka_imageTransform_set_matrix(lua_State* L) {
-    if (!lua_istable(L, 1)) {
-        return luaL_error(L, "Expected a table as the first argument");
+    lilka::Transform** userdata = TRANSFORM_PTR(luaL_checkudata(L, 1, IMAGE_TRANSFORM));
+    if (!lua_istable(L, 2)) {
+        return luaL_error(L, "Expected a table as the second argument");
+    }
 
-        for (int i = 0; i < 2; ++i) {
-            lua_rawgeti(L, 1, i + 1);
-            for (int j = 0; j < 2; ++j) {
-                lua_rawgeti(L, -1, j + 1);
+    for (int i = 0; i < 2; ++i) {
+        lua_rawgeti(L, 2, i + 1);
+        for (int j = 0; j < 2; ++j) {
+            lua_rawgeti(L, -1, j + 1);
 
-                if (!lua_isnumber(L, -1)) {
-                    lua_pop(L, 2);
-                    return luaL_error(L, "Element at (%d, %d) is not a number", i, j);
-                }
-
-                (*TRANSFORM_PTR(luaL_checkudata(L, 1, IMAGE_TRANSFORM)))->matrix[i][j] = lua_tonumber(L, -1);
-                lua_pop(L, 1);
+            if (!lua_isnumber(L, -1)) {
+                lua_pop(L, 2);
+                return luaL_error(L, "Element at (%d, %d) is not a number", i, j);
             }
 
+            (*userdata)->matrix[i][j] = lua_tonumber(L, -1);
             lua_pop(L, 1);
         }
+
+        lua_pop(L, 1);
     }
     return 0;
 }

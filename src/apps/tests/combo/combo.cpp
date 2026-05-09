@@ -5,6 +5,8 @@
 #include "sequence_buttons.h"
 #include "concurrent_buttons.h"
 
+#include "keira/utils/string.h"
+
 #define SECONDS_FOR_EXIT 3
 
 using lilka::Alignment;

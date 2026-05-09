@@ -1,5 +1,6 @@
 #include "fmanager.h"
 #include "lilka/fileutils.h"
+#include "keira/utils/string.h"
 
 FileManagerApp::FileManagerApp(const String& path) :
     App("FileManager"),
@@ -308,7 +309,7 @@ void FileManagerApp::openCurrentEntry() {
             K_FT_NES_HANDLER(path);
             break;
         case FT_BIN:
-            FM_DEFAULT_FT_BIN_HANDLER(path);
+            K_FT_BIN_HANDLER(path);
             break;
         case FT_LUA_SCRIPT:
             K_FT_LUA_SCRIPT_HANDLER(path);
@@ -424,7 +425,7 @@ void FileManagerApp::onFileOpenWithMultiBootLoader() {
 
     FM_MENU_HANDLE_EXIT(fileOpenWithMenu);
 
-    FM_DEFAULT_FT_BIN_HANDLER(lilka::fileutils.joinPath(currentEntry.path, currentEntry.name));
+    K_FT_BIN_HANDLER(lilka::fileutils.joinPath(currentEntry.path, currentEntry.name));
 
     FM_DBG LXP;
 }
@@ -827,44 +828,6 @@ uint16_t FileManagerApp::getDirEntryIndex(
         if (areDirEntriesEqual(vec[it], entry)) return it;
     }
     return ENTRY_NOT_FOUND_INDEX;
-}
-
-void FileManagerApp::fileLoadAsRom(const String& path) {
-    lilka::ProgressDialog dialog(K_S_FMANAGER_LOADING, path + "\n\n" K_S_FMANAGER_MULTIBOOT_STARTING);
-    dialog.draw(canvas);
-    queueDraw();
-    int error;
-    error = lilka::multiboot.start(path);
-    if (error) {
-        alert(K_S_ERROR, StringFormat(K_S_FMANAGER_MULTIBOOT_ERROR_FMT, 1, error));
-        return;
-    }
-    dialog.setMessage(StringFormat(
-        K_S_FMANAGER_MULTIBOOT_ABOUT_FMT,
-        path.c_str(),
-        lilka::fileutils.getHumanFriendlySize(lilka::multiboot.getBytesTotal()).c_str()
-    ));
-    dialog.draw(canvas);
-    queueDraw();
-    while ((error = lilka::multiboot.process()) > 0) {
-        progress = lilka::multiboot.getBytesWritten() * 100 / lilka::multiboot.getBytesTotal();
-        dialog.setProgress(progress);
-        dialog.draw(canvas);
-        queueDraw();
-        if (lilka::controller.getState().a.justPressed) {
-            lilka::multiboot.cancel();
-            return;
-        }
-    }
-    if (error < 0) {
-        alert(K_S_ERROR, StringFormat(K_S_FMANAGER_MULTIBOOT_ERROR_FMT, 2, error));
-        return;
-    }
-    error = lilka::multiboot.finishAndReboot();
-    if (error) {
-        alert(K_S_ERROR, StringFormat(K_S_FMANAGER_MULTIBOOT_ERROR_FMT, 3, error));
-        return;
-    }
 }
 
 // :D this looks too funky, still we need a valid pointer

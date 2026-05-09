@@ -1,6 +1,7 @@
 #include <lilka.h>
 
 #include "lualilka_audio.h"
+#include "keira/keira.h"
 #include "keira/ksound/audioplayer.h"
 #include "keira/ksound/sound.h"
 
@@ -9,13 +10,13 @@ int lualilka_audio_play(lua_State* L) {
     luaL_checktype(L, 1, LUA_TTABLE);
     lua_getfield(L, 1, "pointer");
     if (!lua_islightuserdata(L, -1)) {
-        return luaL_error(L, "Невірний аудіо-ресурс");
+        return luaL_error(L, K_S_LUA_AUDIO_INVALID_RESOURCE);
     }
     lilka::Sound* sound = static_cast<lilka::Sound*>(lua_touserdata(L, -1));
     lua_pop(L, 1);
 
     if (!lilka::audioPlayer.play(sound)) {
-        return luaL_error(L, "Непідтримуваний формат аудіо: %s", sound->type);
+        return luaL_error(L, K_S_LUA_AUDIO_UNSUPPORTED_FORMAT_FMT, sound->type);
     }
     return 0;
 }

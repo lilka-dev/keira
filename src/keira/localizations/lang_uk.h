@@ -463,9 +463,101 @@
 #define K_S_LUA_REPL_AWAIT_CODE_FROM_UART         "REPL:\nОчікування коду\nз  UART...\n\nНатисність [A]\nдля виходу."
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// apps/lua/lualilka_resources.cpp ////////////////////////////////////////////////////////////////////
+#define K_S_LUA_RESOURCES_LOAD_IMAGE_ERROR_FMT    "Не вдалося завантажити зображення %s"
+#define K_S_LUA_RESOURCES_INVALID_IMAGE           "Невірне зображення"
+#define K_S_LUA_RESOURCES_UNSUPPORTED_AUDIO_FMT   "Непідтримуваний формат аудіо: %s"
+#define K_S_LUA_RESOURCES_OPEN_AUDIO_ERROR_FMT    "Не вдалося відкрити аудіо-файл %s"
+#define K_S_LUA_RESOURCES_EMPTY_AUDIO_FMT         "Аудіо-файл порожній: %s"
+#define K_S_LUA_RESOURCES_NO_MEMORY_AUDIO_FMT     "Недостатньо пам'яті для аудіо-файлу %s (%d байт)"
+#define K_S_LUA_RESOURCES_READ_AUDIO_ERROR_FMT    "Не вдалося прочитати аудіо-файл %s"
+#define K_S_LUA_RESOURCES_READ_FILE_ERROR_FMT     "Не вдалося прочитати файл %s"
+#define K_S_LUA_RESOURCES_WRITE_FILE_ERROR_FMT    "Не вдалося записати файл %s"
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
 // apps/tests/keyboard/keyboard.cpp //////////////////////////////////////////////////////////////////
 #define K_S_KEYBOARD_ENTER_TEXT                    "Введіть текст: "
 #define K_S_KEYBOARD_YOU_ENTERED                   "Ви ввели:"
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// apps/lua/lualilka_state.cpp //////////////////////////////////////////////////////////////////////
+#define K_S_LUA_STATE_CANT_OVERWRITE_FMT           "Неможливо перезаписати state.%s"
+#define K_S_LUA_STATE_SAVE_FROM_FILE_ONLY          "Збереження стану доступне лише при запуску з файлу"
+#define K_S_LUA_STATE_TABLE_UNDEFINED              "Таблиця state не визначена"
+#define K_S_LUA_STATE_SAVE_ERROR_FMT               "Не вдалося зберегти стан у файл %s"
+#define K_S_LUA_STATE_RESET_FROM_FILE_ONLY         "Скидання стану доступне лише при запуску з файлу"
+#define K_S_LUA_STATE_CLEAR_FROM_FILE_ONLY         "Очищення стану доступне лише при запуску з файлу"
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// apps/lua/lualilka_geometry.cpp ///////////////////////////////////////////////////////////////////
+#define K_S_LUA_GEOMETRY_ARGS_8_FMT                "Очікується 8 аргументів, отримано %d"
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// apps/lua/lualilka_sdcard.cpp /////////////////////////////////////////////////////////////////////
+#define K_S_LUA_SDCARD_NOT_FOUND                   "SD-картку не знайдено"
+#define K_S_LUA_SDCARD_SIZE_READ_ERROR             "Помилка читання розміру"
+#define K_S_LUA_SDCARD_SEEK_ERROR                  "Помилка пошуку"
+#define K_S_LUA_SDCARD_READ_ERROR                  "Помилка читання"
+#define K_S_LUA_SDCARD_WRITE_ERROR                 "Помилка запису"
+#define K_S_LUA_SDCARD_READ_FILE_ERROR             "Помилка читання з файлу"
+#define K_S_LUA_SDCARD_REMOVE_ERROR_FMT            "Помилка видалення файлу: %d"
+#define K_S_LUA_SDCARD_RENAME_ERROR_FMT            "Помилка перейменування файлу: %d"
+#define K_S_LUA_SDCARD_DIR_EMPTY_OR_ERROR          "Директорія порожня, або сталася помилка читання директорії"
+#define K_S_LUA_SDCARD_DIR_READ_ERROR              "Не вдалося прочитати директорію"
+#define K_S_LUA_SDCARD_ARGS_1_FMT                  "Очікується 1 аргумент, отримано %d"
+#define K_S_LUA_SDCARD_ARGS_2_FMT                  "Очікується 2 аргументи, отримано %d"
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// apps/lua/lualilka_audio.cpp //////////////////////////////////////////////////////////////////////
+#define K_S_LUA_AUDIO_INVALID_RESOURCE             "Невірний аудіо-ресурс"
+#define K_S_LUA_AUDIO_UNSUPPORTED_FORMAT_FMT       "Непідтримуваний формат аудіо: %s"
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// apps/lua/lualilka_wifi.cpp ///////////////////////////////////////////////////////////////////////
+#define K_S_LUA_WIFI_ARGS_1_FMT                    "Очікується 1 аргумент, отримано %d"
+#define K_S_LUA_WIFI_ARGS_2_FMT                    "Очікується 2 аргументи, отримано %d"
+#define K_S_LUA_WIFI_ARGS_5_FMT                    "Очікується 5 аргументів, отримано %d"
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// apps/lua/lualilka_buzzer.cpp /////////////////////////////////////////////////////////////////////
+#define K_S_LUA_BUZZER_ARGS_1_OR_2_FMT             "Очікується 1 або 2 аргументи, отримано %d"
+#define K_S_LUA_BUZZER_ARGS_2_FMT                  "Очікується 2 аргументи, отримано %d"
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// apps/lua/lualilka_http.cpp ///////////////////////////////////////////////////////////////////////
+#define K_S_LUA_HTTP_ARGS_1_FMT                    "Очікується 1 аргумент, отримано %d"
+#define K_S_LUA_HTTP_ARG_MUST_BE_TABLE             "Аргумент має бути таблицею"
+#define K_S_LUA_HTTP_CANT_OPEN_FILE_FMT            "Не вдалося відкрити %s"
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// apps/lua/lualilka_math.cpp ///////////////////////////////////////////////////////////////////////
+#define K_S_LUA_MATH_ARGS_0_1_2_FMT                "Очікується 0, 1 або 2 аргументи, отримано %d"
+#define K_S_LUA_MATH_ARGS_1_FMT                    "Очікується 1 аргумент, отримано %d"
+#define K_S_LUA_MATH_ARGS_1_OR_2_FMT               "Очікується 1 або 2 аргументи, отримано %d"
+#define K_S_LUA_MATH_ARGS_2_FMT                    "Очікується 2 аргументи, отримано %d"
+#define K_S_LUA_MATH_ARGS_3_FMT                    "Очікується 3 аргументи, отримано %d"
+#define K_S_LUA_MATH_ARGS_4_FMT                    "Очікується 4 аргументи, отримано %d"
+#define K_S_LUA_MATH_ARGS_5_FMT                    "Очікується 5 аргументів, отримано %d"
+#define K_S_LUA_MATH_ARG_MUST_BE_TABLE             "Аргумент має бути таблицею"
+#define K_S_LUA_MATH_TABLE_CANT_BE_EMPTY           "Таблиця не може бути пустою"
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// apps/lua/lualilka_display.cpp ////////////////////////////////////////////////////////////////////
+#define K_S_LUA_DISPLAY_UNKNOWN_FONT_FMT           "Невідомий шрифт - %s"
+#define K_S_LUA_DISPLAY_INVALID_IMAGE              "Некоректне зображення"
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// apps/lua/lualilka_crypto.cpp /////////////////////////////////////////////////////////////////////
+#define K_S_LUA_CRYPTO_ARGS_1_FMT                  "Очікується 1 аргумент, отримано %d"
+#define K_S_LUA_CRYPTO_ARGS_2_FMT                  "Очікується 2 аргументи, отримано %d"
+#define K_S_LUA_CRYPTO_KEY_SIZE_FMT                "Ключ має бути 16, 24 або 32 байти, отримано %d"
+#define K_S_LUA_CRYPTO_ALLOC_ERROR                 "Не вдалося виділити пам'ять"
+#define K_S_LUA_CRYPTO_AES_INIT_ERROR_FMT          "Помилка ініціалізації AES: %d"
+#define K_S_LUA_CRYPTO_AES_ENCRYPT_ERROR_FMT       "Помилка шифрування AES: %d"
+#define K_S_LUA_CRYPTO_AES_DECRYPT_ERROR_FMT       "Помилка дешифрування AES: %d"
+#define K_S_LUA_CRYPTO_INVALID_DATA_FORMAT         "Невірний формат зашифрованих даних"
+#define K_S_LUA_CRYPTO_INVALID_HEX_STRING          "Невірний hex-рядок"
+#define K_S_LUA_CRYPTO_INVALID_DATA_SIZE           "Невірний розмір зашифрованих даних"
+#define K_S_LUA_CRYPTO_INVALID_KEY_OR_DATA         "Невірний ключ або пошкоджені дані"
+///////////////////////////////////////////////////////////////////////////////////////////////////////
 // clang-format on

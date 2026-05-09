@@ -3,7 +3,7 @@
 #include <WiFi.h>
 #include <lilka/config.h>
 
-#include "utils/json.h"
+#include "keira/utils/json.h"
 
 LilCatalogApp::LilCatalogApp() : App(K_S_LILCATALOG_APP), currentEntry{}, iconBuffer{}, downloadBuffer{} {
     setktStackSize(16384);
@@ -38,11 +38,18 @@ void LilCatalogApp::run() {
                 handleInput();
                 drawAppView();
                 break;
+            case LILCATALOG_INSTALLED_LIST:
+                installedMenu.update();
+                installedMenu.draw(canvas);
+                if (lilka::controller.peekState().b.justPressed) {
+                    showMainMenu();
+                }
+                break;
             case LILCATALOG_ENTRY:
                 entryMenu.update();
                 entryMenu.draw(canvas);
                 if (lilka::controller.peekState().b.justPressed) {
-                    state = LILCATALOG_LIST;
+                    state = entryReturnState;
                 }
                 break;
             case LILCATALOG_DESCRIPTION:
@@ -889,7 +896,7 @@ void LilCatalogApp::executeEntry() {
             K_FT_LUA_SCRIPT_HANDLER(canonicalPath);
             break;
         case EXEC_TYPE_BINARY:
-            fileLoadAsRom(canonicalPath);
+            K_FT_BIN_HANDLER(canonicalPath);
             break;
         case EXEC_TYPE_DYNAPP:
             K_FT_SO_HANDLER(canonicalPath);
@@ -905,46 +912,71 @@ void LilCatalogApp::executeEntry() {
     vTaskDelay(100 / portTICK_RATE_MS);
 }
 
-void LilCatalogApp::fileLoadAsRom(const String& path) {
-    lilka::ProgressDialog dialog(K_S_LILCATALOG_LOADING, path + "\n\n" + K_S_LILCATALOG_STARTING);
-    dialog.draw(canvas);
-    queueDraw();
-
-    int error = lilka::multiboot.start(path);
-    if (error) {
-        showAlert(String(K_S_LILCATALOG_ERROR_STAGE1) + error);
-        return;
-    }
-
-    dialog.setMessage(path + "\n\n" + K_S_LILCATALOG_SIZE + String(lilka::multiboot.getBytesTotal()));
-    dialog.draw(canvas);
-    queueDraw();
-
-    while ((error = lilka::multiboot.process()) > 0) {
-        int progress = lilka::multiboot.getBytesWritten() * 100 / lilka::multiboot.getBytesTotal();
-        dialog.setProgress(progress);
-        dialog.draw(canvas);
-        queueDraw();
-        if (lilka::controller.getState().a.justPressed) {
-            lilka::multiboot.cancel();
-            return;
-        }
-    }
-
-    if (error < 0) {
-        showAlert(String(K_S_LILCATALOG_ERROR_STAGE2) + error);
-        return;
-    }
-
-    error = lilka::multiboot.finishAndReboot();
-    if (error) {
-        showAlert(String(K_S_LILCATALOG_ERROR_STAGE3) + error);
-    }
-}
-
 // ================================
 // UI Methods
 // ================================
+
+void LilCatalogApp::showInstalledMenu() {
+    state = LILCATALOG_INSTALLED_LIST;
+
+    installedMenu.clearItems();
+    installedMenu.setTitle(K_S_LILCATALOG_INSTALLED);
+
+    for (size_t i = 0; i < entries.size(); i++) {
+        const catalog_entry& entry = entries[i];
+
+        uint16_t color;
+        const char* badge;
+        switch (entry.entryfile.type) {
+            case EXEC_TYPE_LUA:
+                color = lilka::colors::Maya_blue;
+                badge = "LUA";
+                break;
+            case EXEC_TYPE_BINARY:
+                color = lilka::colors::Mint_green;
+                badge = "BIN";
+                break;
+            case EXEC_TYPE_DYNAPP:
+                color = lilka::colors::Aquamarine;
+                badge = "SO";
+                break;
+            default:
+                color = lilka::colors::Light_gray;
+                badge = "";
+                break;
+        }
+
+        installedMenu.addItem(
+            entry.name,
+            nullptr,
+            color,
+            badge,
+            [](void* ctx) {
+                LilCatalogApp* app = static_cast<LilCatalogApp*>(ctx);
+                app->currentEntry = app->entries[app->installedMenu.getCursor()];
+                if (app->fetchEntryManifest(app->currentEntry.id)) {
+                    app->entryReturnState = LILCATALOG_INSTALLED_LIST;
+                    app->showEntry();
+                }
+            },
+            this
+        );
+    }
+
+    installedMenu.addItem(
+        K_S_LILCATALOG_BACK,
+        nullptr,
+        lilka::colors::White,
+        K_S_LILCATALOG_EMPTY,
+        [](void* ctx) {
+            LilCatalogApp* app = static_cast<LilCatalogApp*>(ctx);
+            app->showMainMenu();
+        },
+        this
+    );
+
+    installedMenu.setCursor(0);
+}
 
 void LilCatalogApp::showMainMenu() {
     state = LILCATALOG_MAIN_MENU;
@@ -975,8 +1007,7 @@ void LilCatalogApp::showMainMenu() {
         [](void* ctx) {
             LilCatalogApp* app = static_cast<LilCatalogApp*>(ctx);
             if (app->loadInstalledApps()) {
-                app->loadCurrentIcon();
-                app->state = LILCATALOG_LIST;
+                app->showInstalledMenu();
             } else {
                 app->showAlert(K_S_LILCATALOG_NO_INSTALLED);
             }
@@ -1194,6 +1225,7 @@ void LilCatalogApp::handleInput() {
     if (st.a.justPressed && !entries.empty()) {
         currentEntry = entries[currentIndex];
         if (fetchEntryManifest(currentEntry.id)) {
+            entryReturnState = LILCATALOG_LIST;
             showEntry();
         }
     }
@@ -1297,7 +1329,7 @@ void LilCatalogApp::showEntry() {
         K_S_LILCATALOG_EMPTY,
         [](void* ctx) {
             LilCatalogApp* app = static_cast<LilCatalogApp*>(ctx);
-            app->state = LILCATALOG_LIST;
+            app->state = app->entryReturnState;
         },
         this
     );

@@ -1,5 +1,7 @@
 #include "watchdog.h"
 
+#include "keira/utils/string.h"
+
 char TASK_STATE_TO_STR[][8] = {"Running", "Ready", "Blocked", "Suspend", "Deleted", "Invalid"};
 
 WatchdogService::WatchdogService() : Service("watchdog") {

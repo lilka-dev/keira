@@ -1,4 +1,5 @@
 #include "lualilka_crypto.h"
+#include "keira/keira.h"
 
 #include <mbedtls/aes.h>
 #include <mbedtls/md5.h>
@@ -39,7 +40,7 @@ static int hex_to_bytes(const char* src, size_t hex_len, uint8_t* dst) {
 int lualilka_crypto_encrypt(lua_State* L) {
     int n = lua_gettop(L);
     if (n != 2) {
-        return luaL_error(L, "Очікується 2 аргументи, отримано %d", n);
+        return luaL_error(L, K_S_LUA_CRYPTO_ARGS_2_FMT, n);
     }
 
     size_t plaintext_len;
@@ -48,7 +49,7 @@ int lualilka_crypto_encrypt(lua_State* L) {
     const char* key = luaL_checklstring(L, 2, &key_len);
 
     if (key_len != 16 && key_len != 24 && key_len != 32) {
-        return luaL_error(L, "Ключ має бути 16, 24 або 32 байти, отримано %d", (int)key_len);
+        return luaL_error(L, K_S_LUA_CRYPTO_KEY_SIZE_FMT, (int)key_len);
     }
 
     // PKCS7 padding
@@ -57,7 +58,7 @@ int lualilka_crypto_encrypt(lua_State* L) {
 
     uint8_t* padded = static_cast<uint8_t*>(malloc(padded_len));
     if (!padded) {
-        return luaL_error(L, "Не вдалося виділити пам'ять");
+        return luaL_error(L, K_S_LUA_CRYPTO_ALLOC_ERROR);
     }
     memcpy(padded, plaintext, plaintext_len);
     memset(padded + plaintext_len, pad_value, pad_value);
@@ -73,14 +74,14 @@ int lualilka_crypto_encrypt(lua_State* L) {
     if (ret != 0) {
         mbedtls_aes_free(&ctx);
         free(padded);
-        return luaL_error(L, "Помилка ініціалізації AES: %d", ret);
+        return luaL_error(L, K_S_LUA_CRYPTO_AES_INIT_ERROR_FMT, ret);
     }
 
     uint8_t* ciphertext = static_cast<uint8_t*>(malloc(padded_len));
     if (!ciphertext) {
         mbedtls_aes_free(&ctx);
         free(padded);
-        return luaL_error(L, "Не вдалося виділити пам'ять");
+        return luaL_error(L, K_S_LUA_CRYPTO_ALLOC_ERROR);
     }
 
     // CBC encrypt (iv is modified in place, so we use a copy)
@@ -92,7 +93,7 @@ int lualilka_crypto_encrypt(lua_State* L) {
 
     if (ret != 0) {
         free(ciphertext);
-        return luaL_error(L, "Помилка шифрування AES: %d", ret);
+        return luaL_error(L, K_S_LUA_CRYPTO_AES_ENCRYPT_ERROR_FMT, ret);
     }
 
     // Build output: IV + ciphertext, hex-encoded
@@ -100,7 +101,7 @@ int lualilka_crypto_encrypt(lua_State* L) {
     char* hex_output = static_cast<char*>(malloc(output_bin_len * 2 + 1));
     if (!hex_output) {
         free(ciphertext);
-        return luaL_error(L, "Не вдалося виділити пам'ять");
+        return luaL_error(L, K_S_LUA_CRYPTO_ALLOC_ERROR);
     }
 
     // Hex-encode IV
@@ -118,7 +119,7 @@ int lualilka_crypto_encrypt(lua_State* L) {
 int lualilka_crypto_decrypt(lua_State* L) {
     int n = lua_gettop(L);
     if (n != 2) {
-        return luaL_error(L, "Очікується 2 аргументи, отримано %d", n);
+        return luaL_error(L, K_S_LUA_CRYPTO_ARGS_2_FMT, n);
     }
 
     size_t hex_len;
@@ -127,23 +128,23 @@ int lualilka_crypto_decrypt(lua_State* L) {
     const char* key = luaL_checklstring(L, 2, &key_len);
 
     if (key_len != 16 && key_len != 24 && key_len != 32) {
-        return luaL_error(L, "Ключ має бути 16, 24 або 32 байти, отримано %d", (int)key_len);
+        return luaL_error(L, K_S_LUA_CRYPTO_KEY_SIZE_FMT, (int)key_len);
     }
 
     // Minimum: 16 bytes IV + 16 bytes ciphertext = 32 bytes = 64 hex chars
     if (hex_len < 64 || hex_len % 2 != 0) {
-        return luaL_error(L, "Невірний формат зашифрованих даних");
+        return luaL_error(L, K_S_LUA_CRYPTO_INVALID_DATA_FORMAT);
     }
 
     size_t bin_len = hex_len / 2;
     uint8_t* bin_data = static_cast<uint8_t*>(malloc(bin_len));
     if (!bin_data) {
-        return luaL_error(L, "Не вдалося виділити пам'ять");
+        return luaL_error(L, K_S_LUA_CRYPTO_ALLOC_ERROR);
     }
 
     if (hex_to_bytes(hex_input, hex_len, bin_data) != 0) {
         free(bin_data);
-        return luaL_error(L, "Невірний hex-рядок");
+        return luaL_error(L, K_S_LUA_CRYPTO_INVALID_HEX_STRING);
     }
 
     // Extract IV and ciphertext
@@ -153,7 +154,7 @@ int lualilka_crypto_decrypt(lua_State* L) {
 
     if (ciphertext_len == 0 || ciphertext_len % AES_BLOCK_SIZE != 0) {
         free(bin_data);
-        return luaL_error(L, "Невірний розмір зашифрованих даних");
+        return luaL_error(L, K_S_LUA_CRYPTO_INVALID_DATA_SIZE);
     }
 
     // Decrypt
@@ -163,14 +164,14 @@ int lualilka_crypto_decrypt(lua_State* L) {
     if (ret != 0) {
         mbedtls_aes_free(&ctx);
         free(bin_data);
-        return luaL_error(L, "Помилка ініціалізації AES: %d", ret);
+        return luaL_error(L, K_S_LUA_CRYPTO_AES_INIT_ERROR_FMT, ret);
     }
 
     uint8_t* plaintext = static_cast<uint8_t*>(malloc(ciphertext_len));
     if (!plaintext) {
         mbedtls_aes_free(&ctx);
         free(bin_data);
-        return luaL_error(L, "Не вдалося виділити пам'ять");
+        return luaL_error(L, K_S_LUA_CRYPTO_ALLOC_ERROR);
     }
 
     ret = mbedtls_aes_crypt_cbc(&ctx, MBEDTLS_AES_DECRYPT, ciphertext_len, iv, bin_data + AES_BLOCK_SIZE, plaintext);
@@ -179,19 +180,19 @@ int lualilka_crypto_decrypt(lua_State* L) {
 
     if (ret != 0) {
         free(plaintext);
-        return luaL_error(L, "Помилка дешифрування AES: %d", ret);
+        return luaL_error(L, K_S_LUA_CRYPTO_AES_DECRYPT_ERROR_FMT, ret);
     }
 
     // Validate and remove PKCS7 padding
     uint8_t pad_value = plaintext[ciphertext_len - 1];
     if (pad_value == 0 || pad_value > AES_BLOCK_SIZE) {
         free(plaintext);
-        return luaL_error(L, "Невірний ключ або пошкоджені дані");
+        return luaL_error(L, K_S_LUA_CRYPTO_INVALID_KEY_OR_DATA);
     }
     for (size_t i = ciphertext_len - pad_value; i < ciphertext_len; i++) {
         if (plaintext[i] != pad_value) {
             free(plaintext);
-            return luaL_error(L, "Невірний ключ або пошкоджені дані");
+            return luaL_error(L, K_S_LUA_CRYPTO_INVALID_KEY_OR_DATA);
         }
     }
 
@@ -205,7 +206,7 @@ int lualilka_crypto_decrypt(lua_State* L) {
 int lualilka_crypto_md5(lua_State* L) {
     int n = lua_gettop(L);
     if (n != 1) {
-        return luaL_error(L, "Очікується 1 аргумент, отримано %d", n);
+        return luaL_error(L, K_S_LUA_CRYPTO_ARGS_1_FMT, n);
     }
 
     size_t data_len;
@@ -230,7 +231,7 @@ int lualilka_crypto_md5(lua_State* L) {
 int lualilka_crypto_crc32(lua_State* L) {
     int n = lua_gettop(L);
     if (n != 1) {
-        return luaL_error(L, "Очікується 1 аргумент, отримано %d", n);
+        return luaL_error(L, K_S_LUA_CRYPTO_ARGS_1_FMT, n);
     }
 
     size_t data_len;

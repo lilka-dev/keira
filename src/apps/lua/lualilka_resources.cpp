@@ -1,5 +1,6 @@
 #include "lualilka_resources.h"
 #include "lualilka_audio.h"
+#include "keira/keira.h"
 #include "keira/ksound/sound.h"
 #include "keira/ksound/audioplayer.h"
 
@@ -63,7 +64,7 @@ int lualilka_resources_loadImage(lua_State* L) {
     lilka::Image* image = lilka::resources.loadImage(fullPath, transparencyColor, pivotX, pivotY);
 
     if (!image) {
-        return luaL_error(L, "Не вдалося завантажити зображення %s", fullPath.c_str());
+        return luaL_error(L, K_S_LUA_RESOURCES_LOAD_IMAGE_ERROR_FMT, fullPath.c_str());
     }
 
     lilka::serial.log(
@@ -96,7 +97,7 @@ int lualilka_resources_rotateImage(lua_State* L) {
     lua_getfield(L, 1, "pointer");
     // Check if value is a valid pointer
     if (!lua_islightuserdata(L, -1)) {
-        return luaL_error(L, "Невірне зображення");
+        return luaL_error(L, K_S_LUA_RESOURCES_INVALID_IMAGE);
     }
     lilka::Image* image = (lilka::Image*)lua_touserdata(L, -1);
     lua_pop(L, 1);
@@ -133,7 +134,7 @@ int lualilka_resources_flipImageX(lua_State* L) {
     lua_getfield(L, 1, "pointer");
     // Check if value is a valid pointer
     if (!lua_islightuserdata(L, -1)) {
-        return luaL_error(L, "Невірне зображення");
+        return luaL_error(L, K_S_LUA_RESOURCES_INVALID_IMAGE);
     }
     lilka::Image* image = (lilka::Image*)lua_touserdata(L, -1);
     lua_pop(L, 1);
@@ -167,7 +168,7 @@ int lualilka_resources_flipImageY(lua_State* L) {
     lua_getfield(L, 1, "pointer");
     // Check if value is a valid pointer
     if (!lua_islightuserdata(L, -1)) {
-        return luaL_error(L, "Невірне зображення");
+        return luaL_error(L, K_S_LUA_RESOURCES_INVALID_IMAGE);
     }
     lilka::Image* image = (lilka::Image*)lua_touserdata(L, -1);
     lua_pop(L, 1);
@@ -215,12 +216,12 @@ int lualilka_resources_loadAudio(lua_State* L) {
     } else if (lowerPath.endsWith(".flac")) {
         type = "flac";
     } else {
-        return luaL_error(L, "Непідтримуваний формат аудіо: %s", fullPath.c_str());
+        return luaL_error(L, K_S_LUA_RESOURCES_UNSUPPORTED_AUDIO_FMT, fullPath.c_str());
     }
 
     FILE* file = fopen(fullPath.c_str(), "rb");
     if (!file) {
-        return luaL_error(L, "Не вдалося відкрити аудіо-файл %s", fullPath.c_str());
+        return luaL_error(L, K_S_LUA_RESOURCES_OPEN_AUDIO_ERROR_FMT, fullPath.c_str());
     }
 
     fseek(file, 0, SEEK_END);
@@ -229,13 +230,13 @@ int lualilka_resources_loadAudio(lua_State* L) {
 
     if (fileSize == 0) {
         fclose(file);
-        return luaL_error(L, "Аудіо-файл порожній: %s", fullPath.c_str());
+        return luaL_error(L, K_S_LUA_RESOURCES_EMPTY_AUDIO_FMT, fullPath.c_str());
     }
 
     uint8_t* data = new (std::nothrow) uint8_t[fileSize];
     if (!data) {
         fclose(file);
-        return luaL_error(L, "Недостатньо пам'яті для аудіо-файлу %s (%d байт)", fullPath.c_str(), fileSize);
+        return luaL_error(L, K_S_LUA_RESOURCES_NO_MEMORY_AUDIO_FMT, fullPath.c_str(), fileSize);
     }
 
     size_t bytesRead = fread(data, 1, fileSize, file);
@@ -243,7 +244,7 @@ int lualilka_resources_loadAudio(lua_State* L) {
 
     if (bytesRead != fileSize) {
         delete[] data;
-        return luaL_error(L, "Не вдалося прочитати аудіо-файл %s", fullPath.c_str());
+        return luaL_error(L, K_S_LUA_RESOURCES_READ_AUDIO_ERROR_FMT, fullPath.c_str());
     }
 
     lilka::serial.log("lua: loaded audio %s, size: %d bytes", path, fileSize);
@@ -302,7 +303,7 @@ int lualilka_resources_readFile(lua_State* L) {
     String fileContent;
     int result = lilka::resources.readFile(fullPath, fileContent);
     if (result) {
-        return luaL_error(L, "Не вдалося прочитати файл %s", fullPath.c_str());
+        return luaL_error(L, K_S_LUA_RESOURCES_READ_FILE_ERROR_FMT, fullPath.c_str());
     }
 
     lua_pushstring(L, fileContent.c_str());
@@ -317,7 +318,7 @@ int lualilka_resources_writeFile(lua_State* L) {
 
     int result = lilka::resources.writeFile(fullPath, content);
     if (result) {
-        return luaL_error(L, "Не вдалося записати файл %s", fullPath.c_str());
+        return luaL_error(L, K_S_LUA_RESOURCES_WRITE_FILE_ERROR_FMT, fullPath.c_str());
     }
 
     return 0;

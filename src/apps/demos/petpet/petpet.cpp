@@ -1,7 +1,7 @@
 
 #include "petpet.h"
 #include "petpet_gif.h"
-#include "utils/defer.h"
+#include "keira/utils/defer.h"
 
 // Idea by @imbirWIthSugar
 PetPetApp::PetPetApp() : App("PetPet") {

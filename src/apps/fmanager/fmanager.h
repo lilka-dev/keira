@@ -57,9 +57,8 @@
 #define FM_SELECTED_FILE_ICON   &selectedfile_img
 // FILE HANDLERS:  ///////////////////////////////////////////////////////////
 // Note:: look keira/keira.h for default K_FT_X_HANDLER s
-#define FM_DEFAULT_FT_BIN_HANDLER(X) fileLoadAsRom(X);
-#define FT_DEFAULT_DIR_HANDLER       currentPath = path;
-#define FT_DEFAULT_OTHER_HANDLER     fileInfoShowAlert();
+#define FT_DEFAULT_DIR_HANDLER   currentPath = path;
+#define FT_DEFAULT_OTHER_HANDLER fileInfoShowAlert();
 //////////////////////////////////////////////////////////////////////////////
 
 // MISC SETTINGS:  ///////////////////////////////////////////////////////////
@@ -220,8 +219,6 @@ private:
     // changes FM mode [FM_MODE_RELOAD, FM_MODE_VIEW, FM_MODE_SELECT]
     bool changeMode(FmMode newMode);
 
-    // loads firmware
-    void fileLoadAsRom(const String& path);
     String getFileMD5(const String& file_path);
 
     // open current entry with default app

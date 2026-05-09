@@ -96,6 +96,7 @@ private:
 
 ScreenshotService::ScreenshotService() : Service("screenshot") {
     setktStackSize(8192);
+    setktPriority(KT_PRIO_DEFAULT);
 }
 
 bool ScreenshotService::saveScreenshot(lilka::Canvas* canvas) {
