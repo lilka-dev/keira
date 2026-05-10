@@ -23,7 +23,7 @@ lang_files_list = [p.name for p in LANG_FILES_PATH.glob("*.h")]
 
 # Check main language file existence
 if not(f"{LANG_FILE_PREFIX}{LANG_FILE_MAIN}.h" in lang_files_list):
-	print(f"Error: Main language file for lang {lang_main} not found")
+	print(f"Error: Main language file for lang {LANG_FILE_MAIN_NAME} not found")
 	exit(-1)
 
 # Check filenames on a naming pattern
