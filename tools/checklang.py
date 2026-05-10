@@ -16,7 +16,7 @@ LANG_FILE_MAIN = "uk"
 
 LANG_FILE_RE = re.compile(r"^lang_[a-z]{2}\.h$")
 
-LANG_FILE_MAIN_NAME = LANG_FILES_PATH  / (LANG_FILE_PREFIX + LANG_FILE_MAIN + ".h")
+LANG_FILE_MAIN_NAME = LANG_FILES_PATH  / f"{LANG_FILE_PREFIX}{LANG_FILE_MAIN}.h"
 
 # Build a file list, skip non headers
 lang_files_list = [p.name for p in LANG_FILES_PATH.glob("*.h")]
