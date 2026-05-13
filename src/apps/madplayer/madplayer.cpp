@@ -6,6 +6,7 @@
 #include "keira/ksystem.h"
 #include "apps/statusbar/statusbar.h"
 #include "madplayer.h"
+#include "keira/utils/file.h"
 
 // Визначає тип аудіо за розширенням файлу. Повертає nullptr, якщо формат невідомий.
 static const char* detectAudioType(const String& path) {
@@ -63,9 +64,8 @@ void MadPlayerApp::run() {
         alert("Помилка", "Не вдалося відкрити файл");
         return;
     }
-    fseek(file, 0, SEEK_END);
-    size_t fileSize = ftell(file);
-    fseek(file, 0, SEEK_SET);
+
+    size_t fileSize = fsize(file);
 
     if (fileSize == 0) {
         fclose(file);

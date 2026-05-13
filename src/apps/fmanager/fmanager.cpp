@@ -1,5 +1,6 @@
 #include "fmanager.h"
 #include "lilka/fileutils.h"
+#include "keira/utils/file.h"
 #include "keira/utils/string.h"
 
 FileManagerApp::FileManagerApp(const String& path) :
@@ -157,9 +158,8 @@ String FileManagerApp::getFileMD5(const String& file_path) {
     }
     md5Progress.setMessage(basename(file_path.c_str()));
     // Get file size
-    fseek(file, 0, SEEK_END);
-    size_t fileSize = ftell(file);
-    fseek(file, 0, SEEK_SET);
+    size_t fileSize = fsize(file);
+
     // mb create on init?
     mbedtls_md5_context ctx;
     mbedtls_md5_init(&ctx);
@@ -269,8 +269,10 @@ FMEntry FileManagerApp::pathToEntry(const String& path) {
         newEntry.type = FT_JS_SCRIPT;
         newEntry.icon = FT_JS_SCRIPT_ICON;
         newEntry.color = FT_JS_SCRIPT_COLOR;
-    } else if (lowerCasedPath.endsWith(".mod") || lowerCasedPath.endsWith(".wav") || lowerCasedPath.endsWith(".mp3") ||
-               lowerCasedPath.endsWith(".aac") || lowerCasedPath.endsWith(".flac")) {
+    } else if (
+        lowerCasedPath.endsWith(".mod") || lowerCasedPath.endsWith(".wav") || lowerCasedPath.endsWith(".mp3") ||
+        lowerCasedPath.endsWith(".aac") || lowerCasedPath.endsWith(".flac")
+    ) {
         newEntry.type = FT_SOUND;
         newEntry.icon = FT_SOUND_ICON;
         newEntry.color = FT_SOUND_COLOR;
@@ -771,11 +773,6 @@ bool FileManagerApp::areDirEntriesEqual(const FMEntry& ent1, const FMEntry& ent2
 bool FileManagerApp::isCopyOrMoveCouldBeDone(const String& src, const String& dst) {
     // Note, this isn't a mistake, is an errno autoclear here
     // SPIFFS doesn't implement an access() call, so, we use stat as a fallback
-    struct stat st;
-#define F_EXIST(X)                                                                                                    \
-    ((strcmp(X, LILKA_SD_ROOT) == 0) || (strcmp(X, LILKA_SPIFFS_ROOT) == 0) || (strcmp(X, LILKA_SD_ROOT "/") == 0) || \
-     (strcmp(X, LILKA_SPIFFS_ROOT "/") == 0) || (strcmp(X, "/") == 0) || (access(X, F_OK) == 0) ||                    \
-     (stat(X, &st) == 0) || (errno = 0))
 
     // it's already here
     if (src == dst) {
@@ -791,25 +788,24 @@ bool FileManagerApp::isCopyOrMoveCouldBeDone(const String& src, const String& ds
     }
 
     // Nothing to copy
-    if (!F_EXIST(src.c_str())) {
+    if (!fexist(src.c_str())) {
         FM_DBG lilka::serial.log("[FM] Can't copy %s => %s. SRC not exist", src.c_str(), dst.c_str());
         return false;
     }
 
     // Some other file already at dst
     // TODO: ask user for replace confirm ?
-    if (F_EXIST(dst.c_str())) {
+    if (fexist(dst.c_str())) {
         FM_DBG lilka::serial.log("[FM] Can't copy %s => %s. DST already exist", src.c_str(), dst.c_str());
 
         return false;
     }
     // Destination is unreachable
-    if (!F_EXIST(lilka::fileutils.getParentDirectory(dst).c_str())) {
+    if (!fexist(lilka::fileutils.getParentDirectory(dst).c_str())) {
         FM_DBG lilka::serial.log("[FM] Can't copy %s => %s. DST unreachable", src.c_str(), dst.c_str());
         return false;
     }
 
-#undef F_EXIST
     FM_DBG lilka::serial.log("[FM] Allowed copy %s => %s", src.c_str(), dst.c_str());
 
     // All good, let's proceed
@@ -858,12 +854,8 @@ bool FileManagerApp::fileListMenuLoadDir() {
 
     dirLoadProgress.setMessage(currentPath);
     dirLoadProgress.setProgress(0);
-    auto dirLength = 0;
+    auto dirLength = lendir(dir);
     auto countLoaded = 0;
-    // TODO: doubleread? in statless()?
-    while ((readdir(dir)) != NULL)
-        dirLength++;
-    rewinddir(dir);
 
     FM_DBG lilka::serial.log("Directory %s contains %d entries", currentPath.c_str(), dirLength);
 
@@ -1167,9 +1159,7 @@ bool FileManagerApp::copyPath(const String& source, const String& destination) {
             return false;
         }
 
-        fseek(inFile, 0, SEEK_END);
-        auto fileSize = ftell(inFile);
-        fseek(inFile, 0, SEEK_SET);
+        auto fileSize = fsize(inFile);
 
         auto outFile = fopen(destination.c_str(), "w");
         if (!outFile) {

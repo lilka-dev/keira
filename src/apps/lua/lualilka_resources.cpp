@@ -3,6 +3,7 @@
 #include "keira/keira.h"
 #include "keira/ksound/sound.h"
 #include "keira/ksound/audioplayer.h"
+#include "keira/utils/file.h"
 
 // helper
 static String luapath_to_path(lua_State* L, const char* path) {
@@ -224,11 +225,9 @@ int lualilka_resources_loadAudio(lua_State* L) {
         return luaL_error(L, K_S_LUA_RESOURCES_OPEN_AUDIO_ERROR_FMT, fullPath.c_str());
     }
 
-    fseek(file, 0, SEEK_END);
-    size_t fileSize = ftell(file);
-    fseek(file, 0, SEEK_SET);
+    size_t fileSize = fsize(file);
 
-    if (fileSize == 0) {
+    if (fileSize <= 0) {
         fclose(file);
         return luaL_error(L, K_S_LUA_RESOURCES_EMPTY_AUDIO_FMT, fullPath.c_str());
     }

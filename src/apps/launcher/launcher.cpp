@@ -3,6 +3,7 @@
 #include <qrcode.h>
 #include "keira/utils/json.h"
 #include "keira/keira.h"
+#include "keira/utils/file.h"
 #include "launcher.h"
 #include "keira/appmanager.h"
 
@@ -500,9 +501,7 @@ ITEM_LIST LauncherApp::loadCatalogItems() {
             continue;
         }
 
-        fseek(f, 0, SEEK_END);
-        long fileSize = ftell(f);
-        fseek(f, 0, SEEK_SET);
+        long fileSize = fsize(f);
 
         if (fileSize <= 0 || fileSize > 8192) {
             fclose(f);

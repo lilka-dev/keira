@@ -1,6 +1,7 @@
 #include "web.h"
 #include "esp_http_server.h"
 #include "keira/ksystem.h"
+#include "keira/utils/file.h"
 
 // TODO: html to header generator with compression
 
@@ -678,8 +679,8 @@ static volatile bool pendingRestart = false;
 static void stripTrailingBoundary(const char* filePath) {
     FILE* f = fopen(filePath, "r+b");
     if (!f) return;
-    fseek(f, 0, SEEK_END);
-    long fileSize = ftell(f);
+
+    long fileSize = fsize(f);
     // Boundary is typically < 80 bytes; check last 200 bytes
     long searchStart = fileSize > 200 ? fileSize - 200 : 0;
     long searchLen = fileSize - searchStart;
@@ -688,7 +689,7 @@ static void stripTrailingBoundary(const char* filePath) {
         fclose(f);
         return;
     }
-    fseek(f, searchStart, SEEK_SET);
+
     fread(tail, 1, searchLen, f);
     // Search backwards for \r\n-- which starts the trailing boundary
     for (int i = (int)searchLen - 4; i >= 0; i--) {
