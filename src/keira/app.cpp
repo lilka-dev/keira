@@ -87,11 +87,6 @@ bool App::confirm(const String& title, const String& description) {
 bool App::errnocheck() {
     if (!errno) return true;
 
-    auto errnoTmp = errno;
-
-    // Reset errno
-    errno = 0;
-
     String errnoStr = StringFormat("errno: %d\n%s", errno, strerror(errno));
 
     lilka::Alert errnoDialog(K_S_ERROR, errnoStr.c_str());
@@ -105,6 +100,9 @@ bool App::errnocheck() {
         errnoDialog.draw(canvas);
         queueDraw();
     }
+
+    // Reset errno
+    errno = 0;
 
     return false;
 }
