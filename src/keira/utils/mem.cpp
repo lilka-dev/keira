@@ -9,10 +9,7 @@ void* SpiRamAllocator::allocate(size_t size) {
 }
 
 void* SpiRamAllocator::reallocate(void* ptr, size_t size) {
-    void* p = heap_caps_malloc(size, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
-    if (p && ptr) memcpy(p, ptr, size);
-    heap_caps_free(ptr);
-    return p;
+    return heap_caps_realloc(ptr, size, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
 }
 
 void SpiRamAllocator::deallocate(void* ptr) {
