@@ -4,9 +4,9 @@
 // Returns true if file exists
 bool fexist(const char* path);
 
-// Returns file size in bytes, or -1 on error
-ssize_t fsize(FILE *fd);
+// Returns file size in bytes
+long fsize(FILE* fd);
 
-// Returns length of directory, -1 on error
+// Returns length of directory
 // Note, this function can set errno
-ssize_t lendir(DIR* dirfd);
+long lendir(DIR* dirfd);

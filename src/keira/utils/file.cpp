@@ -14,15 +14,15 @@ bool fexist(const char* path) {
     );
 }
 
-ssize_t fsize(FILE* fd) {
+long fsize(FILE* fd) {
     if (!fd) return -1;
 
     // Remember current offset
-    auto tmpOffset = ftell(fd);
+    long tmpOffset = ftell(fd);
 
     fseek(fd, 0, SEEK_END);
 
-    ssize_t fsize = ftell(fd);
+    long fsize = ftell(fd);
 
     // restore offset
     fseek(fd, tmpOffset, SEEK_SET);
@@ -30,17 +30,17 @@ ssize_t fsize(FILE* fd) {
     return fsize;
 }
 
-ssize_t lendir(DIR* dirfd) {
+long lendir(DIR* dirfd) {
     if (!dirfd) return -1;
 
     // Remember current offset
-    auto tmpOffset = telldir(dirfd);
+    long tmpOffset = telldir(dirfd);
 
     if (tmpOffset == -1) {
         return -1;
     }
 
-    ssize_t dirLength = 0;
+    long dirLength = 0;
 
     // Move to dir start
     rewinddir(dirfd);
