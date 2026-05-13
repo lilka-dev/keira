@@ -6,6 +6,10 @@
 #include "services/clock/clock.h"
 #include "keira/ksystem.h"
 #include "keira/utils/string.h"
+#include "keira/utils/file.h"
+
+#define SCREENSHOT_DIR        "/sd/screenshots"
+#define SCREENSHOT_MKDIR_MODE 0777
 
 #if !defined(KEIRA_SCREENSHOT_BMP) && !defined(KEIRA_SCREENSHOT_PNG)
 // Uncomment one of the following lines to choose the screenshot format
@@ -146,9 +150,11 @@ bool ScreenshotService::writeScreenshot(uint8_t* buffer, uint32_t length, const 
     // Generate filename
     struct tm time = reinterpret_cast<ClockService*>(ksystem.services["clock"])->getTime();
 
+    if (!fexist(SCREENSHOT_DIR)) mkdir(SCREENSHOT_DIR, SCREENSHOT_MKDIR_MODE);
+
     // TODO: after merging SPIRAMVFS, store screenshot in /tmp
     String filename = StringFormat(
-        "/sd/screenshots/screenshot_%04d%02d%02d_%02d%02d%02d.%s",
+        SCREENSHOT_DIR "/screenshot_%04d%02d%02d_%02d%02d%02d.%s",
         time.tm_year + 1900,
         time.tm_mon + 1,
         time.tm_mday,
