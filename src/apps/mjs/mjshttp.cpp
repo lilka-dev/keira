@@ -1,8 +1,7 @@
 #include "mjshttp.h"
 #include <HTTPClient.h>
 #include <WiFiClientSecure.h>
-#include <SD.h>
-#include <FS.h>
+#include <lilka/fileutils.h>
 #include "mjs.h"
 
 #define STR_HELPER(x) #x
@@ -59,16 +58,18 @@ static void mjs_http_execute(struct mjs* mjs) {
     if (statusCode == HTTP_CODE_OK) {
         if (fileName != NULL) {
             WiFiClient* stream = http.getStreamPtr();
-            File file = SD.open(fileName, FILE_WRITE, true);
-            if (file) {
+            String filePath = lilka::fileutils.joinPath(LILKA_SD_ROOT, fileName);
+            FILE* fd = fopen(filePath.c_str(), "w");
+
+            if (fd) {
                 uint8_t buffer[128];
                 while (stream->connected() && stream->available()) {
                     size_t bytes = stream->readBytes(buffer, sizeof(buffer));
                     if (bytes > 0) {
-                        file.write(buffer, bytes);
+                        fwrite(buffer, bytes, 1, fd);
                     }
                 }
-                file.close();
+                fclose(fd);
             }
         } else {
             String response = http.getString();
