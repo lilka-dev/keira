@@ -23,7 +23,7 @@ static int lualilka_delete_object_file(lua_State* L) {
 static int lualilka_file_size(lua_State* L) {
     FILE* filePointer = *reinterpret_cast<FILE**>(luaL_checkudata(L, 1, FILE_OBJECT));
     if (filePointer) {
-        size_t size = fsize(filePointer);
+        long size = fsize(filePointer);
 
         lua_pushinteger(L, size);
         return 1;

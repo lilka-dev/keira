@@ -503,7 +503,7 @@ ITEM_LIST LauncherApp::loadCatalogItems() {
 
         long fileSize = fsize(f);
 
-        if (fileSize <= 0 || fileSize > 8192) {
+        if (fileSize == 0 || fileSize > 8192) {
             fclose(f);
             continue;
         }

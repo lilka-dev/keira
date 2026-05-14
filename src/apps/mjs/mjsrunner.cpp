@@ -61,7 +61,7 @@ static void mjs_custom_load(struct mjs* mjs) {
         return;
     }
 
-    size_t fileSize = fsize(fp);
+    long fileSize = fsize(fp);
 
     char* source = static_cast<char*>(malloc(fileSize + 1));
     if (!source) {
@@ -126,7 +126,7 @@ void MJSApp::run() {
     if (!fp) {
         alert("mJS", String(K_S_MJS_ERROR) + "\nFailed to read file");
     } else {
-        size_t fileSize = fsize(fp);
+        long fileSize = fsize(fp);
 
         char* source = static_cast<char*>(malloc(fileSize + 1));
         if (!source) {

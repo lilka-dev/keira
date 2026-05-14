@@ -110,7 +110,7 @@ static void mjs_sdcard_file_size(struct mjs* mjs) {
     }
     FILE* fp = static_cast<FILE*>(mjs_get_ptr(mjs, ptr_val));
 
-    size_t size = fsize(fp);
+    long size = fsize(fp);
 
     mjs_return(mjs, mjs_mk_number(mjs, size));
 }

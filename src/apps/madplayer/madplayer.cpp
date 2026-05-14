@@ -65,9 +65,9 @@ void MadPlayerApp::run() {
         return;
     }
 
-    size_t fileSize = fsize(file);
+    long fileSize = fsize(file);
 
-    if (fileSize == 0) {
+    if (!fileSize) {
         fclose(file);
         alert("Помилка", "Аудіо-файл порожній");
         return;

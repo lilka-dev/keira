@@ -225,9 +225,9 @@ int lualilka_resources_loadAudio(lua_State* L) {
         return luaL_error(L, K_S_LUA_RESOURCES_OPEN_AUDIO_ERROR_FMT, fullPath.c_str());
     }
 
-    size_t fileSize = fsize(file);
+    long fileSize = fsize(file);
 
-    if (fileSize <= 0) {
+    if (!fileSize) {
         fclose(file);
         return luaL_error(L, K_S_LUA_RESOURCES_EMPTY_AUDIO_FMT, fullPath.c_str());
     }

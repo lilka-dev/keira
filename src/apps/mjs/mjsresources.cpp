@@ -141,9 +141,9 @@ static void mjs_resources_load_audio(struct mjs* mjs) {
         return;
     }
 
-    size_t fileSize = fsize(file);
+    long fileSize = fsize(file);
 
-    if (fileSize == 0) {
+    if (!fileSize) {
         fclose(file);
         mjs_return(mjs, mjs_mk_undefined());
         return;

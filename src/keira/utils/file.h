@@ -1,4 +1,6 @@
 #pragma once
+#include <dirent.h>
+#include <stdio.h>
 // List of helpers to be used with files
 
 // Returns true if file exists

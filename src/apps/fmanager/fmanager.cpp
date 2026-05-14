@@ -158,7 +158,7 @@ String FileManagerApp::getFileMD5(const String& file_path) {
     }
     md5Progress.setMessage(basename(file_path.c_str()));
     // Get file size
-    size_t fileSize = fsize(file);
+    long fileSize = fsize(file);
 
     // mb create on init?
     mbedtls_md5_context ctx;
@@ -269,10 +269,8 @@ FMEntry FileManagerApp::pathToEntry(const String& path) {
         newEntry.type = FT_JS_SCRIPT;
         newEntry.icon = FT_JS_SCRIPT_ICON;
         newEntry.color = FT_JS_SCRIPT_COLOR;
-    } else if (
-        lowerCasedPath.endsWith(".mod") || lowerCasedPath.endsWith(".wav") || lowerCasedPath.endsWith(".mp3") ||
-        lowerCasedPath.endsWith(".aac") || lowerCasedPath.endsWith(".flac")
-    ) {
+    } else if (lowerCasedPath.endsWith(".mod") || lowerCasedPath.endsWith(".wav") || lowerCasedPath.endsWith(".mp3") ||
+               lowerCasedPath.endsWith(".aac") || lowerCasedPath.endsWith(".flac")) {
         newEntry.type = FT_SOUND;
         newEntry.icon = FT_SOUND_ICON;
         newEntry.color = FT_SOUND_COLOR;
@@ -854,7 +852,7 @@ bool FileManagerApp::fileListMenuLoadDir() {
 
     dirLoadProgress.setMessage(currentPath);
     dirLoadProgress.setProgress(0);
-    auto dirLength = lendir(dir);
+    long dirLength = lendir(dir);
     auto countLoaded = 0;
 
     FM_DBG lilka::serial.log("Directory %s contains %d entries", currentPath.c_str(), dirLength);
@@ -1159,7 +1157,7 @@ bool FileManagerApp::copyPath(const String& source, const String& destination) {
             return false;
         }
 
-        auto fileSize = fsize(inFile);
+        long fileSize = fsize(inFile);
 
         auto outFile = fopen(destination.c_str(), "w");
         if (!outFile) {

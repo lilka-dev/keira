@@ -1,6 +1,6 @@
-#include <stdio.h>
+#include "file.h"
 #include <sys/types.h>
-#include <dirent.h>
+#include <sys/stat.h>
 #include <errno.h>
 #include <string.h>
 #include <lilka/fileutils.h>
@@ -15,7 +15,7 @@ bool fexist(const char* path) {
 }
 
 long fsize(FILE* fd) {
-    if (!fd) return -1;
+    if (!fd) return 0;
 
     // Remember current offset
     long tmpOffset = ftell(fd);
@@ -24,6 +24,8 @@ long fsize(FILE* fd) {
 
     long fsize = ftell(fd);
 
+    fsize = (fsize < 0) ? 0 : fsize;
+
     // restore offset
     fseek(fd, tmpOffset, SEEK_SET);
 
@@ -31,13 +33,13 @@ long fsize(FILE* fd) {
 }
 
 long lendir(DIR* dirfd) {
-    if (!dirfd) return -1;
+    if (!dirfd) return 0;
 
     // Remember current offset
     long tmpOffset = telldir(dirfd);
 
-    if (tmpOffset == -1) {
-        return -1;
+    if (tmpOffset < 0) {
+        return 0;
     }
 
     long dirLength = 0;
