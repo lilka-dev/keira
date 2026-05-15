@@ -670,58 +670,10 @@ static const char htmlPreviewBodyEnd[] = R"rawliteral(
 
 static httpd_handle_t stream_httpd = NULL;
 static const char* contentLengthHeader = "Content-Length";
+// Note: end of request
 static const char* fileHeaderDivider = "\r\n\r\n";
 static volatile bool pendingRestart = false;
 
-// Strip trailing multipart form boundary from an uploaded file.
-// The boundary looks like: \r\n------WebKitFormBoundary...--\r\n
-static void stripTrailingBoundary(const char* filePath) {
-    FILE* f = fopen(filePath, "r+b");
-    if (!f) return;
-    fseek(f, 0, SEEK_END);
-    long fileSize = ftell(f);
-    // Boundary is typically < 80 bytes; check last 200 bytes
-    long searchStart = fileSize > 200 ? fileSize - 200 : 0;
-    long searchLen = fileSize - searchStart;
-    char* tail = static_cast<char*>(malloc(searchLen));
-    if (!tail) {
-        fclose(f);
-        return;
-    }
-    fseek(f, searchStart, SEEK_SET);
-    fread(tail, 1, searchLen, f);
-    // Search backwards for \r\n-- which starts the trailing boundary
-    for (int i = (int)searchLen - 4; i >= 0; i--) {
-        if (tail[i] == '\r' && tail[i + 1] == '\n' && tail[i + 2] == '-' && tail[i + 3] == '-') {
-            int end = (int)searchLen;
-            // Strip optional trailing \r\n
-            if (end >= 2 && tail[end - 1] == '\n' && tail[end - 2] == '\r') end -= 2;
-            // Verify it ends with "--"
-            if (end >= 2 && tail[end - 1] == '-' && tail[end - 2] == '-' && end - i > 6) {
-                long newSize = searchStart + i;
-                // Re-read the clean content and rewrite the file
-                char* clean = static_cast<char*>(malloc(newSize));
-                if (clean) {
-                    fseek(f, 0, SEEK_SET);
-                    fread(clean, 1, newSize, f);
-                    fclose(f);
-                    f = fopen(filePath, "wb");
-                    if (f) {
-                        fwrite(clean, 1, newSize, f);
-                        fclose(f);
-                    }
-                    free(clean);
-                } else {
-                    fclose(f);
-                }
-                free(tail);
-                return;
-            }
-        }
-    }
-    free(tail);
-    fclose(f);
-}
 static volatile bool pendingMultiboot = false;
 static String pendingMultibootPath = "";
 static volatile int multibootProgress = -1; // -1=idle, -2=error, 0-100=progress
@@ -1054,6 +1006,7 @@ static esp_err_t download_handler(httpd_req_t* req) {
 }
 
 static esp_err_t upload_handler(httpd_req_t* req) {
+    // TODO: replace with sd_upload_handler + spiramvfs file + multibootapp spawn
     String lastError = "No error";
     esp_ota_handle_t ota_handle;
     esp_err_t res = httpd_resp_set_type(req, "text/plain");
@@ -1136,6 +1089,14 @@ static String extractFilename(const char* buf, int len) {
     return "uploaded_file.bin";
 }
 
+static String extractBoundary(const char* buf, int len) {
+    const char* boundaryStart = buf;
+    if (!boundaryStart) return "";
+    const char* boundaryEnd = strnstr(boundaryStart, "\r\n", len);
+    if (!boundaryEnd) return "";
+    return String(boundaryStart, boundaryEnd - boundaryStart);
+}
+
 static esp_err_t sd_upload_handler(httpd_req_t* req) {
     String lastError = "No error";
     esp_err_t res = httpd_resp_set_type(req, "text/plain");
@@ -1173,9 +1134,10 @@ static esp_err_t sd_upload_handler(httpd_req_t* req) {
     FILE* file = NULL;
     bool seekBinary = true;
     String filename;
+    String boundary;
     esp_err_t err = ESP_OK;
-
     int len = 0;
+
     do {
         len = httpd_req_recv(req, buf, WEB_BUFFER_FS_OP);
         if (len < 0) {
@@ -1184,8 +1146,20 @@ static esp_err_t sd_upload_handler(httpd_req_t* req) {
             break;
         }
 
+        // Pointer to actual data we write
+        const char* data = buf;
+
+        // Parse form data and open file
         if (seekBinary) {
             filename = extractFilename(buf, len);
+
+            // idf already skipped headers correctly and now we care about form data
+            // still cause boundary exists at begining of form data we can extract it
+            boundary = extractBoundary(buf, len);
+            // lilka::serial.log("Found boundary: %s", boundary.c_str());
+            // needed step to correctly match ending of file
+            boundary = "\r\n" + boundary;
+
             lilka::serial.log("Uploading file: %s to folder: %s", filename.c_str(), targetFolder.c_str());
             String fullPath = targetFolder.length() > 0 ? lilka::fileutils.joinPath(targetFolder, filename) : filename;
             String filePath = lilka::fileutils.joinPath(root, fullPath);
@@ -1200,24 +1174,27 @@ static esp_err_t sd_upload_handler(httpd_req_t* req) {
 
             auto beforeBinary = strnstr(buf, fileHeaderDivider, len);
             if (beforeBinary) {
-                const char* towrite = beforeBinary + 4;
-                len -= (towrite - buf);
-                if (len > 0) fwrite(towrite, 1, len, file);
+                data = beforeBinary + 4;
+                len -= (data - buf);
             }
             seekBinary = false;
-        } else if (len > 0 && file) {
-            fwrite(buf, 1, len, file);
+        }
+
+        // Write file
+        if (len > 0 && file) {
+            char* endMarker = static_cast<char*>(memmem(data, len, boundary.c_str(), boundary.length()));
+            if (endMarker) {
+                size_t toWrite = endMarker - data;
+                if (toWrite > 0) fwrite(data, 1, toWrite, file);
+                len = 0;
+            } else {
+                fwrite(data, 1, len, file);
+            }
         }
     } while (len > 0);
 
-    if (file) {
-        fclose(file);
-        if (err == ESP_OK) {
-            String fullPath = targetFolder.length() > 0 ? lilka::fileutils.joinPath(targetFolder, filename) : filename;
-            String filePath = lilka::fileutils.joinPath(root, fullPath);
-            stripTrailingBoundary(filePath.c_str());
-        }
-    }
+    if (file) fclose(file);
+
     free(buf);
 
     if (err == ESP_OK) {
@@ -1230,6 +1207,7 @@ static esp_err_t sd_upload_handler(httpd_req_t* req) {
 }
 
 static esp_err_t multiboot_upload_handler(httpd_req_t* req) {
+    // TODO: replace with sd_upload_handler + spiramvfs file + multibootapp spawn
     String lastError = "No error";
     esp_err_t res = httpd_resp_set_type(req, "text/plain");
     if (res != ESP_OK) return res;
@@ -1283,10 +1261,6 @@ static esp_err_t multiboot_upload_handler(httpd_req_t* req) {
         }
     } while (len > 0);
 
-    if (file) {
-        fclose(file);
-        if (err == ESP_OK) stripTrailingBoundary(filePath.c_str());
-    }
     free(buf);
 
     if (err == ESP_OK) {
