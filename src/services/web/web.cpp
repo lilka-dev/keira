@@ -1182,7 +1182,7 @@ static esp_err_t sd_upload_handler(httpd_req_t* req) {
 
         // Write file
         if (len > 0 && file) {
-            char* endMarker = static_cast<char*>(memmem(data, len, boundary.c_str(), boundary.length()));
+            const char* endMarker = static_cast<char*>(memmem(data, len, boundary.c_str(), boundary.length()));
             if (endMarker) {
                 size_t toWrite = endMarker - data;
                 if (toWrite > 0) fwrite(data, 1, toWrite, file);
