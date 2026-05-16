@@ -1,4 +1,6 @@
 #pragma once
+#include <lilka/fileutils.h>
+#include <sys/types.h>
 #include <dirent.h>
 #include <stdio.h>
 // List of helpers to be used with files

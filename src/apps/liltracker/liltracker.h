@@ -6,7 +6,7 @@
 class LilTrackerApp : public App {
 public:
     LilTrackerApp();
-    explicit LilTrackerApp(String path);
+    explicit LilTrackerApp(const String& path);
 
 private:
     Sequencer sequencer;
@@ -17,8 +17,8 @@ private:
     );
     // void startPreview(Track* track, page_t* page, int8_t requestedChannelIndex, uint16_t requestedEventIndex);
     String filePicker(String ext, bool isSave);
-    void loadTrack(Track* track, String path);
-    void saveTrack(Track* track, String path);
+    void loadTrack(Track* track, const String& path);
+    void saveTrack(Track* track, const String& path);
 
-    String initialPath;
+    String filePath;
 };
