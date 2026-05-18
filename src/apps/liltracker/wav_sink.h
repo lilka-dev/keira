@@ -35,7 +35,7 @@ public:
 
 private:
     String filename;
-    File file;
+    FILE* fd = NULL;
     uint8_t* buffer;
     size_t bufferPos;
     size_t numSamples;
