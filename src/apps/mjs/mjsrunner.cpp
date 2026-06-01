@@ -1,5 +1,9 @@
 #include "mjsrunner.h"
 #include "mjsgpio.h"
+#include "mjsi2c.h"
+#include "mjsspi.h"
+#include "mjspwm.h"
+#include "mjsws2812.h"
 #include "mjsutil.h"
 #include "mjsconsole.h"
 #include "mjsmath.h"
@@ -95,6 +99,10 @@ void MJSApp::run() {
 
     // Register all modules
     mjs_gpio_register(mjs);
+    mjs_i2c_register(mjs);
+    mjs_spi_register(mjs);
+    mjs_pwm_register(mjs);
+    mjs_ws2812_register(mjs);
     mjs_util_register(mjs);
     mjs_console_register(mjs);
     mjs_math_register(mjs);

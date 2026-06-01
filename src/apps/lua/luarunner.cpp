@@ -12,6 +12,10 @@
 #include "lualilka_math.h"
 #include "lualilka_geometry.h"
 #include "lualilka_gpio.h"
+#include "lualilka_i2c.h"
+#include "lualilka_spi.h"
+#include "lualilka_pwm.h"
+#include "lualilka_ws2812.h"
 #include "lualilka_util.h"
 #include "lualilka_buzzer.h"
 #include "lualilka_state.h"
@@ -165,6 +169,10 @@ void AbstractLuaRunnerApp::luaSetup(const char* dir) {
     lualilka_math_register(L);
     lualilka_geometry_register(L);
     lualilka_gpio_register(L);
+    lualilka_i2c_register(L);
+    lualilka_spi_register(L);
+    lualilka_pwm_register(L);
+    lualilka_ws2812_register(L);
     lualilka_util_register(L);
     lualilka_buzzer_register(L);
     lualilka_sdcard_register(L);
