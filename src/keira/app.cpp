@@ -5,6 +5,9 @@
 #include <lilka/display.h>
 #include <lilka/controller.h>
 #include "services/watchdog/watchdog.h"
+#include <string.h>
+#include <errno.h>
+#include "keira/utils/string.h"
 
 //=============================================================================
 // App Constructors/Destructors
@@ -79,6 +82,29 @@ bool App::confirm(const String& title, const String& description) {
     }
 
     return confirmDialog.getButton() == K_BTN_CONFIRM;
+}
+//-----------------------------------------------------------------------------
+bool App::errnocheck() {
+    if (!errno) return true;
+
+    String errnoStr = StringFormat("errno: %d\n%s", errno, strerror(errno));
+
+    lilka::Alert errnoDialog(K_S_ERROR, errnoStr.c_str());
+
+    errnoDialog.addActivationButton(K_BTN_OK);
+    errnoDialog.addActivationButton(K_BTN_BACK);
+
+    while (!errnoDialog.isFinished()) {
+        errnoDialog.update();
+        canvas->fillScreen(lilka::colors::Black);
+        errnoDialog.draw(canvas);
+        queueDraw();
+    }
+
+    // Reset errno
+    errno = 0;
+
+    return false;
 }
 //-----------------------------------------------------------------------------
 String App::input(const String& title, const String& value, bool masked) {
