@@ -1,7 +1,7 @@
 #include <ff.h>
 #include <FS.h>
 #include <qrcode.h>
-#include "keira/utils/json.h"
+#include "keira/utils/mem.h"
 #include "keira/keira.h"
 #include "launcher.h"
 #include "keira/appmanager.h"
