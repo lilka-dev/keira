@@ -4,10 +4,10 @@
 #include <lilka/config.h>
 
 #include "keira/utils/json.h"
+#include "keira/utils/file.h"
 
 LilCatalogApp::LilCatalogApp() : App(K_S_LILCATALOG_APP), currentEntry{}, iconBuffer{}, downloadBuffer{} {
     setktStackSize(16384);
-    path_catalog_folder = "/lilcatalog";
 }
 
 void LilCatalogApp::run() {
@@ -17,8 +17,8 @@ void LilCatalogApp::run() {
     }
 
     // Create catalog folder if needed
-    if (!SD.exists(path_catalog_folder)) {
-        SD.mkdir(path_catalog_folder.c_str());
+    if (!fexist(CATALOG_FOLDER)) {
+        mkdir(CATALOG_FOLDER, CATALOG_MKDIR_MODE);
     }
 
     // Show main menu first

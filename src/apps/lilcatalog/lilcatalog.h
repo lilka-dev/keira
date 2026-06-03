@@ -21,12 +21,19 @@
 #define CATALOG_ICON_HEIGHT 64
 #define CATALOG_ICON_SIZE   (CATALOG_ICON_WIDTH * CATALOG_ICON_HEIGHT * 2) // 8192 bytes
 
+#define CATALOG_MKDIR_MODE  0777
+
+// Base path
+#define CATALOG_FOLDER "/sd/lilcatalog"
 // Cache paths
-#define CATALOG_ICON_CACHE_FOLDER           "/lilcatalog/icons"
-#define CATALOG_MANIFEST_CACHE_FOLDER       "/lilcatalog/manifests"
-#define CATALOG_SHORT_MANIFEST_CACHE_FOLDER "/lilcatalog/short_manifests"
+#define CATALOG_ICON_CACHE_FOLDER           CATALOG_FOLDER "/icons"
+#define CATALOG_MANIFEST_CACHE_FOLDER       CATALOG_FOLDER "/manifests"
+#define CATALOG_SHORT_MANIFEST_CACHE_FOLDER CATALOG_FOLDER "/short_manifests"
 
 // HTTP timeout in milliseconds
+// NOTE: this doesn't work this way, in reality it's a time for
+// connection to be autoclosed if no activity, and doesn't depend on
+// download/upload speed, etc
 #define CATALOG_HTTP_TIMEOUT       10000
 #define CATALOG_HTTP_TIMEOUT_SHORT 5000 // For small files like short manifests
 
@@ -86,8 +93,6 @@ public:
 private:
     LilCatalogState state = LILCATALOG_LIST;
     LilCatalogState entryReturnState = LILCATALOG_LIST; // State to return to from LILCATALOG_ENTRY
-
-    String path_catalog_folder;
 
     // Pagination
     int currentPage = 0;
