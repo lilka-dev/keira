@@ -1074,39 +1074,7 @@ void FileManagerApp::deleteEntry(const FMEntry& entry) {
     // could also fall here. exit gracefully
 
     auto path = lilka::fileutils.joinPath(entry.path, entry.name);
-
-    // Do job
-    if (entry.type == FT_DIR) { // Directory
-        auto dir = opendir(path.c_str());
-        if (dir == NULL) {
-            FM_DBG lilka::serial.err("Can't open dir %s. %d: %s", path.c_str(), errno, strerror(errno));
-            FM_UI_CANT_DO_OP;
-            FM_MODE_RESET;
-            return; // some shit happened. run!
-        }
-        const struct dirent* dirEntry;
-        while ((dirEntry = readdir(dir)) != NULL) {
-            String filename = dirEntry->d_name;
-            // TODO: lol, we no need to perform stat() call here
-            FMEntry fEntry = pathToEntry(lilka::fileutils.joinPath(path, filename));
-            deleteEntry(fEntry); // recursive
-        }
-        closedir(dir);
-        // Delete dir itself
-        if (unlink(path.c_str()) != 0) {
-            FM_DBG lilka::serial.err("Tried to delete %s. %d: %s", path.c_str(), errno, strerror(errno));
-            FM_UI_CANT_DO_OP;
-            FM_MODE_RESET;
-            return; // some shit happened. run!
-        }
-    } else { // Regular file
-        if (unlink(path.c_str()) != 0) {
-            FM_DBG lilka::serial.err("Tried to delete %s. %d: %s", path.c_str(), errno, strerror(errno));
-            FM_UI_CANT_DO_OP;
-            FM_MODE_RESET;
-            return; // some shit happened. run!
-        }
-    }
+    rmpath(path.c_str());
 }
 
 bool FileManagerApp::changeMode(FmMode newMode) {
