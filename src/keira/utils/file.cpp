@@ -96,7 +96,7 @@ int mkpath(const char* path, mode_t mode) {
 }
 
 void rmpath(const char* path) {
-    char buf[PATH_MAX];
+    char* buf = posix_fbuf[xPortGetCoreID()];
     strcpy(buf, path);
 
     while (strlen(buf) >= strlen(path)) {
