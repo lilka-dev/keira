@@ -8,7 +8,7 @@
 #include <lilka/serial.h>
 #include <limits.h>
 
-// GLOBAL Storage
+// GLOBAL Storage for both PATH and as a mini buffer for file parts
 char posix_fbuf[SOC_CPU_CORES_NUM][PATH_MAX + 1];
 
 bool fexist(const char* path) {
@@ -104,7 +104,7 @@ void rmpath(const char* path) {
             continue;
         }
 
-        struct dirent* de;
+        const struct dirent* de;
         struct stat st;
         int found = 0;
 

@@ -457,7 +457,6 @@ bool LilCatalogApp::loadIconFromCache(const String& entryId) {
         return false;
     }
 
-    uint8_t* buf = NULL;
     FILE* fd = fopen(cachePath.c_str(), "r");
     if (!fd) {
         return false;
