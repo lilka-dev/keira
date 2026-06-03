@@ -508,13 +508,7 @@ ITEM_LIST LauncherApp::loadCatalogItems() {
             continue;
         }
 
-        String json;
-        char buf[256];
-        size_t n;
-        while ((n = fread(buf, 1, sizeof(buf) - 1, f)) > 0) {
-            buf[n] = '\0';
-            json += buf;
-        }
+        String json = freadstr(f);
         fclose(f);
 
         JsonDocument doc(&spiRamAllocator);
