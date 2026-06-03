@@ -72,8 +72,8 @@ int mkpath(const char* path, mode_t mode) {
     if (!p) return 0;
     // Skip mount point
     p = strchr(p + 1, '/');
-    if (!p) return 0;
-    p++;
+    if (!p) p = strchr(buf, '/') + 1;
+    else p++;
 
     // Create dirs
     for (;; p++) {

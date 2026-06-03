@@ -145,7 +145,8 @@ bool LilCatalogApp::downloadFile(const String& url, const String& targetPath) {
     int httpCode = http.GET();
 
     if (httpCode == HTTP_CODE_OK) {
-        if (mkpath(targetPath.c_str()) != 0) {
+        // let's create dir
+        if (mkpath(lilka::fileutils.getParentDirectory(targetPath).c_str()) != 0) {
             http.end();
             return false;
         }
@@ -190,8 +191,8 @@ bool LilCatalogApp::downloadFileWithProgress(const String& url, const String& ta
     int httpCode = http.GET();
 
     if (httpCode == HTTP_CODE_OK) {
-        if (mkpath(targetPath.c_str()) != 0) {
-            showAlert(K_S_LILCATALOG_ERROR_DIRETORY_CREATE);
+        // let's create dir
+        if (mkpath(lilka::fileutils.getParentDirectory(targetPath).c_str()) != 0) {
             http.end();
             return false;
         }
@@ -464,6 +465,8 @@ bool LilCatalogApp::loadIconFromCache(const String& entryId) {
 
     size_t bytesRead = fread(iconBuffer, CATALOG_ICON_SIZE, 1, fd);
 
+    fclose(fd);
+
     return bytesRead == CATALOG_ICON_SIZE;
 }
 
@@ -652,7 +655,7 @@ String LilCatalogApp::getManifestCachePath(const String& entryId) {
 }
 
 bool LilCatalogApp::saveManifestToCache(const String& entryId, const String& json) {
-    if (!lilka::fileutils.makePath(&SD, CATALOG_MANIFEST_CACHE_FOLDER)) {
+    if (!mkpath(CATALOG_MANIFEST_CACHE_FOLDER)) {
         return false;
     }
 
@@ -767,7 +770,7 @@ void LilCatalogApp::fetchEntry() {
 
     String targetDir = getEntryTargetPath();
 
-    if (!lilka::fileutils.makePath(&SD, targetDir)) {
+    if (!mkpath(targetDir.c_str())) {
         showAlert(K_S_LILCATALOG_ERROR_DIRETORY_CREATE);
         return;
     }
@@ -830,7 +833,6 @@ ExecutionType LilCatalogApp::detectTypeByExtension(const String& location) {
 
 void LilCatalogApp::executeEntry() {
     String execPath = getEntryExecutablePath();
-    String canonicalPath = lilka::fileutils.getCannonicalPath(&SD, execPath);
 
     // Use manifest type, but fallback to extension detection if type is ARCHIVE or UNKNOWN
     // This fixes catalog entries with wrong types (e.g. .lua marked as archive)
@@ -842,15 +844,16 @@ void LilCatalogApp::executeEntry() {
         }
     }
 
+    // TODO: to be moved to App, as unified mechanism
     switch (execType) {
         case EXEC_TYPE_LUA:
-            K_FT_LUA_SCRIPT_HANDLER(canonicalPath);
+            K_FT_LUA_SCRIPT_HANDLER(execPath);
             break;
         case EXEC_TYPE_BINARY:
-            K_FT_BIN_HANDLER(canonicalPath);
+            K_FT_BIN_HANDLER(execPath);
             break;
         case EXEC_TYPE_DYNAPP:
-            K_FT_SO_HANDLER(canonicalPath);
+            K_FT_SO_HANDLER(execPath);
             break;
         case EXEC_TYPE_ARCHIVE:
             showAlert(K_S_LILCATALOG_ARCHIVE_NOTICE);
