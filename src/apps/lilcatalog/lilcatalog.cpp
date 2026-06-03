@@ -655,7 +655,7 @@ String LilCatalogApp::getManifestCachePath(const String& entryId) {
 }
 
 bool LilCatalogApp::saveManifestToCache(const String& entryId, const String& json) {
-    if (!mkpath(CATALOG_MANIFEST_CACHE_FOLDER)) {
+    if (mkpath(CATALOG_MANIFEST_CACHE_FOLDER) != 0) {
         return false;
     }
 
@@ -724,6 +724,9 @@ bool LilCatalogApp::loadInstalledApps() {
 
         // Time to open file
         FILE* fd = fopen(lilka::fileutils.joinPath(CATALOG_MANIFEST_CACHE_FOLDER, dirEntry->d_name).c_str(), "r");
+        if (!fd) continue;
+
+        // Read manifest file
         String json = freadstr(fd);
 
         // Adding new entry to list
@@ -770,7 +773,9 @@ void LilCatalogApp::fetchEntry() {
 
     String targetDir = getEntryTargetPath();
 
-    if (!mkpath(targetDir.c_str())) {
+    lilka::serial.log("trying to create taget dir %s", targetDir.c_str());
+
+    if (mkpath(targetDir.c_str()) != 0) {
         showAlert(K_S_LILCATALOG_ERROR_DIRETORY_CREATE);
         return;
     }
