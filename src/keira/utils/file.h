@@ -24,3 +24,6 @@ int mkpath(const char* path, mode_t mode = MKPATH_MODE);
 // Drops everything inside path
 // rm -rf
 void rmpath(const char* path);
+
+// Reads a whole file as string
+String freadstr(FILE* fd);

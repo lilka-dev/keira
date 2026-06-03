@@ -7,7 +7,7 @@
 #include <sys/stat.h>
 
 // GLOBAL Storage
-char posix_path_buf[SOC_CPU_CORES_NUM][ESP_VFS_PATH_MAX + 1];
+char posix_fbuf[SOC_CPU_CORES_NUM][ESP_VFS_PATH_MAX + 1];
 
 bool fexist(const char* path) {
     struct stat st;
@@ -63,7 +63,7 @@ long lendir(DIR* dirfd) {
 
 int mkpath(const char* path, mode_t mode) {
     // Copy path to per CPU unit storage
-    char* buf = posix_path_buf[xPortGetCoreID()];
+    char* buf = posix_fbuf[xPortGetCoreID()];
     strncpy(buf, path, ESP_VFS_PATH_MAX);
     buf[ESP_VFS_PATH_MAX] = '\0';
 
@@ -142,4 +142,20 @@ void rmpath(const char* path) {
             *p = '\0';
         }
     }
+}
+
+String freadstr(FILE* fd) {
+    char* buf = posix_fbuf[xPortGetCoreID()];
+
+    String content = "";
+
+    while (!feof(fd)) {
+        // yeah, a bit strange length here, theoretically we've to use block size per file system
+        // but it won't affect a lot, except file is very very huge
+        size_t read = fread(buf, ESP_VFS_PATH_MAX, 1, fd);
+        buf[read] = '\0';
+        content += buf;
+    }
+
+    return content;
 }
