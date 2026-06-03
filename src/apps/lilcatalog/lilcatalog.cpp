@@ -144,14 +144,13 @@ bool LilCatalogApp::downloadFile(const String& url, const String& targetPath) {
     int httpCode = http.GET();
 
     if (httpCode == HTTP_CODE_OK) {
-        String parentDir = lilka::fileutils.getParentDirectory(targetPath);
-        if (!lilka::fileutils.makePath(&SD, parentDir)) {
+        if (mkpath(targetPath.c_str()) != 0) {
             http.end();
             return false;
         }
 
-        fs::File file = SD.open(targetPath.c_str(), FILE_WRITE);
-        if (!file) {
+        FILE* fd = fopen(targetPath.c_str(), "w");
+        if (!fd) {
             http.end();
             return false;
         }
@@ -165,12 +164,12 @@ bool LilCatalogApp::downloadFile(const String& url, const String& targetPath) {
             if (available) {
                 size_t toRead = min(available, (size_t)CATALOG_DOWNLOAD_BUFFER_SIZE);
                 size_t actualRead = stream->readBytes(downloadBuffer, toRead);
-                file.write(downloadBuffer, actualRead);
+                fwrite(downloadBuffer, actualRead, 1, fd);
                 written += actualRead;
             }
         }
 
-        file.close();
+        fclose(fd);
         http.end();
         return true;
     }
@@ -190,15 +189,14 @@ bool LilCatalogApp::downloadFileWithProgress(const String& url, const String& ta
     int httpCode = http.GET();
 
     if (httpCode == HTTP_CODE_OK) {
-        String parentDir = lilka::fileutils.getParentDirectory(targetPath);
-        if (!lilka::fileutils.makePath(&SD, parentDir)) {
+        if (mkpath(targetPath.c_str()) != 0) {
             showAlert(K_S_LILCATALOG_ERROR_DIRETORY_CREATE);
             http.end();
             return false;
         }
 
-        fs::File file = SD.open(targetPath.c_str(), FILE_WRITE);
-        if (!file) {
+        FILE* fd = fopen(targetPath.c_str(), "w");
+        if (!fd) {
             showAlert(K_S_LILCATALOG_ERROR_FILE_OPEN);
             http.end();
             return false;
@@ -215,7 +213,7 @@ bool LilCatalogApp::downloadFileWithProgress(const String& url, const String& ta
             if (available) {
                 size_t toRead = min(available, (size_t)CATALOG_DOWNLOAD_BUFFER_SIZE);
                 size_t actualRead = stream->readBytes(downloadBuffer, toRead);
-                file.write(downloadBuffer, actualRead);
+                fwrite(downloadBuffer, actualRead, 1, fd);
                 written += actualRead;
 
                 if (size > 0) {
@@ -227,7 +225,7 @@ bool LilCatalogApp::downloadFileWithProgress(const String& url, const String& ta
             }
         }
 
-        file.close();
+        fclose(fd);
         http.end();
         return true;
     }
@@ -453,17 +451,17 @@ String LilCatalogApp::getIconCachePath(const String& entryId) {
 bool LilCatalogApp::loadIconFromCache(const String& entryId) {
     String cachePath = getIconCachePath(entryId);
 
-    if (!SD.exists(cachePath.c_str())) {
+    if (!fexist(cachePath.c_str())) {
         return false;
     }
 
-    fs::File file = SD.open(cachePath.c_str(), FILE_READ);
-    if (!file) {
+    uint8_t* buf = NULL;
+    FILE* fd = fopen(cachePath.c_str(), "r");
+    if (!fd) {
         return false;
     }
 
-    size_t bytesRead = file.read(reinterpret_cast<uint8_t*>(iconBuffer), CATALOG_ICON_SIZE);
-    file.close();
+    size_t bytesRead = fread(iconBuffer, CATALOG_ICON_SIZE, 1, fd);
 
     return bytesRead == CATALOG_ICON_SIZE;
 }
