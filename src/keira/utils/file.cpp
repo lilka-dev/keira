@@ -143,7 +143,7 @@ String freadstr(FILE* fd) {
     while (!feof(fd)) {
         // yeah, a bit strange length here, theoretically we've to use block size per file system
         // but it won't affect a lot, except file is very very huge
-        size_t bytes = fread(buf, 1, ESP_VFS_PATH_MAX, fd);
+        size_t bytes = fread(buf, 1, PATH_MAX, fd);
         if (bytes == 0) break;
         buf[bytes] = '\0';
         content += buf;
