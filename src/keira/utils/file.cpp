@@ -1,8 +1,12 @@
-#include "file.h"
 #include <sys/stat.h>
 #include <errno.h>
 #include <string.h>
 #include <esp_vfs.h>
+#include <soc/soc_caps.h>
+#include <lilka/fileutils.h>
+
+// GLOBAL Storage
+char mkpath_buf[SOC_CPU_CORES_NUM][ESP_VFS_PATH_MAX + 1];
 
 bool fexist(const char* path) {
     struct stat st;
@@ -86,4 +90,6 @@ int mkpath(const char* path, mode_t mode) {
         *sep = '/';
         p = sep;
     }
+
+    return 0;
 }

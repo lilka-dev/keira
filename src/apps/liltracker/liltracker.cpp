@@ -15,7 +15,6 @@
 
 // TODO: implement pwd/chdir per app/service with automatical dir generation
 #define LILTRACKER_DIR        "/sd/liltracker"
-#define LILTRACKER_MKDIR_MODE 0777
 // Layout:
 // - Title
 // - Controls (3 columns, 2 rows)
@@ -840,7 +839,7 @@ String LilTrackerApp::filePicker(String ext, bool isSave) {
 
     // Check if dir exists
     if (!fexist(LILTRACKER_DIR)) {
-        if (mkdir(LILTRACKER_DIR, LILTRACKER_MKDIR_MODE) < 0) {
+        if (mkpath(LILTRACKER_DIR) < 0) {
             // TODO: checkerno() awaits pr
             alert(K_S_ERROR, StringFormat(K_S_CANT_CREATE_DIR_FMT, LILTRACKER_DIR));
             return "";

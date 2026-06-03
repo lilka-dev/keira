@@ -1448,7 +1448,7 @@ static esp_err_t mkdir_handler(httpd_req_t* req) {
     }
 
     String dirPath = lilka::fileutils.joinPath(root, query);
-    if (mkdir(dirPath.c_str(), 0755) == 0) {
+    if (mkpath(dirPath.c_str()) == 0) {
         return httpd_resp_sendstr(req, "OK");
     } else {
         httpd_resp_set_status(req, HTTPD_500);

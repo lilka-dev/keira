@@ -269,8 +269,10 @@ FMEntry FileManagerApp::pathToEntry(const String& path) {
         newEntry.type = FT_JS_SCRIPT;
         newEntry.icon = FT_JS_SCRIPT_ICON;
         newEntry.color = FT_JS_SCRIPT_COLOR;
-    } else if (lowerCasedPath.endsWith(".mod") || lowerCasedPath.endsWith(".wav") || lowerCasedPath.endsWith(".mp3") ||
-               lowerCasedPath.endsWith(".aac") || lowerCasedPath.endsWith(".flac")) {
+    } else if (
+        lowerCasedPath.endsWith(".mod") || lowerCasedPath.endsWith(".wav") || lowerCasedPath.endsWith(".mp3") ||
+        lowerCasedPath.endsWith(".aac") || lowerCasedPath.endsWith(".flac")
+    ) {
         newEntry.type = FT_SOUND;
         newEntry.icon = FT_SOUND_ICON;
         newEntry.color = FT_SOUND_COLOR;
@@ -622,7 +624,7 @@ void FileManagerApp::onFileOptionsMenuMKDir() {
     }
 
     // Try to Make a new directory
-    if (mkdir(lilka::fileutils.joinPath(currentEntry.path, dirName).c_str(), FM_MKDIR_MODE) == 0) {
+    if (mkpath(lilka::fileutils.joinPath(currentEntry.path, dirName).c_str()) == 0) {
         FM_UI_SUCCESS_OP;
         changeMode(FM_MODE_RELOAD);
     } else {
@@ -1201,7 +1203,7 @@ bool FileManagerApp::copyPath(const String& source, const String& destination) {
         return true;
     } else if (S_ISDIR(entryStat.st_mode)) {
         // Source is a directory, create destination directory
-        if (mkdir(destination.c_str(), FM_MKDIR_MODE) < 0) {
+        if (mkpath(destination.c_str()) < 0) {
             FM_DBG lilka::serial.log("Error creating directory: %s", destination);
             return false;
         }

@@ -18,7 +18,7 @@ void LilCatalogApp::run() {
 
     // Create catalog folder if needed
     if (!fexist(CATALOG_FOLDER)) {
-        mkdir(CATALOG_FOLDER, CATALOG_MKDIR_MODE);
+        mkpath(CATALOG_FOLDER);
     }
 
     // Show main menu first
@@ -732,7 +732,7 @@ bool LilCatalogApp::loadInstalledApps() {
                 String entryId = filename.substring(0, filename.length() - 5);
 
                 // Check if this app is actually installed (has execution file)
-                String execPath = path_catalog_folder + "/" + entryId;
+                String execPath = lilka::fileutils.joinPath(CATALOG_FOLDER, entryId);
                 if (SD.exists(execPath.c_str())) {
                     // Load manifest from cache
                     String json = file.readString();
@@ -781,11 +781,11 @@ void LilCatalogApp::clearManifestCache() {
 // ================================
 
 String LilCatalogApp::getEntryTargetPath() {
-    return path_catalog_folder + "/" + currentEntry.id;
+    return lilka::fileutils.joinPath(CATALOG_FOLDER, currentEntry.id);
 }
 
 String LilCatalogApp::getEntryExecutablePath() {
-    return getEntryTargetPath() + "/" + currentEntry.entryfile.location;
+    return lilka::fileutils.joinPath(getEntryTargetPath(), currentEntry.entryfile.location);
 }
 
 bool LilCatalogApp::validateEntry() {
