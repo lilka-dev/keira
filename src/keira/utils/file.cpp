@@ -94,24 +94,52 @@ int mkpath(const char* path, mode_t mode) {
 
     return 0;
 }
+
 void rmpath(const char* path) {
-    // Utilize per CPU core storage
-    char* buf = posix_path_buf[xPortGetCoreID()];
-    DIR* dir;
-    struct dirent* ent;
-    struct stat st;
+    char buf[PATH_MAX];
+    strcpy(buf, path);
 
-    dir = opendir(path);
-    if (!dir) return;
+    while (strlen(buf) >= strlen(path)) {
+        DIR* dir = opendir(buf);
+        if (!dir) {
+            unlink(buf);
 
-    while ((ent = readdir(dir))) {
-        if (strcmp(ent->d_name, ".") && strcmp(ent->d_name, "..")) {
-            snprintf(buf, sizeof(buf), "%s/%s", path, ent->d_name);
-            stat(buf, &st);
-            if (S_ISDIR(st.st_mode)) rmpath(buf);
-            else remove(buf);
+            /* backtrack */
+            char* p = strrchr(buf, '/');
+            if (!p || p == buf) return;
+            *p = '\0';
+            continue;
+        }
+
+        struct dirent* de;
+        struct stat st;
+        int found = 0;
+
+        while ((de = readdir(dir))) {
+            if (!strcmp(de->d_name, ".") || !strcmp(de->d_name, "..")) continue;
+
+            size_t len = strlen(buf);
+            buf[len] = '/';
+            strcpy(buf + len + 1, de->d_name);
+
+            if (stat(buf, &st) == 0 && S_ISDIR(st.st_mode)) {
+                found = 1;
+                break;
+            }
+
+            unlink(buf);
+            buf[len] = '\0';
+        }
+
+        closedir(dir);
+
+        if (!found) {
+            rmdir(buf);
+
+            /* backtrack */
+            char* p = strrchr(buf, '/');
+            if (!p || p == buf) return;
+            *p = '\0';
         }
     }
-    closedir(dir);
-    remove(path);
 }
