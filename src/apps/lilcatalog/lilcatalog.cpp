@@ -3,7 +3,7 @@
 #include <WiFi.h>
 #include <lilka/config.h>
 
-#include "keira/utils/json.h"
+#include "keira/utils/mem.h"
 #include "keira/utils/file.h"
 
 LilCatalogApp::LilCatalogApp() : App(K_S_LILCATALOG_APP), currentEntry{}, iconBuffer{}, downloadBuffer{} {

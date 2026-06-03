@@ -118,33 +118,17 @@
 #define K_S_LAUNCHER_ABOUT             "About"
 #define K_S_LAUNCHER_FIRMWARE_VERSION  "Firmware version"
 #define K_S_LAUNCHER_EASTER_EGG        "Surprise!"
-#define K_S_LAUNCHER_ABOUT_FMT\
-    "Keira: %s\n"\
-    "SDK: %s\n"\
-    "ESP-IDF: %s\n\n"
-#define K_S_LAUNCHER_VERSION_FMT\
-    "Keira: %s\n"\
-    "SDK: %s\n"\
-    "ESP-IDF: %s"
+#define K_S_LAUNCHER_ABOUT_FMT         "Keira: %s\nSDK: %s\nESP-IDF: %s\n\n"
+#define K_S_LAUNCHER_VERSION_FMT       "Keira: %s\nSDK: %s\nESP-IDF: %s"
 #define K_S_LAUNCHER_DEVICE_INFO       "About device"
-#define K_S_LAUNCHER_DEVICE_INFO_FMT\
-    "Device: %s\n"\
-    "Chip: %s\n"\
-    "Revision: %d\n"\
-    "Frequency: %d Mhz\n"\
-    "Cores: %d\n"\
-    "IP: %s"
+#define K_S_LAUNCHER_DEVICE_INFO_FMT   "Device: %s\nChip: %s\nRevision: %d\nFrequency: %d Mhz\nCores: %d\nIP: %s"
 #define K_S_PARTITION_TABLE            "Partition table"
 #define K_S_LAUNCHER_FACTORY_RESET     "Factory reset"
 #define K_S_LAUNCHER_REBOOT            "Reboot"
 
-#define K_S_LAUNCHER_FACTORY_RESET_DISCLAIMER_ALERT\
-    "ATTENTION: This will erase all settings!\n"\
-    "\nProceed?\n\nSTART - continue\nA - exit"
+#define K_S_LAUNCHER_FACTORY_RESET_DISCLAIMER_ALERT "ATTENTION: This will erase all settings!\n\nProceed?\n\nSTART - continue\nA - exit"
 
-#define K_S_LAUNCHER_FACTORY_RESET_SUCCESS_ALERT\
-    "Factory reset complete!\n\n"\
-    "System will reboot."
+#define K_S_LAUNCHER_FACTORY_RESET_SUCCESS_ALERT    "Factory reset complete!\n\nSystem will reboot."
 
 #define K_S_LAUNCHER_SELECT_TX_POWER   "Set power"
 
@@ -154,19 +138,13 @@
 
 #define K_S_LAUNCHER_FORMAT        "Formating"
 
-#define K_S_LAUNCHER_FORMAT_DISCLAIMER_ALERT\
-    "ATTENTION: It would remove all data on SD card!\n"\
-    "\nProceed?\n\nSTART - continue\nA - exit"
+#define K_S_LAUNCHER_FORMAT_DISCLAIMER_ALERT    "ATTENTION: It would remove all data on SD card!\n\nProceed?\n\nSTART - continue\nA - exit"
 
 #define K_S_LAUNCHER_PLEASE_STANDBY K_S_PLEASE_STANDBY
 
-#define K_S_LAUNCHER_FORMAT_ERROR_ALERT\
-    "Can't format SD card.\n\n"\
-    "System would reboot."
+#define K_S_LAUNCHER_FORMAT_ERROR_ALERT "Can't format SD card.\n\nSystem would reboot."
 
-#define K_S_LAUNCHER_FORMAT_SUCCESS_ALLERT\
-    "SD card format success!\n\n"\
-    "System would reboot."
+#define K_S_LAUNCHER_FORMAT_SUCCESS_ALLERT  "SD card format success!\n\nSystem would reboot."
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // apps/wifi_config.cpp ///////////////////////////////////////////////////////////////////////////////
@@ -174,16 +152,9 @@
 #define K_S_WIFI_CONFIG_SCAN_ERROR_CODE_FMT "Can't scan networks, error code: %d"
 #define K_S_WIFI_CONFIG_NETWORKS            "Networks"
 
-#define K_S_WIFI_CONFIG_ABOUT_NETWORK_FMT\
-    "Channel: %d\n"\
-    "Signal strength: %ddb\n"\
-    "MAC: %s\n"\
-    "Security: %s"
+#define K_S_WIFI_CONFIG_ABOUT_NETWORK_FMT   "Channel: %d\nSignal strength: %ddb\nMAC: %s\nSecurity: %s"
 
-#define K_S_WIFI_CONFIG_CONNECTING_TO_OPEN_INSECURE_NETWORK_FMT\
-    "You are connecting to insecure network %s\n\n"\
-    "A - continue\n"          \
-    "B - select another network"
+#define K_S_WIFI_CONFIG_CONNECTING_TO_OPEN_INSECURE_NETWORK_FMT    "You are connecting to insecure network %s\n\nA - continue\nB - select another network"
 
 #define K_S_WIFI_CONFIG_ENTER_PASSWORD              "Enter password:"
 #define K_S_WIFI_CONFIG_CONNECTING                  "Connecting..."
@@ -234,18 +205,12 @@
 #define K_S_FMANAGER_CALC_INTERRUPTED              "Not computed"
 #define K_S_FMANAGER_ARE_YOU_SURE_ALERT            "Are you sure"
 
-#define K_S_FMANAGER_THIS_OP_WOULD_DELETE_FILE_FMT "This operation would delete file\n %s\nProceed: START\nExit: B"
-#define K_S_FMANAGER_THIS_OP_WOULD_DELETE_COUNT_FILES_FMT\
-    "This operation would delete %d file(s)\nProceed: START\nExit: B"
-#define K_S_FMANAGER_SELECTED_ENTRIES_EXIT_FMT "Selected %d files\nConfirm exit: START\nReturn: B"
-#define K_S_FMANAGER_ABOUT_DIR_FMT\
-    "Type: directory\n"\
-    "Path: %s"
+#define K_S_FMANAGER_THIS_OP_WOULD_DELETE_FILE_FMT          "This operation would delete file\n %s\nProceed: START\nExit: B"
+#define K_S_FMANAGER_THIS_OP_WOULD_DELETE_COUNT_FILES_FMT   "This operation would delete %d file(s)\nProceed: START\nExit: B"
+#define K_S_FMANAGER_SELECTED_ENTRIES_EXIT_FMT              "Selected %d files\nConfirm exit: START\nReturn: B"
+#define K_S_FMANAGER_ABOUT_DIR_FMT                          "Type: directory\nPath: %s"
 
-#define K_S_FMANAGER_ABOUT_FILE_FMT\
-    "Type: file\n"\
-    "Size: %s\n"\
-    "MD5: %s\n"
+#define K_S_FMANAGER_ABOUT_FILE_FMT                 "Type: file\nSize: %s\nMD5: %s\n"
 // TODO: MOVE MULTIBOOT TO SEPARATE APP
 #define K_S_FMANAGER_MULTIBOOT_ABOUT_FMT            "%s\n\nSize: %s"
 
@@ -423,9 +388,7 @@
 // apps/usbdrive/usbdrive.cpp /////////////////////////////////////////////////////////////////////////
 #define K_S_USB_DRIVE_TITLE                       "USB Drive"
 #define K_S_USB_DRIVE_EXPERIMENTAL_TITLE          "Warning"
-#define K_S_USB_DRIVE_EXPERIMENTAL_WARNING        "Experimental feature.\n"\
-                                                  "Serial will be disabled.\n\n"\
-                                                  "[START] - OK  [A] - Cancel"
+#define K_S_USB_DRIVE_EXPERIMENTAL_WARNING        "Experimental feature.\nSerial will be disabled.\n\n[START] - OK  [A] - Cancel"
 #define K_S_USB_DRIVE_INITIALIZING                "Initializing USB..."
 #define K_S_USB_DRIVE_INIT_ERROR                  "USB initialization error"
 #define K_S_USB_DRIVE_NO_SD                       "SD card not available"
@@ -464,7 +427,7 @@
 #define K_S_LUA_ERROR                             "Error: "
 #define K_S_LUA_AWAIT_CODE_FROM_UART              "Awaiting code\nfrom UART...\n\nPress [A]\nto exit."
 #define K_S_LUA_DOWNLOAD                          "Downloading..."
-#define K_S_LUA_AWAIT_CODE_FROM_UART              "REPL:\nAwaiting code\nfrom UART...\n\nPress [A]\nto exit."
+#define K_S_LUA_REPL_AWAIT_CODE_FROM_UART              "REPL:\nAwaiting code\nfrom UART...\n\nPress [A]\nto exit."
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // apps/lua/lualilka_resources.cpp ////////////////////////////////////////////////////////////////////

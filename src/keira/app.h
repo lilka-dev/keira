@@ -57,9 +57,18 @@ protected:
     //========================================================================
     //  App UI Dialogs:
     //========================================================================
+    // Simple lilka::Alert
     void alert(const String& title, const String& description);
+    // Special lilka::Alert to be used in confirm operation cases
+    // Returns false if confirm failed
     bool confirm(const String& title, const String& description);
+    // Special lilka::Alert to perform errno check
+    // Restores errno to default value
+    // Returns false if errno set
+    bool errnocheck();
+    // Simple lilka::InputDialog
     String input(const String& title, const String& value = "", bool masked = false);
+
     //////////////////////////////////////////////////////////////////////////
     //========================================================================
     //  App Canvas management

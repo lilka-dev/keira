@@ -55,3 +55,6 @@ cppcheck: ## Run cppcheck check
 		--suppress=useStlAlgorithm \
 		--inline-suppr \
 		--error-exitcode=1
+.PHONY: checklang
+checklang: ## Run localization files check
+	python tools/checklang.py
