@@ -6,7 +6,7 @@
 #include <lilka/fileutils.h>
 
 // GLOBAL Storage
-char mkpath_buf[SOC_CPU_CORES_NUM][ESP_VFS_PATH_MAX + 1];
+char posix_path_buf[SOC_CPU_CORES_NUM][ESP_VFS_PATH_MAX + 1];
 
 bool fexist(const char* path) {
     struct stat st;
@@ -62,7 +62,7 @@ long lendir(DIR* dirfd) {
 
 int mkpath(const char* path, mode_t mode) {
     // Copy path to per CPU unit storage
-    char* buf = mkpath_buf[xPortGetCoreID()];
+    char* buf = posix_path_buf[xPortGetCoreID()];
     strncpy(buf, path, ESP_VFS_PATH_MAX);
     buf[ESP_VFS_PATH_MAX] = '\0';
 
@@ -92,4 +92,27 @@ int mkpath(const char* path, mode_t mode) {
     }
 
     return 0;
+}
+
+void rmpath(const char* path) {
+    // Utilize per CPU core storage
+    char* buf = posix_path_buf[xPortGetCoreID()];
+    DIR* dir;
+    struct dirent* ent;
+    struct stat st;
+
+    dir = opendir(path);
+    // no path exists
+    if (!dir) return;
+
+    while ((ent = readdir(dir))) {
+        if (strcmp(ent->d_name, ".") && strcmp(ent->d_name, "..")) {
+            snprintf(buf, sizeof(buf), "%s/%s", path, ent->d_name);
+            lstat(buf, &st);
+            if (S_ISDIR(st.st_mode)) rmpath(buf);
+            else remove(buf);
+        }
+    }
+    closedir(dir);
+    remove(path);
 }

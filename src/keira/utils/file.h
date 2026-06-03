@@ -14,9 +14,13 @@ bool fexist(const char* path);
 // Returns file size in bytes
 long fsize(FILE* fd);
 
-// Returns length of directory
+// Returns count of entriens inside directory
 // Note, this function can set errno
 long lendir(DIR* dirfd);
 
 // Creates a path
 int mkpath(const char* path, mode_t mode = MKPATH_MODE);
+
+// Drops everything inside path
+// rm -rf
+void rmpath(const char* path);
