@@ -43,6 +43,9 @@
 #define KT_CLBK_DATA_CAST(X) reinterpret_cast<KeiraCallbackData>(X)
 //////////////////////////////////////////////////////////////////////////////
 
+// check thread validness
+#define K_PTHREAD_CHECK(X) (X) && (X->getState() != KTS_EXITING) && (X->getState() != KTS_INVALID)
+
 class ThreadManager;
 class AppManager;
 class ServiceManager;
@@ -171,7 +174,7 @@ protected:
     // Immediate thread exit. Can be run from run() or onEntryCallback
     void exit();
 
-private:
+public:
     //=======================================================================
     //  FreeRTOS task management to be done from thread manager
     //=======================================================================
@@ -183,6 +186,7 @@ private:
     //=======================================================================
     //  KeiraThread internal wrapper around thread
     //=======================================================================
+private:
     void _run();
     /////////////////////////////////////////////////////////////////////////
 
