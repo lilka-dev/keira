@@ -13,6 +13,10 @@ mJS API
     math
     geometry
     gpio
+    i2c
+    spi
+    pwm
+    ws2812
     util
     console
     buzzer
