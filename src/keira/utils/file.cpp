@@ -13,11 +13,13 @@ char posix_fbuf[SOC_CPU_CORES_NUM][PATH_MAX + 1];
 
 bool fexist(const char* path) {
     struct stat st;
+    // cppcheck-suppress-begin knownConditionTrueFalse
     return (
         (strcmp(path, LILKA_SD_ROOT) == 0) || (strcmp(path, LILKA_SPIFFS_ROOT) == 0) ||
         (strcmp(path, LILKA_SD_ROOT "/") == 0) || (strcmp(path, LILKA_SPIFFS_ROOT "/") == 0) ||
         (strcmp(path, "/") == 0) || (access(path, F_OK) == 0) || (stat(path, &st) == 0) || (errno = 0)
     );
+    // cppcheck-suppress-end knownConditionTrueFalse
 }
 
 long fsize(FILE* fd) {
