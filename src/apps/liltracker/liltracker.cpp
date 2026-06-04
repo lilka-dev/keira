@@ -14,7 +14,7 @@
 #include "keira/utils/string.h"
 
 // TODO: implement pwd/chdir per app/service with automatical dir generation
-#define LILTRACKER_DIR        "/sd/liltracker"
+#define LILTRACKER_DIR "/sd/liltracker"
 // Layout:
 // - Title
 // - Controls (3 columns, 2 rows)
