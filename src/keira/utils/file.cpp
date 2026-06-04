@@ -69,24 +69,22 @@ int mkpath(const char* path, mode_t mode) {
     strncpy(buf, path, PATH_MAX);
     buf[PATH_MAX] = '\0';
 
-    // Skip root '/'
+    // Skip root '/<mount+point>'
     char* p = strchr(buf + 1, '/');
     if (!p) return 0;
-
-    // Skip mount point (e.g. /sd, /spiffs)
-    p = strchr(p + 1, '/');
-    if (!p) return 0; // nothing after mount point, nothing to create
-    p++;
 
     // Create dirs
     for (;; p++) {
         char* sep = strchr(p, '/');
         if (sep) *sep = '\0';
         if (mkdir(buf, mode) != 0 && errno != EEXIST) return -1;
+
         if (!sep) break;
         *sep = '/';
         p = sep;
     }
+    // clear errno
+    errno = 0;
     return 0;
 }
 
