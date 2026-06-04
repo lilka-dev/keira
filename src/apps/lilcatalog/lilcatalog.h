@@ -21,7 +21,6 @@
 #define CATALOG_ICON_HEIGHT 64
 #define CATALOG_ICON_SIZE   (CATALOG_ICON_WIDTH * CATALOG_ICON_HEIGHT * 2) // 8192 bytes
 
-
 // Base path
 #define CATALOG_FOLDER "/sd/lilcatalog"
 // Cache paths
