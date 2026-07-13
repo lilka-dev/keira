@@ -35,6 +35,9 @@
 // Utils:
 #include "keira/utils/string.h"
 
+// VFS
+#include "keira/vfs/spiram/spiram.h"
+
 //////////////////////////////////////////////////////////////////////////////
 // GUIDELINE: external libraries to use <> in includes
 //////////////////////////////////////////////////////////////////////////////
@@ -170,13 +173,20 @@ void KeiraSystem::verifyOTA() {
 }
 
 void KeiraSystem::registerFileSystems() {
+    // TODO:To be registered as a system unit
+    this->vfs.push_back(new SPIRamVFS(LILKA_TMP_ROOT));
+
     // Prepare RootVFS. Better to register it last
-    //
     this->rootVFS = new RootVFS("");
 
     // Add well known dirs
     rootVFS->registerPath(LILKA_SD_ROOT);
     rootVFS->registerPath(LILKA_SPIFFS_ROOT);
+
+    for (auto& fs : vfs) {
+        fs->mount(); // TODO: to be done during registration as a system unit maybe?
+        rootVFS->registerPath(fs->getMountPoint());
+    }
 
     // Time to mount it (^_^)==\~
     rootVFS->mount();

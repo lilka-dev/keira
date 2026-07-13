@@ -26,6 +26,7 @@ void KeiraVFS::mount() {
 
     // Use the context-pointer (_p) versions
     v.flags = ESP_VFS_FLAG_CONTEXT_PTR;
+    // TODO: ESP_VFS_FLAG_READONLY_FS
 
     // our vtable exactly fits the esp_vfs_t description, so we use this
     // elegant way and just copy it in esp_vfs_t without mindfuck with a c++ness
@@ -44,4 +45,8 @@ void KeiraVFS::mount() {
 void KeiraVFS::umount() {
     if (this->mounted) esp_vfs_unregister(mountPoint);
     this->mounted = false;
+}
+
+const char* KeiraVFS::getMountPoint() {
+    return mountPoint;
 }

@@ -91,8 +91,8 @@ private:
     // methods should be defined after, and VFS implementations should specify
     // this class first due to vtable manipulations in KeiraVFS->mount()
     // =======================================================================
-    virtual ssize_t write(int fd, void* dst, size_t size) DEFAULT_FAPI_IMPL;
-    virtual off_t lseek(int fd, off_t size, int mode) DEFAULT_FAPI_IMPL;
+    virtual ssize_t write(int fd, void* src, size_t size) DEFAULT_FAPI_IMPL;
+    virtual off_t lseek(int fd, off_t offset, int mode) DEFAULT_FAPI_IMPL;
     virtual ssize_t read(int fd, void* dst, size_t size) DEFAULT_FAPI_IMPL;
     virtual ssize_t pread(int fd, void* dst, size_t size, off_t offset) DEFAULT_FAPI_IMPL;
     virtual ssize_t pwrite(int fd, const void* src, size_t size, off_t offset) DEFAULT_FAPI_IMPL;
@@ -154,13 +154,19 @@ protected:
 public:
     KeiraVFS() {
     } // empty canstructor
+    virtual ~KeiraVFS() {
+    }
     explicit KeiraVFS(const char* path);
     // Mounts VFS implementation
     void mount();
     // Unmounts VFS implementation
     void umount();
+    // Returns mount point
+    const char* getMountPoint();
 
     // local storage for file/dirs fds
 
     bool mounted = false;
 };
+
+// TODO: REG_VFS(CLASS, NAME, PATH) macro
