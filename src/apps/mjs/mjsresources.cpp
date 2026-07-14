@@ -3,6 +3,7 @@
 #include "mjs.h"
 #include "keira/ksound/sound.h"
 #include "keira/ksound/audioplayer.h"
+#include "keira/utils/file.h"
 
 static String mjs_get_dir(struct mjs* mjs) {
     mjs_val_t dir_val = mjs_get(mjs, mjs_get_global(mjs), "__dir__", ~0);
@@ -140,11 +141,9 @@ static void mjs_resources_load_audio(struct mjs* mjs) {
         return;
     }
 
-    fseek(file, 0, SEEK_END);
-    size_t fileSize = ftell(file);
-    fseek(file, 0, SEEK_SET);
+    long fileSize = fsize(file);
 
-    if (fileSize == 0) {
+    if (!fileSize) {
         fclose(file);
         mjs_return(mjs, mjs_mk_undefined());
         return;

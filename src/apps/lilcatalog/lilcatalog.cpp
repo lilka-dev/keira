@@ -4,10 +4,11 @@
 #include <lilka/config.h>
 
 #include "keira/utils/mem.h"
+#include "keira/utils/file.h"
+#include "keira/utils/string.h"
 
 LilCatalogApp::LilCatalogApp() : App(K_S_LILCATALOG_APP), currentEntry{}, iconBuffer{}, downloadBuffer{} {
     setktStackSize(16384);
-    path_catalog_folder = "/lilcatalog";
 }
 
 void LilCatalogApp::run() {
@@ -17,8 +18,8 @@ void LilCatalogApp::run() {
     }
 
     // Create catalog folder if needed
-    if (!SD.exists(path_catalog_folder)) {
-        SD.mkdir(path_catalog_folder.c_str());
+    if (!fexist(CATALOG_FOLDER)) {
+        mkpath(CATALOG_FOLDER);
     }
 
     // Show main menu first
@@ -144,14 +145,14 @@ bool LilCatalogApp::downloadFile(const String& url, const String& targetPath) {
     int httpCode = http.GET();
 
     if (httpCode == HTTP_CODE_OK) {
-        String parentDir = lilka::fileutils.getParentDirectory(targetPath);
-        if (!lilka::fileutils.makePath(&SD, parentDir)) {
+        // let's create dir
+        if (mkpath(lilka::fileutils.getParentDirectory(targetPath).c_str()) != 0) {
             http.end();
             return false;
         }
 
-        fs::File file = SD.open(targetPath.c_str(), FILE_WRITE);
-        if (!file) {
+        FILE* fd = fopen(targetPath.c_str(), "w");
+        if (!fd) {
             http.end();
             return false;
         }
@@ -165,12 +166,12 @@ bool LilCatalogApp::downloadFile(const String& url, const String& targetPath) {
             if (available) {
                 size_t toRead = min(available, (size_t)CATALOG_DOWNLOAD_BUFFER_SIZE);
                 size_t actualRead = stream->readBytes(downloadBuffer, toRead);
-                file.write(downloadBuffer, actualRead);
+                fwrite(downloadBuffer, actualRead, 1, fd);
                 written += actualRead;
             }
         }
 
-        file.close();
+        fclose(fd);
         http.end();
         return true;
     }
@@ -190,15 +191,14 @@ bool LilCatalogApp::downloadFileWithProgress(const String& url, const String& ta
     int httpCode = http.GET();
 
     if (httpCode == HTTP_CODE_OK) {
-        String parentDir = lilka::fileutils.getParentDirectory(targetPath);
-        if (!lilka::fileutils.makePath(&SD, parentDir)) {
-            showAlert(K_S_LILCATALOG_ERROR_DIRETORY_CREATE);
+        // let's create dir
+        if (mkpath(lilka::fileutils.getParentDirectory(targetPath).c_str()) != 0) {
             http.end();
             return false;
         }
 
-        fs::File file = SD.open(targetPath.c_str(), FILE_WRITE);
-        if (!file) {
+        FILE* fd = fopen(targetPath.c_str(), "w");
+        if (!fd) {
             showAlert(K_S_LILCATALOG_ERROR_FILE_OPEN);
             http.end();
             return false;
@@ -215,7 +215,7 @@ bool LilCatalogApp::downloadFileWithProgress(const String& url, const String& ta
             if (available) {
                 size_t toRead = min(available, (size_t)CATALOG_DOWNLOAD_BUFFER_SIZE);
                 size_t actualRead = stream->readBytes(downloadBuffer, toRead);
-                file.write(downloadBuffer, actualRead);
+                fwrite(downloadBuffer, actualRead, 1, fd);
                 written += actualRead;
 
                 if (size > 0) {
@@ -227,7 +227,7 @@ bool LilCatalogApp::downloadFileWithProgress(const String& url, const String& ta
             }
         }
 
-        file.close();
+        fclose(fd);
         http.end();
         return true;
     }
@@ -453,17 +453,18 @@ String LilCatalogApp::getIconCachePath(const String& entryId) {
 bool LilCatalogApp::loadIconFromCache(const String& entryId) {
     String cachePath = getIconCachePath(entryId);
 
-    if (!SD.exists(cachePath.c_str())) {
+    if (!fexist(cachePath.c_str())) {
         return false;
     }
 
-    fs::File file = SD.open(cachePath.c_str(), FILE_READ);
-    if (!file) {
+    FILE* fd = fopen(cachePath.c_str(), "r");
+    if (!fd) {
         return false;
     }
 
-    size_t bytesRead = file.read(reinterpret_cast<uint8_t*>(iconBuffer), CATALOG_ICON_SIZE);
-    file.close();
+    size_t bytesRead = fread(iconBuffer, CATALOG_ICON_SIZE, 1, fd);
+
+    fclose(fd);
 
     return bytesRead == CATALOG_ICON_SIZE;
 }
@@ -473,18 +474,21 @@ bool LilCatalogApp::saveIconToCache(const String& entryId) {
         return false;
     }
 
-    if (!SD.exists(CATALOG_ICON_CACHE_FOLDER)) {
-        lilka::fileutils.makePath(&SD, CATALOG_ICON_CACHE_FOLDER);
+    if (!fexist(CATALOG_ICON_CACHE_FOLDER)) {
+        if (mkpath(CATALOG_ICON_CACHE_FOLDER) != 0) return false;
     }
 
     String cachePath = getIconCachePath(entryId);
-    fs::File file = SD.open(cachePath.c_str(), FILE_WRITE);
-    if (!file) {
+
+    FILE* fd = fopen(cachePath.c_str(), "w");
+
+    if (!fd) {
         return false;
     }
 
-    size_t written = file.write(reinterpret_cast<uint8_t*>(iconBuffer), CATALOG_ICON_SIZE);
-    file.close();
+    size_t written = fwrite(iconBuffer, CATALOG_ICON_SIZE, 1, fd);
+
+    fclose(fd);
 
     return written == CATALOG_ICON_SIZE;
 }
@@ -590,20 +594,7 @@ void LilCatalogApp::clearIconCache() {
     iconLoaded = false;
     loadedIconIndex = -1;
 
-    if (SD.exists(CATALOG_ICON_CACHE_FOLDER)) {
-        fs::File dir = SD.open(CATALOG_ICON_CACHE_FOLDER);
-        if (dir && dir.isDirectory()) {
-            fs::File entry = dir.openNextFile();
-            while (entry) {
-                String path = String(CATALOG_ICON_CACHE_FOLDER) + "/" + entry.name();
-                entry.close();
-                SD.remove(path.c_str());
-                entry = dir.openNextFile();
-            }
-            dir.close();
-        }
-        SD.rmdir(CATALOG_ICON_CACHE_FOLDER);
-    }
+    rmpath(CATALOG_ICON_CACHE_FOLDER);
 }
 
 // ================================
@@ -615,53 +606,43 @@ String LilCatalogApp::getShortManifestCachePath(const String& entryId) {
 }
 
 bool LilCatalogApp::saveShortManifestToCache(const String& entryId, const String& json) {
-    if (!lilka::fileutils.makePath(&SD, CATALOG_SHORT_MANIFEST_CACHE_FOLDER)) {
-        return false;
+    if (!fexist(CATALOG_SHORT_MANIFEST_CACHE_FOLDER)) {
+        if (mkpath(CATALOG_SHORT_MANIFEST_CACHE_FOLDER) != 0) return false;
     }
 
     String cachePath = getShortManifestCachePath(entryId);
-    fs::File file = SD.open(cachePath.c_str(), FILE_WRITE);
-    if (!file) {
+
+    FILE* fd = fopen(cachePath.c_str(), "w");
+
+    if (!fd) {
         return false;
     }
 
-    file.print(json);
-    file.close();
+    fwrite(json.c_str(), json.length(), 1, fd);
+
+    fclose(fd);
     return true;
 }
 
 String LilCatalogApp::loadShortManifestFromCache(const String& entryId) {
     String cachePath = getShortManifestCachePath(entryId);
 
-    if (!SD.exists(cachePath.c_str())) {
+    if (!fexist(cachePath.c_str())) return "";
+
+    FILE* fd = fopen(cachePath.c_str(), "r");
+
+    if (!fd) {
         return "";
     }
 
-    fs::File file = SD.open(cachePath.c_str(), FILE_READ);
-    if (!file) {
-        return "";
-    }
+    String json = freadstr(fd);
 
-    String json = file.readString();
-    file.close();
+    fclose(fd);
     return json;
 }
 
 void LilCatalogApp::clearShortManifestCache() {
-    if (SD.exists(CATALOG_SHORT_MANIFEST_CACHE_FOLDER)) {
-        fs::File dir = SD.open(CATALOG_SHORT_MANIFEST_CACHE_FOLDER);
-        if (dir && dir.isDirectory()) {
-            fs::File entry = dir.openNextFile();
-            while (entry) {
-                String path = String(CATALOG_SHORT_MANIFEST_CACHE_FOLDER) + "/" + entry.name();
-                entry.close();
-                SD.remove(path.c_str());
-                entry = dir.openNextFile();
-            }
-            dir.close();
-        }
-        SD.rmdir(CATALOG_SHORT_MANIFEST_CACHE_FOLDER);
-    }
+    rmpath(CATALOG_SHORT_MANIFEST_CACHE_FOLDER);
 }
 
 // ================================
@@ -673,35 +654,37 @@ String LilCatalogApp::getManifestCachePath(const String& entryId) {
 }
 
 bool LilCatalogApp::saveManifestToCache(const String& entryId, const String& json) {
-    if (!lilka::fileutils.makePath(&SD, CATALOG_MANIFEST_CACHE_FOLDER)) {
+    if (mkpath(CATALOG_MANIFEST_CACHE_FOLDER) != 0) {
         return false;
     }
 
     String cachePath = getManifestCachePath(entryId);
-    fs::File file = SD.open(cachePath.c_str(), FILE_WRITE);
-    if (!file) {
+
+    FILE* fd = fopen(cachePath.c_str(), "w");
+
+    if (!fd) {
         return false;
     }
 
-    file.print(json);
-    file.close();
+    fwrite(json.c_str(), json.length(), 1, fd);
+
+    fclose(fd);
     return true;
 }
 
 String LilCatalogApp::loadManifestFromCache(const String& entryId) {
     String cachePath = getManifestCachePath(entryId);
 
-    if (!SD.exists(cachePath.c_str())) {
+    if (!fexist(cachePath.c_str())) return "";
+
+    FILE* fd = fopen(cachePath.c_str(), "r");
+    if (!fd) {
         return "";
     }
 
-    fs::File file = SD.open(cachePath.c_str(), FILE_READ);
-    if (!file) {
-        return "";
-    }
+    String json = freadstr(fd);
 
-    String json = file.readString();
-    file.close();
+    fclose(fd);
     return json;
 }
 
@@ -714,66 +697,53 @@ bool LilCatalogApp::loadInstalledApps() {
     totalPages = 1;
 
     // Scan manifest cache folder for installed apps
-    if (!SD.exists(CATALOG_MANIFEST_CACHE_FOLDER)) {
+    if (!fexist(CATALOG_MANIFEST_CACHE_FOLDER)) return false;
+
+    DIR* fddir = opendir(CATALOG_MANIFEST_CACHE_FOLDER);
+    if (!fddir) {
         return false;
     }
 
-    fs::File dir = SD.open(CATALOG_MANIFEST_CACHE_FOLDER);
-    if (!dir || !dir.isDirectory()) {
-        return false;
+    // Iterate over manifest directory
+    const struct dirent* dirEntry;
+    while ((dirEntry = readdir(fddir)) != NULL) {
+        // Skip all except files
+        if (dirEntry->d_type != DT_REG) continue;
+
+        // Skip not-manifest look like entries
+        if (!strstrends(dirEntry->d_name, ".json")) continue;
+
+        // Extract entry identifier
+        String entryId(dirEntry->d_name);
+        entryId.remove(entryId.length() - 5); // remove ".json"
+
+        // Skip not installed
+        String execPath = lilka::fileutils.joinPath(CATALOG_FOLDER, entryId);
+        if (!fexist(execPath.c_str())) continue;
+
+        // Time to open file
+        FILE* fd = fopen(lilka::fileutils.joinPath(CATALOG_MANIFEST_CACHE_FOLDER, dirEntry->d_name).c_str(), "r");
+        if (!fd) continue;
+
+        // Read manifest file
+        String json = freadstr(fd);
+
+        // Adding new entry to list
+        catalog_entry entry;
+        if (parseManifest(json, entry)) entries.push_back(entry);
+
+        // Close manifest file
+        fclose(fd);
     }
 
-    fs::File file = dir.openNextFile();
-    while (file) {
-        if (!file.isDirectory()) {
-            String filename = file.name();
-            if (filename.endsWith(".json")) {
-                // Extract entry ID from filename
-                String entryId = filename.substring(0, filename.length() - 5);
-
-                // Check if this app is actually installed (has execution file)
-                String execPath = path_catalog_folder + "/" + entryId;
-                if (SD.exists(execPath.c_str())) {
-                    // Load manifest from cache
-                    String json = file.readString();
-                    file.close();
-
-                    catalog_entry entry;
-                    entry.id = entryId;
-                    if (parseManifest(json, entry)) {
-                        entries.push_back(entry);
-                    }
-                } else {
-                    file.close();
-                }
-            } else {
-                file.close();
-            }
-        } else {
-            file.close();
-        }
-        file = dir.openNextFile();
-    }
-    dir.close();
+    // close dir
+    closedir(fddir);
 
     return !entries.empty();
 }
 
 void LilCatalogApp::clearManifestCache() {
-    if (SD.exists(CATALOG_MANIFEST_CACHE_FOLDER)) {
-        fs::File dir = SD.open(CATALOG_MANIFEST_CACHE_FOLDER);
-        if (dir && dir.isDirectory()) {
-            fs::File entry = dir.openNextFile();
-            while (entry) {
-                String path = String(CATALOG_MANIFEST_CACHE_FOLDER) + "/" + entry.name();
-                entry.close();
-                SD.remove(path.c_str());
-                entry = dir.openNextFile();
-            }
-            dir.close();
-        }
-        SD.rmdir(CATALOG_MANIFEST_CACHE_FOLDER);
-    }
+    rmpath(CATALOG_MANIFEST_CACHE_FOLDER);
 }
 
 // ================================
@@ -781,16 +751,16 @@ void LilCatalogApp::clearManifestCache() {
 // ================================
 
 String LilCatalogApp::getEntryTargetPath() {
-    return path_catalog_folder + "/" + currentEntry.id;
+    return lilka::fileutils.joinPath(CATALOG_FOLDER, currentEntry.id);
 }
 
 String LilCatalogApp::getEntryExecutablePath() {
-    return getEntryTargetPath() + "/" + currentEntry.entryfile.location;
+    return lilka::fileutils.joinPath(getEntryTargetPath(), currentEntry.entryfile.location);
 }
 
 bool LilCatalogApp::validateEntry() {
     String execPath = getEntryExecutablePath();
-    return SD.exists(execPath.c_str());
+    return fexist(execPath.c_str());
 }
 
 void LilCatalogApp::fetchEntry() {
@@ -802,7 +772,9 @@ void LilCatalogApp::fetchEntry() {
 
     String targetDir = getEntryTargetPath();
 
-    if (!lilka::fileutils.makePath(&SD, targetDir)) {
+    lilka::serial.log("trying to create taget dir %s", targetDir.c_str());
+
+    if (mkpath(targetDir.c_str()) != 0) {
         showAlert(K_S_LILCATALOG_ERROR_DIRETORY_CREATE);
         return;
     }
@@ -841,27 +813,13 @@ void LilCatalogApp::fetchEntry() {
 
 void LilCatalogApp::removeEntry() {
     String targetDir = getEntryTargetPath();
-
-    // Remove entryfile
-    String execPath = getEntryExecutablePath();
-    if (SD.exists(execPath.c_str())) {
-        SD.remove(execPath.c_str());
-    }
-
-    // Remove additional files
-    for (const auto& file : currentEntry.files) {
-        String filePath = targetDir + "/" + file.location;
-        if (SD.exists(filePath.c_str())) {
-            SD.remove(filePath.c_str());
-        }
-    }
-
-    SD.rmdir(targetDir.c_str());
+    // Drop entire app dir
+    rmpath(targetDir.c_str());
 
     // Also remove cached manifest
     String manifestPath = getManifestCachePath(currentEntry.id);
-    if (SD.exists(manifestPath.c_str())) {
-        SD.remove(manifestPath.c_str());
+    if (fexist(manifestPath.c_str())) {
+        unlink(manifestPath.c_str());
     }
 
     showEntry();
@@ -879,7 +837,6 @@ ExecutionType LilCatalogApp::detectTypeByExtension(const String& location) {
 
 void LilCatalogApp::executeEntry() {
     String execPath = getEntryExecutablePath();
-    String canonicalPath = lilka::fileutils.getCannonicalPath(&SD, execPath);
 
     // Use manifest type, but fallback to extension detection if type is ARCHIVE or UNKNOWN
     // This fixes catalog entries with wrong types (e.g. .lua marked as archive)
@@ -891,15 +848,16 @@ void LilCatalogApp::executeEntry() {
         }
     }
 
+    // TODO: to be moved to App, as unified mechanism
     switch (execType) {
         case EXEC_TYPE_LUA:
-            K_FT_LUA_SCRIPT_HANDLER(canonicalPath);
+            K_FT_LUA_SCRIPT_HANDLER(execPath);
             break;
         case EXEC_TYPE_BINARY:
-            K_FT_BIN_HANDLER(canonicalPath);
+            K_FT_BIN_HANDLER(execPath);
             break;
         case EXEC_TYPE_DYNAPP:
-            K_FT_SO_HANDLER(canonicalPath);
+            K_FT_SO_HANDLER(execPath);
             break;
         case EXEC_TYPE_ARCHIVE:
             showAlert(K_S_LILCATALOG_ARCHIVE_NOTICE);

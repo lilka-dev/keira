@@ -1,4 +1,5 @@
 #include "string.h"
+#include <ctype.h>
 
 String StringFormat(const char* fmt, ...) {
     va_list args;
@@ -17,4 +18,22 @@ String StringFormat(const char* fmt, ...) {
     String result(buffer);
     delete[] buffer;
     return result;
+}
+
+bool strstrends(const char* haystack, const char* needle) {
+    size_t hlen = strlen(haystack);
+    size_t nlen = strlen(needle);
+    if (nlen > hlen) return false;
+    return memcmp(haystack + hlen - nlen, needle, nlen) == 0;
+}
+
+bool strcasestrends(const char* haystack, const char* needle) {
+    size_t hlen = strlen(haystack);
+    size_t nlen = strlen(needle);
+    if (nlen > hlen) return false;
+    const char* tail = haystack + hlen - nlen;
+    for (size_t i = 0; i < nlen; i++) {
+        if (tolower((unsigned char)tail[i]) != tolower((unsigned char)needle[i])) return false;
+    }
+    return true;
 }

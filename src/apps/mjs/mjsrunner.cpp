@@ -23,6 +23,7 @@
 #include "lilka.h"
 #include "mjs.h"
 #include "keira/keira.h"
+#include "keira/utils/file.h"
 #include <cstring>
 
 // Helper function to get the script directory from __dir__ global
@@ -63,9 +64,9 @@ static void mjs_custom_load(struct mjs* mjs) {
         mjs_return(mjs, mjs_mk_undefined());
         return;
     }
-    fseek(fp, 0, SEEK_END);
-    size_t fileSize = ftell(fp);
-    fseek(fp, 0, SEEK_SET);
+
+    long fileSize = fsize(fp);
+
     char* source = static_cast<char*>(malloc(fileSize + 1));
     if (!source) {
         fclose(fp);
@@ -133,9 +134,8 @@ void MJSApp::run() {
     if (!fp) {
         alert("mJS", String(K_S_MJS_ERROR) + "\nFailed to read file");
     } else {
-        fseek(fp, 0, SEEK_END);
-        size_t fileSize = ftell(fp);
-        fseek(fp, 0, SEEK_SET);
+        long fileSize = fsize(fp);
+
         char* source = static_cast<char*>(malloc(fileSize + 1));
         if (!source) {
             fclose(fp);

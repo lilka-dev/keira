@@ -1,6 +1,7 @@
 #include "lualilka_sdcard.h"
 #include "lilka.h"
 #include "keira/keira.h"
+#include "keira/utils/file.h"
 
 static int lualilka_create_object_file(lua_State* L) {
     String path = luaL_checkstring(L, 1);
@@ -22,10 +23,7 @@ static int lualilka_delete_object_file(lua_State* L) {
 static int lualilka_file_size(lua_State* L) {
     FILE* filePointer = *reinterpret_cast<FILE**>(luaL_checkudata(L, 1, FILE_OBJECT));
     if (filePointer) {
-        size_t initial_offset = ftell(filePointer); // get current file pointer
-        fseek(filePointer, 0, SEEK_END); // seek to end of file
-        size_t size = ftell(filePointer); // get current file pointer
-        fseek(filePointer, initial_offset, SEEK_SET); // seek back to beginning of file
+        long size = fsize(filePointer);
 
         lua_pushinteger(L, size);
         return 1;

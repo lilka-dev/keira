@@ -1,6 +1,7 @@
 #include "mjssdcard.h"
 #include <lilka.h>
 #include "mjs.h"
+#include "keira/utils/file.h"
 
 // sdcard.ls(path) -> array of names
 static void mjs_sdcard_ls(struct mjs* mjs) {
@@ -108,10 +109,9 @@ static void mjs_sdcard_file_size(struct mjs* mjs) {
         return;
     }
     FILE* fp = static_cast<FILE*>(mjs_get_ptr(mjs, ptr_val));
-    size_t cur = ftell(fp);
-    fseek(fp, 0, SEEK_END);
-    size_t size = ftell(fp);
-    fseek(fp, cur, SEEK_SET);
+
+    long size = fsize(fp);
+
     mjs_return(mjs, mjs_mk_number(mjs, size));
 }
 

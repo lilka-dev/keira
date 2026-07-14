@@ -1,5 +1,6 @@
 #include "fmanager.h"
 #include "lilka/fileutils.h"
+#include "keira/utils/file.h"
 #include "keira/utils/string.h"
 
 FileManagerApp::FileManagerApp(const String& path) :
@@ -197,9 +198,8 @@ String FileManagerApp::getFileMD5(const String& file_path) {
     }
     md5Progress.setMessage(basename(file_path.c_str()));
     // Get file size
-    fseek(file, 0, SEEK_END);
-    size_t fileSize = ftell(file);
-    fseek(file, 0, SEEK_SET);
+    long fileSize = fsize(file);
+
     // mb create on init?
     mbedtls_md5_context ctx;
     mbedtls_md5_init(&ctx);
@@ -662,7 +662,7 @@ void FileManagerApp::onFileOptionsMenuMKDir() {
     }
 
     // Try to Make a new directory
-    if (mkdir(lilka::fileutils.joinPath(currentEntry.path, dirName).c_str(), FM_MKDIR_MODE) == 0) {
+    if (mkpath(lilka::fileutils.joinPath(currentEntry.path, dirName).c_str()) == 0) {
         FM_UI_SUCCESS_OP;
         changeMode(FM_MODE_RELOAD);
     } else {
@@ -811,11 +811,6 @@ bool FileManagerApp::areDirEntriesEqual(const FMEntry& ent1, const FMEntry& ent2
 bool FileManagerApp::isCopyOrMoveCouldBeDone(const String& src, const String& dst) {
     // Note, this isn't a mistake, is an errno autoclear here
     // SPIFFS doesn't implement an access() call, so, we use stat as a fallback
-    struct stat st;
-#define F_EXIST(X)                                                                                                    \
-    ((strcmp(X, LILKA_SD_ROOT) == 0) || (strcmp(X, LILKA_SPIFFS_ROOT) == 0) || (strcmp(X, LILKA_SD_ROOT "/") == 0) || \
-     (strcmp(X, LILKA_SPIFFS_ROOT "/") == 0) || (strcmp(X, "/") == 0) || (access(X, F_OK) == 0) ||                    \
-     (stat(X, &st) == 0) || (errno = 0))
 
     // it's already here
     if (src == dst) {
@@ -831,25 +826,24 @@ bool FileManagerApp::isCopyOrMoveCouldBeDone(const String& src, const String& ds
     }
 
     // Nothing to copy
-    if (!F_EXIST(src.c_str())) {
+    if (!fexist(src.c_str())) {
         FM_DBG lilka::serial.log("[FM] Can't copy %s => %s. SRC not exist", src.c_str(), dst.c_str());
         return false;
     }
 
     // Some other file already at dst
     // TODO: ask user for replace confirm ?
-    if (F_EXIST(dst.c_str())) {
+    if (fexist(dst.c_str())) {
         FM_DBG lilka::serial.log("[FM] Can't copy %s => %s. DST already exist", src.c_str(), dst.c_str());
 
         return false;
     }
     // Destination is unreachable
-    if (!F_EXIST(lilka::fileutils.getParentDirectory(dst).c_str())) {
+    if (!fexist(lilka::fileutils.getParentDirectory(dst).c_str())) {
         FM_DBG lilka::serial.log("[FM] Can't copy %s => %s. DST unreachable", src.c_str(), dst.c_str());
         return false;
     }
 
-#undef F_EXIST
     FM_DBG lilka::serial.log("[FM] Allowed copy %s => %s", src.c_str(), dst.c_str());
 
     // All good, let's proceed
@@ -898,12 +892,8 @@ bool FileManagerApp::fileListMenuLoadDir() {
 
     dirLoadProgress.setMessage(currentPath);
     dirLoadProgress.setProgress(0);
-    auto dirLength = 0;
+    long dirLength = lendir(dir);
     auto countLoaded = 0;
-    // TODO: doubleread? in statless()?
-    while ((readdir(dir)) != NULL)
-        dirLength++;
-    rewinddir(dir);
 
     FM_DBG lilka::serial.log("Directory %s contains %d entries", currentPath.c_str(), dirLength);
 
@@ -1127,39 +1117,7 @@ void FileManagerApp::deleteEntry(const FMEntry& entry) {
     // could also fall here. exit gracefully
 
     auto path = lilka::fileutils.joinPath(entry.path, entry.name);
-
-    // Do job
-    if (entry.type == FT_DIR) { // Directory
-        auto dir = opendir(path.c_str());
-        if (dir == NULL) {
-            FM_DBG lilka::serial.err("Can't open dir %s. %d: %s", path.c_str(), errno, strerror(errno));
-            FM_UI_CANT_DO_OP;
-            FM_MODE_RESET;
-            return; // some shit happened. run!
-        }
-        const struct dirent* dirEntry;
-        while ((dirEntry = readdir(dir)) != NULL) {
-            String filename = dirEntry->d_name;
-            // TODO: lol, we no need to perform stat() call here
-            FMEntry fEntry = pathToEntry(lilka::fileutils.joinPath(path, filename));
-            deleteEntry(fEntry); // recursive
-        }
-        closedir(dir);
-        // Delete dir itself
-        if (unlink(path.c_str()) != 0) {
-            FM_DBG lilka::serial.err("Tried to delete %s. %d: %s", path.c_str(), errno, strerror(errno));
-            FM_UI_CANT_DO_OP;
-            FM_MODE_RESET;
-            return; // some shit happened. run!
-        }
-    } else { // Regular file
-        if (unlink(path.c_str()) != 0) {
-            FM_DBG lilka::serial.err("Tried to delete %s. %d: %s", path.c_str(), errno, strerror(errno));
-            FM_UI_CANT_DO_OP;
-            FM_MODE_RESET;
-            return; // some shit happened. run!
-        }
-    }
+    rmpath(path.c_str());
 }
 
 bool FileManagerApp::changeMode(FmMode newMode) {
@@ -1212,9 +1170,7 @@ bool FileManagerApp::copyPath(const String& source, const String& destination) {
             return false;
         }
 
-        fseek(inFile, 0, SEEK_END);
-        auto fileSize = ftell(inFile);
-        fseek(inFile, 0, SEEK_SET);
+        long fileSize = fsize(inFile);
 
         auto outFile = fopen(destination.c_str(), "w");
         if (!outFile) {
@@ -1258,7 +1214,7 @@ bool FileManagerApp::copyPath(const String& source, const String& destination) {
         return true;
     } else if (S_ISDIR(entryStat.st_mode)) {
         // Source is a directory, create destination directory
-        if (mkdir(destination.c_str(), FM_MKDIR_MODE) < 0) {
+        if (mkpath(destination.c_str()) < 0) {
             FM_DBG lilka::serial.log("Error creating directory: %s", destination);
             return false;
         }

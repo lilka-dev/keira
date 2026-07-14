@@ -65,7 +65,6 @@
 #define PROGRESS_FRAME_TIME              30
 #define PROGRESS_FILE_LIST_NO_DRAW_COUNT 10
 #define FM_CHUNK_SIZE                    256
-#define FM_MKDIR_MODE                    0777
 #define FM_DEFAULT_NEW_FOLDER_NAME       "New Folder"
 
 // STATUS BAR SETTINGS:  /////////////////////////////////////////////////////

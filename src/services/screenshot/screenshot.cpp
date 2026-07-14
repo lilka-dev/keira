@@ -1,9 +1,14 @@
 #include <contrib/LodePNG/lodepng.h>
+#include <cstdio>
 
 #include "services/screenshot/screenshot.h"
 #include "keira/appmanager.h"
 #include "services/clock/clock.h"
 #include "keira/ksystem.h"
+#include "keira/utils/string.h"
+#include "keira/utils/file.h"
+
+#define SCREENSHOT_DIR "/sd/screenshots"
 
 #if !defined(KEIRA_SCREENSHOT_BMP) && !defined(KEIRA_SCREENSHOT_PNG)
 // Uncomment one of the following lines to choose the screenshot format
@@ -143,11 +148,12 @@ bool ScreenshotService::saveScreenshot(lilka::Canvas* canvas) {
 bool ScreenshotService::writeScreenshot(uint8_t* buffer, uint32_t length, const char* ext) {
     // Generate filename
     struct tm time = reinterpret_cast<ClockService*>(ksystem.services["clock"])->getTime();
-    char filename[64];
-    snprintf(
-        filename,
-        sizeof(filename),
-        "/screenshots/screenshot_%04d%02d%02d_%02d%02d%02d.%s",
+
+    if (!fexist(SCREENSHOT_DIR)) mkpath(SCREENSHOT_DIR);
+
+    // TODO: after merging SPIRAMVFS, store screenshot in /tmp
+    String filename = StringFormat(
+        SCREENSHOT_DIR "/screenshot_%04d%02d%02d_%02d%02d%02d.%s",
         time.tm_year + 1900,
         time.tm_mon + 1,
         time.tm_mday,
@@ -156,15 +162,17 @@ bool ScreenshotService::writeScreenshot(uint8_t* buffer, uint32_t length, const 
         time.tm_sec,
         ext
     );
-    lilka::serial.log("Screenshot filename: %s", filename);
+    lilka::serial.log("Screenshot filename: %s", filename.c_str());
 
-    File file = SD.open(filename, FILE_WRITE, true);
-    if (file) {
-        size_t bytes = file.write(buffer, length);
-        file.close();
-        return bytes > 0;
-    }
-    return false;
+    FILE* fscreenshot = fopen(filename.c_str(), "w");
+
+    if (!fscreenshot) return false;
+
+    auto bytes = fwrite(buffer, length, 1, fscreenshot);
+
+    fclose(fscreenshot);
+
+    return bytes > 0;
 }
 
 void ScreenshotService::run() {

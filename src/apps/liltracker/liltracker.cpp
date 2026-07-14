@@ -1,15 +1,20 @@
+#include <dirent.h>
 #include <lilka.h>
 #include "keira/keira.h"
+#include "keira/utils/file.h"
 #include "liltracker.h"
+#include "lilka/fileutils.h"
+#include "lilka/serial.h"
 #include "note.h"
 #include "i2s_sink.h"
 #include "wav_sink.h"
 #include "keira/utils/defer.h"
 #include "keira/utils/string.h"
 #include "icons/liltracker_icons.h"
+#include "keira/utils/string.h"
 
-#define LILTRACKER_DIR "/liltracker"
-
+// TODO: implement pwd/chdir per app/service with automatical dir generation
+#define LILTRACKER_DIR "/sd/liltracker"
 // Layout:
 // - Title
 // - Controls (3 columns, 2 rows)
@@ -78,11 +83,11 @@ LilTrackerApp::LilTrackerApp() : App("LilTracker"), sequencer(NULL) {
     this->setFlags(APP_FLAG_FULLSCREEN);
     this->setktCore(1);
     this->setktStackSize(16384);
-    this->initialPath = "";
+    this->filePath = "";
 }
 
-LilTrackerApp::LilTrackerApp(String path) : LilTrackerApp() {
-    this->initialPath = lilka::fileutils.getLocalPathInfo(path).path;
+LilTrackerApp::LilTrackerApp(const String& path) : LilTrackerApp() {
+    this->filePath = path;
 }
 
 xSemaphoreHandle xMutex;
@@ -95,8 +100,8 @@ void LilTrackerApp::run() {
 
     WAVSink* wavSink = NULL;
 
-    if (initialPath.length()) {
-        loadTrack(&track, initialPath);
+    if (filePath.length()) {
+        loadTrack(&track, filePath);
     }
 
     int pageIndex = 0;
@@ -827,125 +832,136 @@ int LilTrackerApp::drawElement(
 //     }
 // }
 
+// TODO: implement openFileDialog/saveFileDialog system-wide
 String LilTrackerApp::filePicker(String ext, bool isSave) {
+    // frostmorn: a bit unsure that mixed logic actually good idea
     // isSave determines whether we are writing to file or opening an existing one
 
-    // List files
-    if (!SD.exists(LILTRACKER_DIR)) {
-        if (!SD.mkdir(LILTRACKER_DIR)) {
+    // Check if dir exists
+    if (!fexist(LILTRACKER_DIR)) {
+        if (mkpath(LILTRACKER_DIR) < 0) {
+            // TODO: checkerno() awaits pr
             alert(K_S_ERROR, StringFormat(K_S_CANT_CREATE_DIR_FMT, LILTRACKER_DIR));
             return "";
         }
     }
-    File root = SD.open("/liltracker");
-    if (!root) {
+    // Trying to open directory
+    DIR* dirfd = opendir(LILTRACKER_DIR);
+    if (!dirfd) {
         alert(K_S_ERROR, StringFormat(K_S_CANT_OPEN_DIR_FMT, LILTRACKER_DIR));
         return "";
     }
 
-    int fileCount = lilka::fileutils.getEntryCount(&SD, LILTRACKER_DIR);
+    long fileCount = lendir(dirfd);
+
+    // TODO: let's imagine situation when dir isn't empty, but
+    // consists from files we don't display. Does it actually matter?
     if (fileCount == 0 && !isSave) {
         alert(K_S_ERROR, StringFormat(K_S_DIR_EMPTY_FMT, LILTRACKER_DIR));
         return "";
     }
 
-    lilka::Entry entries[fileCount];
-    std::vector<String> filenames;
-    lilka::fileutils.listDir(&SD, LILTRACKER_DIR, entries);
-
+    // Open/Create as a first menu item
     lilka::Menu menu(isSave ? K_S_LILTRACKER_SAVE_TRACK : K_S_LILTRACKER_OPEN_TRACK);
     if (isSave) {
         menu.addItem(K_S_LILTRACKER_CREATE_NEW_TRACK);
     }
-    for (int i = 0; i < fileCount; i++) {
-        if (entries[i].type == lilka::EntryType::ENT_DIRECTORY) {
-            continue;
+
+    // Fill menu with directory items
+    while (struct dirent* dent = readdir(dirfd)) {
+        if (dent->d_type == DT_REG && strcasestrends(dent->d_name, ext.c_str())) {
+            menu.addItem(dent->d_name);
         }
-        if (!entries[i].name.endsWith(ext)) {
-            continue;
-        }
-        menu.addItem(entries[i].name);
-        filenames.push_back(entries[i].name);
     }
+    // Back/exit as a last menu item
     menu.addItem(K_S_MENU_BACK);
 
+    // Render menu
     while (!menu.isFinished()) {
         menu.update();
         menu.draw(canvas);
+        // TODO: lilka::Menu looks very strange for a fullscreen app
         queueDraw();
     }
 
+    // Handle back
     int16_t selectedItem = menu.getCursor();
     if (selectedItem == menu.getItemCount() - 1) {
         // Back
         return "";
     }
 
-    if (isSave) {
-        if (selectedItem == 0) {
-            // Create new file
-            // TODO: oh my god...
-            lilka::InputDialog dialog(K_S_LILTRACKER_ENTER_FILENAME);
-            while (1) {
-                dialog.update();
-                dialog.draw(canvas);
-                queueDraw();
-                if (dialog.isFinished()) {
-                    String filename = dialog.getValue();
-                    filename.trim();
-                    if (filename.length() == 0) {
-                        alert(K_S_ERROR, K_S_LILTRACKER_FILENAME_CANT_BE_EMPTY);
-                    } else {
-                        String lowerFilename = filename;
-                        lowerFilename.toLowerCase();
-                        if (lowerFilename.endsWith(ext)) {
-                            filename.remove(filename.length() - 3);
-                        }
-                        filename += ext;
-                        return String(LILTRACKER_DIR) + "/" + filename;
-                    }
-                }
-            }
+    bool openOrCreateSelected = selectedItem == 0;
+
+    // Retrieve filename
+    lilka::MenuItem mitembuf;
+    menu.getItem(selectedItem, &mitembuf);
+    String filename = mitembuf.title;
+
+    // Handle Save/Create
+    while (isSave && openOrCreateSelected) {
+        filename = input(K_S_LILTRACKER_ENTER_FILENAME);
+        filename.trim();
+
+        // Await a good filename...
+        if (filename.length() == 0) {
+            // TODO: Maybe user don't want to save a thing anymore?
+            alert(K_S_ERROR, K_S_LILTRACKER_FILENAME_CANT_BE_EMPTY);
         } else {
-            // Save to existing file
-            selectedItem--; // Skip the "Create new" item
-            return String(LILTRACKER_DIR) + "/" + filenames[selectedItem];
+            // Ensure ext?
+            if (strcasestrends(filename.c_str(), ext.c_str())) {
+                filename.remove(filename.length() - ext.length());
+            }
+            filename += ext;
+            break;
         }
-    } else {
-        // Open existing file
-        return String(LILTRACKER_DIR) + "/" + filenames[selectedItem];
     }
+
+    return lilka::fileutils.joinPath(LILTRACKER_DIR, filename);
 }
 
-void LilTrackerApp::loadTrack(Track* track, String filename) {
-    File file = SD.open(filename, FILE_READ);
-    if (!file) {
+void LilTrackerApp::loadTrack(Track* track, const String& filename) {
+    // Open file
+    FILE* fd = fopen(filename.c_str(), "r");
+    if (!fd) {
         alert(K_S_ERROR, StringFormat(K_S_CANT_OPEN_FILE_FMT, filename.c_str()));
         return;
     }
-    Defer closeFile([&file]() { file.close(); });
-    uint8_t* buff = new uint8_t[file.size()];
-    std::unique_ptr<uint8_t[]> buffPtr(buff);
-    file.read(buff, file.size());
+
+    // Determine file size
+    long fSize = fsize(fd);
+
+    // Allocate track buffer
+    uint8_t* buff = new uint8_t[fSize];
+
+    // Read file
+    fread(buff, fSize, 1, fd);
     track->readFromBuffer(buff);
+
+    // Cleanup
+    fclose(fd);
+    delete[] buff;
 }
 
-void LilTrackerApp::saveTrack(Track* track, String filename) {
-    if (SD.exists(filename)) {
-        // Remove existing file
-        if (!SD.remove(filename)) {
-            alert(K_S_ERROR, StringFormat(K_S_CANT_REMOVE_FILE_FMT, filename.c_str()));
-            return;
-        }
-    }
-    File file = SD.open(filename, FILE_WRITE);
-    if (!file) {
+void LilTrackerApp::saveTrack(Track* track, const String& filename) {
+    // Open file. Note, "w" mean file would be truncated to zero length
+    FILE* fd = fopen(filename.c_str(), "w");
+    if (!fd) {
         alert(K_S_ERROR, StringFormat(K_S_CANT_OPEN_FILE_FMT, filename.c_str()));
         return;
     }
-    Defer closeFile([&file]() { file.close(); });
-    uint8_t* buff = new uint8_t[track->calculateWriteBufferSize()];
-    std::unique_ptr<uint8_t[]> buffPtr(buff);
+
+    // Determine expected file size
+    long fSize = track->calculateWriteBufferSize();
+
+    // Write Track to buffer
+    uint8_t* buff = new uint8_t[fSize];
     track->writeToBuffer(buff);
-    file.write(buff, track->calculateWriteBufferSize());
+
+    // Write buffer to file
+    fwrite(buff, fSize, 1, fd);
+
+    // Cleanup
+    delete[] buff;
+    fclose(fd);
 }

@@ -3,6 +3,7 @@
 #include <qrcode.h>
 #include "keira/utils/mem.h"
 #include "keira/keira.h"
+#include "keira/utils/file.h"
 #include "launcher.h"
 #include "keira/appmanager.h"
 
@@ -500,22 +501,14 @@ ITEM_LIST LauncherApp::loadCatalogItems() {
             continue;
         }
 
-        fseek(f, 0, SEEK_END);
-        long fileSize = ftell(f);
-        fseek(f, 0, SEEK_SET);
+        long fileSize = fsize(f);
 
-        if (fileSize <= 0 || fileSize > 8192) {
+        if (fileSize == 0 || fileSize > 8192) {
             fclose(f);
             continue;
         }
 
-        String json;
-        char buf[256];
-        size_t n;
-        while ((n = fread(buf, 1, sizeof(buf) - 1, f)) > 0) {
-            buf[n] = '\0';
-            json += buf;
-        }
+        String json = freadstr(f);
         fclose(f);
 
         JsonDocument doc(&spiRamAllocator);

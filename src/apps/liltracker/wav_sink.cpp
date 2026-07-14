@@ -14,8 +14,9 @@ void WAVSink::start() {
     bufferPos = 0;
     numSamples = 0;
 
-    file = SD.open(filename, FILE_WRITE);
-    if (!file) {
+    fd = fopen(filename.c_str(), "w");
+
+    if (!fd) {
         Serial.println("Failed to open file for writing");
         return;
     }
@@ -42,9 +43,9 @@ void WAVSink::start() {
     dataSubchunk.subchunk2Size = 0; // num samples * num channels * bits per sample / 8
 
     // Write the header
-    file.write(reinterpret_cast<uint8_t*>(&riffHeader), sizeof(riffHeader));
-    file.write(reinterpret_cast<uint8_t*>(&fmtSubchunk), sizeof(fmtSubchunk));
-    file.write(reinterpret_cast<uint8_t*>(&dataSubchunk), sizeof(dataSubchunk));
+    fwrite(&riffHeader, sizeof(riffHeader), 1, fd);
+    fwrite(&fmtSubchunk, sizeof(fmtSubchunk), 1, fd);
+    fwrite(&dataSubchunk, sizeof(dataSubchunk), 1, fd);
 }
 
 size_t WAVSink::write(const int16_t* data, size_t size) {
@@ -56,7 +57,7 @@ size_t WAVSink::write(const int16_t* data, size_t size) {
     memcpy(buffer + bufferPos, data, bToStore);
     bufferPos += bToStore;
     if (bufferPos == 65536) {
-        file.write(buffer, 65536);
+        fwrite(buffer, 65536, 1, fd);
         bufferPos = 0;
     }
     numSamples += bToStore / 2;
@@ -65,15 +66,15 @@ size_t WAVSink::write(const int16_t* data, size_t size) {
 
 void WAVSink::stop() {
     // Update the header with the correct sizes
-    riffHeader.chunkSize = file.position() - 8;
+    riffHeader.chunkSize = ftell(fd) - 8;
     dataSubchunk.subchunk2Size = numSamples * 1 * 16 / 8;
 
     // Write the header again
-    file.seek(0);
-    file.write(reinterpret_cast<uint8_t*>(&riffHeader), sizeof(riffHeader));
-    file.write(reinterpret_cast<uint8_t*>(&fmtSubchunk), sizeof(fmtSubchunk));
-    file.write(reinterpret_cast<uint8_t*>(&dataSubchunk), sizeof(dataSubchunk));
+    fseek(fd, 0, SEEK_SET);
+    fwrite(&riffHeader, sizeof(riffHeader), 1, fd);
+    fwrite(&fmtSubchunk, sizeof(fmtSubchunk), 1, fd);
+    fwrite(&dataSubchunk, sizeof(dataSubchunk), 1, fd);
 
     // Close the file
-    file.close();
+    fclose(fd);
 }
