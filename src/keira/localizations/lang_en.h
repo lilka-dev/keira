@@ -475,6 +475,21 @@
 #define K_S_LUA_SDCARD_ARGS_2_FMT                  "Expected 2 arguments, got %d"
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// apps/lua/lualilka_fs.cpp /////////////////////////////////////////////////////////////////////
+#define K_S_LUA_FS_NOT_FOUND                   "SD card not found"
+#define K_S_LUA_FS_SIZE_READ_ERROR             "Size read error"
+#define K_S_LUA_FS_SEEK_ERROR                  "Seek error"
+#define K_S_LUA_FS_READ_ERROR                  "Read error"
+#define K_S_LUA_FS_WRITE_ERROR                 "Write error"
+#define K_S_LUA_FS_READ_FILE_ERROR             "File read error"
+#define K_S_LUA_FS_REMOVE_ERROR_FMT            "Error removing file: %d"
+#define K_S_LUA_FS_RENAME_ERROR_FMT            "Error renaming file: %d"
+#define K_S_LUA_FS_DIR_EMPTY_OR_ERROR          "Directory is empty or read error occurred"
+#define K_S_LUA_FS_DIR_READ_ERROR              "Failed to read directory"
+#define K_S_LUA_FS_ARGS_1_FMT                  "Expected 1 argument, got %d"
+#define K_S_LUA_FS_ARGS_2_FMT                  "Expected 2 arguments, got %d"
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
 // apps/lua/lualilka_audio.cpp //////////////////////////////////////////////////////////////////////
 #define K_S_LUA_AUDIO_INVALID_RESOURCE             "Invalid audio resource"
 #define K_S_LUA_AUDIO_UNSUPPORTED_FORMAT_FMT       "Unsupported audio format: %s"

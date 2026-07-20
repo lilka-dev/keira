@@ -468,6 +468,20 @@
 #define K_S_LUA_SDCARD_ARGS_2_FMT                  "Очікується 2 аргументи, отримано %d"
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// apps/lua/lualilka_fs.cpp /////////////////////////////////////////////////////////////////////
+#define K_S_LUA_FS_SIZE_READ_ERROR             "Помилка читання розміру"
+#define K_S_LUA_FS_SEEK_ERROR                  "Помилка пошуку"
+#define K_S_LUA_FS_READ_ERROR                  "Помилка читання"
+#define K_S_LUA_FS_WRITE_ERROR                 "Помилка запису"
+#define K_S_LUA_FS_READ_FILE_ERROR             "Помилка читання з файлу"
+#define K_S_LUA_FS_REMOVE_ERROR_FMT            "Помилка видалення файлу: %d"
+#define K_S_LUA_FS_RENAME_ERROR_FMT            "Помилка перейменування файлу: %d"
+#define K_S_LUA_FS_DIR_EMPTY_OR_ERROR          "Директорія порожня, або сталася помилка читання директорії"
+#define K_S_LUA_FS_DIR_READ_ERROR              "Не вдалося прочитати директорію"
+#define K_S_LUA_FS_ARGS_1_FMT                  "Очікується 1 аргумент, отримано %d"
+#define K_S_LUA_FS_ARGS_2_FMT                  "Очікується 2 аргументи, отримано %d"
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
 // apps/lua/lualilka_audio.cpp //////////////////////////////////////////////////////////////////////
 #define K_S_LUA_AUDIO_INVALID_RESOURCE             "Невірний аудіо-ресурс"
 #define K_S_LUA_AUDIO_UNSUPPORTED_FORMAT_FMT       "Непідтримуваний формат аудіо: %s"

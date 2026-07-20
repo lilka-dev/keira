@@ -20,6 +20,7 @@
 #include "lualilka_buzzer.h"
 #include "lualilka_state.h"
 #include "lualilka_sdcard.h"
+#include "lualilka_fs.h"
 #include "lualilka_wifi.h"
 #include "lualilka_imageTransform.h"
 #include "lualilka_serial.h"
@@ -176,6 +177,7 @@ void AbstractLuaRunnerApp::luaSetup(const char* dir) {
     lualilka_util_register(L);
     lualilka_buzzer_register(L);
     lualilka_sdcard_register(L);
+    lualilka_fs_register(L);
     lualilka_wifi_register(L);
     lualilka_imageTransform_register(L);
     lualilka_serial_register(L);
