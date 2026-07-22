@@ -5,9 +5,6 @@
 #include "keira/ksound/audioplayer.h"
 #include "lualilka_fs.h"
 
-// helper
-
-
 static bool lualilka_resources_removeFromRegistry(lua_State* L, const char* registryKey, const void* ptr) {
     lua_getfield(L, LUA_REGISTRYINDEX, registryKey);
     if (!lua_istable(L, -1)) {
