@@ -44,7 +44,7 @@ function fs.rename(old_path, new_path) end
 ---
 ---@usage
 --- fs.joinpath("/sd", "path/on/sdcard/file.txt")
-function fs.rename(lpath, rpath) end
+function fs.joinpath(lpath, rpath) end
 
 ---@class File
 File = {}
