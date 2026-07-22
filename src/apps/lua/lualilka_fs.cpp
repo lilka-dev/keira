@@ -18,7 +18,8 @@ String luapath_to_path(lua_State* L, const char* path) {
 }
 
 static int lualilka_fs_create_object_file(lua_State* L) {
-    const char* path = luapath_to_path(L, luaL_checkstring(L, 1)).c_str();
+    String res_path = luapath_to_path(L, luaL_checkstring(L, 1));
+    const char* path = res_path.c_str();
     const char* mode = luaL_optstring(L, 2, "r");
     *reinterpret_cast<FILE**>(lua_newuserdata(L, sizeof(FILE*))) = fopen(path, mode);
     luaL_setmetatable(L, FILE_OBJECT);
@@ -102,7 +103,8 @@ int lualilka_fs_list_dir(lua_State* L) {
         return luaL_error(L, K_S_LUA_FS_ARGS_1_FMT, n);
     }
 
-    const char* path = luapath_to_path(L,luaL_checkstring(L, 1)).c_str();
+    String res_path = luapath_to_path(L, luaL_checkstring(L, 1));
+    const char* path = res_path.c_str();
 
     DIR* dir = opendir(path);
 
@@ -155,9 +157,11 @@ int lualilka_fs_rename(lua_State* L) {
     if (n != 2) {
         return luaL_error(L, K_S_LUA_FS_ARGS_2_FMT, n);
     }
+    String old_res_path = luapath_to_path(L, luaL_checkstring(L, 1));
+    String new_res_path = luapath_to_path(L, luaL_checkstring(L, 2));
 
-    const char* old_name = luapath_to_path(L, luaL_checkstring(L, 1)).c_str();
-    const char* new_name = luapath_to_path(L, luaL_checkstring(L, 2)).c_str();
+    const char* old_name = old_res_path.c_str();
+    const char* new_name = new_res_path.c_str();
 
     int ret = rename(old_name, new_name);
 
@@ -187,8 +191,8 @@ int lualilka_fs_mk_path(lua_State* L) {
     if (lua_gettop(L) != 1) {
         return luaL_error(L, K_S_LUA_FS_ARGS_1_FMT, lua_gettop(L));
     }
-
-    const char* path = luapath_to_path(L, luaL_checkstring(L, 1)).c_str();
+    String res_path = luapath_to_path(L, luaL_checkstring(L, 1));
+    const char* path = res_path.c_str();
 
     char buf[PATH_MAX + 1];
 
@@ -196,7 +200,7 @@ int lualilka_fs_mk_path(lua_State* L) {
     buf[PATH_MAX] = '\0';
 
     // Skip root "/<mount>"
-    char* p = strchr(buf + 1, '/');
+    const char* p = strchr(buf + 1, '/');
     if (!p) return 0;
 
     for (;;) {
