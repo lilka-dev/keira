@@ -140,7 +140,8 @@ int lualilka_fs_remove(lua_State* L) {
         return luaL_error(L, K_S_LUA_FS_ARGS_1_FMT, n);
     }
 
-    const char* path = luaL_checkstring(L, 1);
+    String res_path = luapath_to_path(L, luaL_checkstring(L, 1));
+    const char* path = res_path.c_str();
 
     int ret = remove(path);
 
