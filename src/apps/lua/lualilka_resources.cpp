@@ -3,22 +3,7 @@
 #include "keira/keira.h"
 #include "keira/ksound/sound.h"
 #include "keira/ksound/audioplayer.h"
-
-// helper
-static String luapath_to_path(lua_State* L, const char* path) {
-    // Empty path
-    if (strlen(path) == 0) return "/";
-
-    // Absolute path
-    if (path[0] == '/') return String(path);
-
-    // Relative path
-    lua_getfield(L, LUA_REGISTRYINDEX, "dir");
-    const char* dir = lua_tostring(L, -1);
-    lua_pop(L, 1);
-
-    return String(dir) + "/" + path;
-}
+#include "lualilka_fs.h"
 
 static bool lualilka_resources_removeFromRegistry(lua_State* L, const char* registryKey, const void* ptr) {
     lua_getfield(L, LUA_REGISTRYINDEX, registryKey);
