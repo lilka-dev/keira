@@ -17,6 +17,7 @@
 #include "mjshttp.h"
 #include "mjsserial.h"
 #include "mjssdcard.h"
+#include "mjsfs.h"
 #include "mjscrypto.h"
 #include "mjsaudio.h"
 #include "mjsstate.h"
@@ -115,6 +116,7 @@ void MJSApp::run() {
     mjs_http_register(mjs);
     mjs_serial_register(mjs);
     mjs_sdcard_register(mjs);
+    mjs_fs_register(mjs);
     mjs_crypto_register(mjs);
     mjs_audio_register(mjs);
 
