@@ -119,17 +119,7 @@ void LauncherApp::run() {
     }
 
     // Check name of the last loaded guest OTA firmware
-    String lastOTA = "";
-    Preferences prefs;
-    prefs.begin("lilka", false);
-
-//TODO: make the corresponding define public in libdeps/lilka/multiboot.h
-#define MULTIBOOT_PATH_KEY "multiboot_path"
-
-    if (prefs.isKey(MULTIBOOT_PATH_KEY)) {
-        lastOTA = prefs.getString(MULTIBOOT_PATH_KEY);
-    }
-    prefs.end();
+    String lastOTA = lilka::multiboot.getFirmwarePath();
 
     // Insert it into the Applications menu
     if (!lastOTA.isEmpty()) {
