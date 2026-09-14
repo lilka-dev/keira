@@ -113,6 +113,7 @@
 #define K_S_LAUNCHER_BATTERY_1         "Icon + Text"
 #define K_S_LAUNCHER_BATTERY_2         "Icon"
 #define K_S_LAUNCHER_BATTERY_3         "Text"
+#define K_S_LAUNCHER_BATTERY_4         "Volts"
 
 #define K_S_LAUNCHER_MULTIBOOT         "MultiBoot"
 #define K_S_LAUNCHER_MULTIBOOT_OTA    "Load OTA firmware"

@@ -265,6 +265,14 @@ int StatusBarApp::drawBattery(lilka::Canvas* canvas) {
         }
         xOffset = canvas->getCursorX() + 2;
     }
+
+    if (batteryMode == 4) {
+        canvas->setCursor(xOffset, 17);
+        uint16_t raw = lilka::battery.readRawValue();
+        float voltage = (float)raw / 4095.0 * LILKA_BATTERY_MAX_MEASURABLE_VOLTAGE;
+        canvas->print(String(voltage, 2) + "v");
+        xOffset = canvas->getCursorX() + 2;
+    }
     return xOffset;
 }
 
@@ -321,5 +329,5 @@ void StatusBarApp::setNetworkMode(uint8_t mode) {
     setMode("network", networkMode, mode, 1);
 }
 void StatusBarApp::setBatteryMode(uint8_t mode) {
-    setMode("battery", batteryMode, mode, 3);
+    setMode("battery", batteryMode, mode, 4);
 }
