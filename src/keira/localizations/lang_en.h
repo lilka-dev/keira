@@ -219,6 +219,8 @@
 
 #define K_S_FMANAGER_MULTIBOOT_STARTING             "Starting..."
 #define K_S_FMANAGER_MULTIBOOT_ERROR_FMT            "Stage: %d\nCode: %d"
+#define K_S_FMANAGER_MULTIBOOT_BCKP_SPIFFS          "Back up SPIFFS"
+#define K_S_FMANAGER_MULTIBOOT_RESTORE_SPIFFS       "Restore SPIFFS"
 #define K_S_FMANAGER_SORTING                        "Sorting..."
 #define K_S_FMANAGER_ALMOST_DONE                    "Almost ready..."
 #define K_S_FMANAGER_THIS_OP_WOULD_DELETE_FILE      "This operation would delete file\n"

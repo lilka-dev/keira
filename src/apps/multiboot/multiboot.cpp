@@ -21,8 +21,7 @@ void MultiBootApp::fileLoadAsRom(const String& path) {
         - якщо присутній бекап прошивки, що буде вантажитись - розгортаємо його в SPIFFS
         - розгортаємо BIN в OTA-розділ
     */
-    // 
-
+    //
 
     // Draw Welcome message
     lilka::ProgressDialog dialog(K_S_FMANAGER_LOADING, path + "\n\n" K_S_FMANAGER_MULTIBOOT_STARTING);
@@ -39,7 +38,6 @@ void MultiBootApp::fileLoadAsRom(const String& path) {
 
 #ifdef USE_SPIFFS_BACKUP
 
-
     if (!lastOTA.isEmpty()) {
         // Треба бекап
         String spiffsPath = lastOTA + ".spfs";
@@ -50,7 +48,7 @@ void MultiBootApp::fileLoadAsRom(const String& path) {
             return;
         }
 
-        dialog.setTitle("backing up");
+        dialog.setTitle(K_S_FMANAGER_MULTIBOOT_BCKP_SPIFFS);
         dialog.setMessage(StringFormat(
             K_S_FMANAGER_MULTIBOOT_ABOUT_FMT,
             spiffsPath.c_str(),
@@ -74,6 +72,7 @@ void MultiBootApp::fileLoadAsRom(const String& path) {
     String restorePath = firmwarePath + ".spfs";
 
     if (access(restorePath.c_str(), F_OK) == 0) {
+        // Знайдено попередній бекап spiffs від цієї прошивки, відновлюєм
         error = lilka::multiboot.startSPIFFSRestore(restorePath);
 
         if (error) {
@@ -81,7 +80,7 @@ void MultiBootApp::fileLoadAsRom(const String& path) {
             return;
         }
 
-        dialog.setTitle("restoring...");
+        dialog.setTitle(K_S_FMANAGER_MULTIBOOT_RESTORE_SPIFFS);
         dialog.setMessage(StringFormat(
             K_S_FMANAGER_MULTIBOOT_ABOUT_FMT,
             restorePath.c_str(),
@@ -102,7 +101,7 @@ void MultiBootApp::fileLoadAsRom(const String& path) {
         }
     }
 
-#endif    
+#endif
 
     // Trying to start upload
     error = lilka::multiboot.start(path);
