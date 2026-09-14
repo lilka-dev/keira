@@ -421,6 +421,7 @@ void LauncherApp::run() {
                                             break;
                                         case 3:
                                             menuItem->postfix = K_S_LAUNCHER_BATTERY_3;
+                                            break;
                                         default:
                                             menuItem->postfix = K_S_LAUNCHER_BATTERY_4;
                                             break;
