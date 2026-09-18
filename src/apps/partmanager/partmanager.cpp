@@ -3,8 +3,42 @@
 #include "keira/utils/string.h"
 
 #include <lilka/partitions.h>
+//TODO: do not expose button
+#define HANDLE_EXIT(MENU)           \
+    auto button = MENU.getButton(); \
+    if (button == K_BTN_EXIT) {     \
+        return;                     \
+    }
+
+#define DRAW_MENU(MENU)          \
+    while (!MENU.isFinished()) { \
+        MENU.update();           \
+        MENU.draw(canvas);       \
+        queueDraw();             \
+    }
+
+#define DRAW_MENU_CONTINUE(MENU) MENU.isFinished()
 
 PartManagerApp::PartManagerApp() : App("PartManager") {
+    loadPartListMenu();
+    loadPartOpsListMenu();
+}
+
+void PartManagerApp::loadBackupListMenu() {
+    DIR* d = opendir(PART_MGR_BACKUP_PATH);
+    if (!d) {
+        mkdir(PART_MGR_BACKUP_PATH, PART_MGR_MKDIR_MODE);
+    }
+}
+
+/////////////////////////////////////////////////////////////////////////////
+// Menu configuration
+/////////////////////////////////////////////////////////////////////////////
+void PartManagerApp::loadPartListMenu() {
+    // Backup cursor
+    auto lastCursor = partListMenu.getCursor();
+    partListMenu.clearItems();
+
     // partListMenu
     partListMenu.addActivationButton(K_BTN_EXIT);
     partListMenu.addActivationButton(K_BTN_CONTEXT_MENU);
@@ -20,6 +54,7 @@ PartManagerApp::PartManagerApp() : App("PartManager") {
             LILKA_MENU_CLBK_DATA_CAST(this)
         );
     }
+    // Back
     partListMenu.addItem(
         K_S_MENU_BACK,
         0,
@@ -29,11 +64,48 @@ PartManagerApp::PartManagerApp() : App("PartManager") {
         LILKA_MENU_CLBK_DATA_CAST(this)
     );
 
+    // Restore cursor
+    bool isCursorValid = ((lastCursor > 0) && (lastCursor <= lilka::partitions.size()));
+    if (isCursorValid) partListMenu.setCursor(lastCursor);
+}
+
+void PartManagerApp::loadPartOpsListMenu() {
     // partOpsListMenu
     partOpsListMenu.addActivationButton(K_BTN_EXIT);
 
-    partOpsListMenu.addItem("Backup", 0, lilka::colors::White, "");
-    partOpsListMenu.addItem("Restore", 0, lilka::colors::White, "");
+    partOpsListMenu.addItem(
+        "Backup",
+        0,
+        lilka::colors::White,
+        "",
+        LILKA_MENU_CLBK_CAST(&PartManagerApp::onPartListOpsBackup),
+        LILKA_MENU_CLBK_DATA_CAST(this)
+    );
+    partOpsListMenu.addItem(
+        "Restore",
+        0,
+        lilka::colors::White,
+        "",
+        LILKA_MENU_CLBK_CAST(&PartManagerApp::onPartListOpsRestore),
+        LILKA_MENU_CLBK_DATA_CAST(this)
+    );
+    partOpsListMenu.addItem(
+        "Select",
+        0,
+        lilka::colors::White,
+        "",
+        LILKA_MENU_CLBK_CAST(&PartManagerApp::onPartListOpsSelect),
+        LILKA_MENU_CLBK_DATA_CAST(this)
+    );
+    partOpsListMenu.addItem(
+        "Select all",
+        0,
+        lilka::colors::White,
+        "",
+        LILKA_MENU_CLBK_CAST(&PartManagerApp::onPartListOpsSelectAll),
+        LILKA_MENU_CLBK_DATA_CAST(this)
+    );
+    // Back
     partOpsListMenu.addItem(
         K_S_MENU_BACK,
         0,
@@ -44,19 +116,40 @@ PartManagerApp::PartManagerApp() : App("PartManager") {
     );
 }
 
-// TODO: unify somehow?
-void PartManagerApp::onAnyMenuBack() {
-}
+/////////////////////////////////////////////////////////////////////////////
 
-void PartManagerApp::onPartListOpsMenu() {
-}
-
-void PartManagerApp::onPartListMenu() {
-    auto button = partListMenu.getButton();
-
-    if (button == K_BTN_EXIT) {
-        return;
+/////////////////////////////////////////////////////////////////////////////
+// Actions
+/////////////////////////////////////////////////////////////////////////////
+void PartManagerApp::selectPart(size_t index) {
+    for (const auto& partIndex : selectedParts) {
+        if (index == partIndex) return;
     }
+    selectedParts.push_back(index);
+}
+//---------------------------------------------------------------------------
+void PartManagerApp::deselectPart(size_t index) {
+    for (size_t i = 0; i < selectedParts.size(); i++) {
+        if (index == selectedParts[i]) {
+            selectedParts.erase(selectedParts.begin() + i);
+            break;
+        }
+    }
+}
+/////////////////////////////////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////////////////////////////
+// Callbacks [backupListMenu]
+/////////////////////////////////////////////////////////////////////////////
+void PartManagerApp::onBackupListMenu() {
+}
+/////////////////////////////////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////////////////////////////
+// Callbacks [partListMenu]
+/////////////////////////////////////////////////////////////////////////////
+void PartManagerApp::onPartListMenu() {
+    HANDLE_EXIT(partListMenu);
 
     auto cursor = partListMenu.getCursor();
 
@@ -74,36 +167,111 @@ void PartManagerApp::onPartListMenu() {
             )
         );
 
-        // Draw next frame!
-        partListMenu.isFinished();
+        DRAW_MENU_CONTINUE(partListMenu);
         return;
     }
 
     if (button == K_BTN_CONTEXT_MENU) {
-        selectedPart = cursor;
+        selectPart(cursor);
         partOpsListMenuShow();
     }
 }
+/////////////////////////////////////////////////////////////////////////////
 
+/////////////////////////////////////////////////////////////////////////////
+// Callbacks [partOpsListMenu]
+/////////////////////////////////////////////////////////////////////////////
+void PartManagerApp::onPartListOpsMenu() {
+}
+//---------------------------------------------------------------------------
+void PartManagerApp::onPartListOpsBackup() {
+    HANDLE_EXIT(partOpsListMenu);
+
+    // If nothing selected, backup last partition in focus
+    if (selectedParts.size() == 0) {
+        auto cursor = partOpsListMenu.getCursor();
+        selectPart(cursor);
+    }
+
+    String backupName = input("Enter backup name");
+
+    String opCaveats = "This command would backup these partitions:\n";
+    for (size_t i = 0; i < selectedParts.size(); i++) {
+        if (i != selectedParts.size() - 1)
+            opCaveats = opCaveats + lilka::partitions[selectedParts[i]]->getLabel() + ", ";
+        else opCaveats = opCaveats + lilka::partitions[selectedParts[i]]->getLabel();
+    }
+
+    bool userConfirm = confirm(backupName, opCaveats);
+
+    if (userConfirm) {
+    }
+}
+//---------------------------------------------------------------------------
+void PartManagerApp::onPartListOpsRestore() {
+    HANDLE_EXIT(partOpsListMenu);
+}
+//---------------------------------------------------------------------------
+void PartManagerApp::onPartListOpsSelect() {
+    HANDLE_EXIT(partOpsListMenu);
+    if (selectedParts.size() == 0) {
+        auto cursor = partOpsListMenu.getCursor();
+        selectPart(cursor);
+    }
+}
+//---------------------------------------------------------------------------
+void PartManagerApp::onPartListOpsSelectAll() {
+    HANDLE_EXIT(partOpsListMenu);
+}
+//---------------------------------------------------------------------------
+void PartManagerApp::onPartListOpsDeselect() {
+}
+//---------------------------------------------------------------------------
+void PartManagerApp::onPartListOpsDeselectAll() {
+}
+/////////////////////////////////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////////////////////////////
+// Callbacks [any]
+/////////////////////////////////////////////////////////////////////////////
+void PartManagerApp::onAnyMenuBack() {
+}
+/////////////////////////////////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////////////////////////////
+// Callbacks [partitions[i]->erase()]
+/////////////////////////////////////////////////////////////////////////////
+bool PartManagerApp::onBackupChunk(lilka::Partition* part, const String& filename, size_t offset, long fSize) {
+}
+/////////////////////////////////////////////////////////////////////////////
+// Callbacks [partitions[i]->flash()]
+/////////////////////////////////////////////////////////////////////////////
+bool PartManagerApp::onRestoreChunk(lilka::Partition* part, const String& filename, size_t offset, long fSize) {
+}
+/////////////////////////////////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////////////////////////////
+// Drawing loops
+/////////////////////////////////////////////////////////////////////////////
+void PartManagerApp::backupListMenuShow() {
+    DRAW_MENU(backupListMenu);
+}
+//---------------------------------------------------------------------------
 void PartManagerApp::partOpsListMenuShow() {
-    while (!partOpsListMenu.isFinished()) {
-        partOpsListMenu.update();
-        partOpsListMenu.draw(canvas);
-        queueDraw();
-    }
+    DRAW_MENU(partOpsListMenu);
 }
-
+//---------------------------------------------------------------------------
 void PartManagerApp::run() {
-    while (!partListMenu.isFinished()) {
-        partListMenu.update();
-        partListMenu.draw(canvas);
-        queueDraw();
-    }
+    DRAW_MENU(partListMenu);
 }
+#undef DRAW_MENU
+#undef HANDLE_EXIT
+#undef DRAW_MENU_CONTINUE
+/////////////////////////////////////////////////////////////////////////////
 
-///////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
 // BACKUPS
-///////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
 // User can select one or mutiple partitions and create a backup
 //
 // Each backup have a name, which allows us to distinguish backups between each other
@@ -118,7 +286,7 @@ void PartManagerApp::run() {
 //
 // NOTE: Backups use no encryption, therefore any secrets(wifi password in nvs) can be
 // exposed
-///////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
 //
 // Backup flow->
 //
@@ -134,4 +302,4 @@ void PartManagerApp::run() {
 // word ``default`` for a backup have a special meaning
 // and may be checked on a system launch proposing restoration of modified data
 // in case this feature would be ever delivered
-///////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
