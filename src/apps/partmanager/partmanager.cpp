@@ -1,7 +1,7 @@
 #include "partmanager.h"
 #include "keira/keira.h"
 #include "keira/utils/string.h"
-
+#include "keira/debug.h"
 #include <lilka/partitions.h>
 //TODO: do not expose button
 #define HANDLE_EXIT(MENU)           \
@@ -29,12 +29,25 @@ void PartManagerApp::loadBackupListMenu() {
     if (!d) {
         mkdir(PART_MGR_BACKUP_PATH, PART_MGR_MKDIR_MODE);
     }
+    // <>
 }
+/////////////////////////////////////////////////////////////////////////////
+// checks
+/////////////////////////////////////////////////////////////////////////////
+bool PartManagerApp::isSelectedPart(size_t index) {
+    for (const auto& partIndex : selectedParts) {
+        if (index == partIndex) return true;
+    }
+
+    return false;
+}
+/////////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////////
 // Menu configuration
 /////////////////////////////////////////////////////////////////////////////
 void PartManagerApp::loadPartListMenu() {
+    PM_DBG LEP;
     // Backup cursor
     auto lastCursor = partListMenu.getCursor();
     partListMenu.clearItems();
@@ -42,6 +55,7 @@ void PartManagerApp::loadPartListMenu() {
     // partListMenu
     partListMenu.addActivationButton(K_BTN_EXIT);
     partListMenu.addActivationButton(K_BTN_CONTEXT_MENU);
+    partListMenu.addActivationButton(PART_MGR_SELECT_TOGGLE_BUTTON);
     partListMenu.setTitle(K_S_PARTITION_TABLE);
 
     for (const auto& part : lilka::partitions) {
@@ -70,7 +84,9 @@ void PartManagerApp::loadPartListMenu() {
 }
 
 void PartManagerApp::loadPartOpsListMenu() {
+    PM_DBG LEP;
     // partOpsListMenu
+    partOpsListMenu.clearItems();
     partOpsListMenu.addActivationButton(K_BTN_EXIT);
 
     partOpsListMenu.addItem(
@@ -89,6 +105,32 @@ void PartManagerApp::loadPartOpsListMenu() {
         LILKA_MENU_CLBK_CAST(&PartManagerApp::onPartListOpsRestore),
         LILKA_MENU_CLBK_DATA_CAST(this)
     );
+
+    if (selectedParts.size()) {
+        for (size_t i = 0; i < selectedParts.size(); i++) {
+            if (partOpsListMenu.getCursor() == selectedParts[i]) {
+                partOpsListMenu.addItem(
+                    "Deselect",
+                    0,
+                    lilka::colors::White,
+                    "",
+                    LILKA_MENU_CLBK_CAST(&PartManagerApp::onPartListOpsDeselect),
+                    LILKA_MENU_CLBK_DATA_CAST(this)
+                );
+                break;
+            }
+        }
+
+        partOpsListMenu.addItem(
+            "Deselect all",
+            0,
+            lilka::colors::White,
+            "",
+            LILKA_MENU_CLBK_CAST(&PartManagerApp::onPartListOpsDeselectAll),
+            LILKA_MENU_CLBK_DATA_CAST(this)
+        );
+    }
+
     partOpsListMenu.addItem(
         "Select",
         0,
@@ -121,7 +163,29 @@ void PartManagerApp::loadPartOpsListMenu() {
 /////////////////////////////////////////////////////////////////////////////
 // Actions
 /////////////////////////////////////////////////////////////////////////////
+void PartManagerApp::backup(const String& path, size_t index) {
+    lastProgress = 101; // force first frame to draw :D
+
+    progress.setTitle("Backup...");
+    String partFilename = lilka::fileutils.joinPath(path, lilka::partitions[index]->getLabel()) + ".img";
+
+    String message = String(lilka::partitions[index]->getLabel()) + String("\n->\n") + partFilename;
+    progress.setMessage(message);
+
+    lilka::partitions[index]->backup(
+        partFilename,
+        LILKA_PARTITIONS_ON_CHUNK_CLBK_CAST(&PartManagerApp::onBackupChunk),
+        LILKA_PARTITIONS_ON_CHUNK__CLBK_DATA_CAST(this)
+    );
+}
+//---------------------------------------------------------------------------
+void PartManagerApp::restore(const String& path, size_t index) {
+}
+//---------------------------------------------------------------------------
 void PartManagerApp::selectPart(size_t index) {
+    PM_DBG LEP;
+    if (index >= lilka::partitions.size()) return;
+
     for (const auto& partIndex : selectedParts) {
         if (index == partIndex) return;
     }
@@ -129,6 +193,7 @@ void PartManagerApp::selectPart(size_t index) {
 }
 //---------------------------------------------------------------------------
 void PartManagerApp::deselectPart(size_t index) {
+    PM_DBG LEP;
     for (size_t i = 0; i < selectedParts.size(); i++) {
         if (index == selectedParts[i]) {
             selectedParts.erase(selectedParts.begin() + i);
@@ -142,6 +207,7 @@ void PartManagerApp::deselectPart(size_t index) {
 // Callbacks [backupListMenu]
 /////////////////////////////////////////////////////////////////////////////
 void PartManagerApp::onBackupListMenu() {
+    PM_DBG LEP;
 }
 /////////////////////////////////////////////////////////////////////////////
 
@@ -149,6 +215,7 @@ void PartManagerApp::onBackupListMenu() {
 // Callbacks [partListMenu]
 /////////////////////////////////////////////////////////////////////////////
 void PartManagerApp::onPartListMenu() {
+    PM_DBG LEP;
     HANDLE_EXIT(partListMenu);
 
     auto cursor = partListMenu.getCursor();
@@ -172,8 +239,18 @@ void PartManagerApp::onPartListMenu() {
     }
 
     if (button == K_BTN_CONTEXT_MENU) {
-        selectPart(cursor);
+        // selectPart(cursor);
         partOpsListMenuShow();
+        DRAW_MENU_CONTINUE(partListMenu);
+        return;
+    }
+
+    // Select/Deselect toggle
+    if (button == PART_MGR_SELECT_TOGGLE_BUTTON) {
+        if (isSelectedPart(cursor)) deselectPart(cursor);
+        else selectPart(cursor);
+        DRAW_MENU_CONTINUE(partListMenu);
+        return;
     }
 }
 /////////////////////////////////////////////////////////////////////////////
@@ -181,20 +258,19 @@ void PartManagerApp::onPartListMenu() {
 /////////////////////////////////////////////////////////////////////////////
 // Callbacks [partOpsListMenu]
 /////////////////////////////////////////////////////////////////////////////
-void PartManagerApp::onPartListOpsMenu() {
-}
-//---------------------------------------------------------------------------
 void PartManagerApp::onPartListOpsBackup() {
+    PM_DBG LEP;
     HANDLE_EXIT(partOpsListMenu);
 
     // If nothing selected, backup last partition in focus
     if (selectedParts.size() == 0) {
-        auto cursor = partOpsListMenu.getCursor();
+        auto cursor = partListMenu.getCursor();
         selectPart(cursor);
     }
 
     String backupName = input("Enter backup name");
 
+    // Enlisting all expected changes
     String opCaveats = "This command would backup these partitions:\n";
     for (size_t i = 0; i < selectedParts.size(); i++) {
         if (i != selectedParts.size() - 1)
@@ -202,32 +278,53 @@ void PartManagerApp::onPartListOpsBackup() {
         else opCaveats = opCaveats + lilka::partitions[selectedParts[i]]->getLabel();
     }
 
+    // Ask for confirmation
     bool userConfirm = confirm(backupName, opCaveats);
 
     if (userConfirm) {
+        // Ensure backup folder even exist
+        mkdir(PART_MGR_BACKUP_PATH, PART_MGR_MKDIR_MODE);
+        // Create folder for backup
+        String backupPath = lilka::fileutils.joinPath(PART_MGR_BACKUP_PATH, backupName);
+        mkdir(backupPath.c_str(), PART_MGR_MKDIR_MODE);
+
+        String backupPartPath;
+
+        // Backup each selected partition
+        for (size_t i = 0; i < selectedParts.size(); i++) {
+            backup(backupPath, selectedParts[i]);
+        }
+
+        // Clear selection
+        selectedParts.clear();
     }
 }
 //---------------------------------------------------------------------------
 void PartManagerApp::onPartListOpsRestore() {
+    PM_DBG LEP;
     HANDLE_EXIT(partOpsListMenu);
 }
 //---------------------------------------------------------------------------
 void PartManagerApp::onPartListOpsSelect() {
+    PM_DBG LEP;
     HANDLE_EXIT(partOpsListMenu);
     if (selectedParts.size() == 0) {
-        auto cursor = partOpsListMenu.getCursor();
+        auto cursor = partListMenu.getCursor();
         selectPart(cursor);
     }
 }
 //---------------------------------------------------------------------------
 void PartManagerApp::onPartListOpsSelectAll() {
+    PM_DBG LEP;
     HANDLE_EXIT(partOpsListMenu);
 }
 //---------------------------------------------------------------------------
 void PartManagerApp::onPartListOpsDeselect() {
+    PM_DBG LEP;
 }
 //---------------------------------------------------------------------------
 void PartManagerApp::onPartListOpsDeselectAll() {
+    PM_DBG LEP;
 }
 /////////////////////////////////////////////////////////////////////////////
 
@@ -235,6 +332,7 @@ void PartManagerApp::onPartListOpsDeselectAll() {
 // Callbacks [any]
 /////////////////////////////////////////////////////////////////////////////
 void PartManagerApp::onAnyMenuBack() {
+    PM_DBG LEP;
 }
 /////////////////////////////////////////////////////////////////////////////
 
@@ -242,11 +340,26 @@ void PartManagerApp::onAnyMenuBack() {
 // Callbacks [partitions[i]->erase()]
 /////////////////////////////////////////////////////////////////////////////
 bool PartManagerApp::onBackupChunk(lilka::Partition* part, const String& filename, size_t offset, long fSize) {
+    // PM_DBG LEP;
+
+    size_t currentProgress = (offset * 100) / fSize;
+
+    if (lastProgress != currentProgress) {
+        progress.setProgress(currentProgress);
+        lastProgress = currentProgress;
+        progress.draw(canvas);
+
+        queueDraw();
+    }
+
+    return true;
 }
 /////////////////////////////////////////////////////////////////////////////
 // Callbacks [partitions[i]->flash()]
 /////////////////////////////////////////////////////////////////////////////
 bool PartManagerApp::onRestoreChunk(lilka::Partition* part, const String& filename, size_t offset, long fSize) {
+    PM_DBG LEP;
+    return true;
 }
 /////////////////////////////////////////////////////////////////////////////
 
@@ -254,14 +367,17 @@ bool PartManagerApp::onRestoreChunk(lilka::Partition* part, const String& filena
 // Drawing loops
 /////////////////////////////////////////////////////////////////////////////
 void PartManagerApp::backupListMenuShow() {
+    PM_DBG LEP;
     DRAW_MENU(backupListMenu);
 }
 //---------------------------------------------------------------------------
 void PartManagerApp::partOpsListMenuShow() {
+    PM_DBG LEP;
     DRAW_MENU(partOpsListMenu);
 }
 //---------------------------------------------------------------------------
 void PartManagerApp::run() {
+    PM_DBG LEP;
     DRAW_MENU(partListMenu);
 }
 #undef DRAW_MENU
