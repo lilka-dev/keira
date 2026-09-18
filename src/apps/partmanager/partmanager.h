@@ -1,10 +1,17 @@
 #pragma once
 #include "keira/app.h"
 #include <lilka/partitions.h>
-#define PART_MGR_BACKUP_PATH "/sd/partmgr"
-#define PART_MGR_MKDIR_MODE  0777
+#define PART_MGR_BACKUP_PATH          "/sd/partmgr"
+#define PART_MGR_MKDIR_MODE           0777
 
-#define PART_MGR_SELECT_TOGGLE_BUTTON       lilka::Button::C
+#define PART_MGR_SELECT_TOGGLE_BUTTON lilka::Button::C
+
+// STATUS BAR SETTINGS:  /////////////////////////////////////////////////////
+#define STATUS_BAR_HEIGHT        30
+#define STATUS_BAR_SAFE_DISTANCE 38
+#define STATUS_BAR_WIDTH         canvas->width() - STATUS_BAR_SAFE_DISTANCE * 2
+#define STATUS_BAR_TEXT_COLOR    lilka::colors::White
+#define STATUS_BAR_FILL_COLOR    lilka::colors::Black
 
 #define PARTMANAGER_DEBUG
 
@@ -58,16 +65,16 @@ private:
     // Callbacks [anyMenu]
     void onAnyMenuBack();
 
-    // Callbacks [partitions[i]->erase()]
-    bool onBackupChunk(lilka::Partition* part, const String& filename, size_t offset, long fSize);
-
-    // Callbacks [partitions[i]->flash()]
-    bool onRestoreChunk(lilka::Partition* part, const String& filename, size_t offset, long fSize);
+    // Callbacks [partitions[i]->erase()/flash]
+    bool onBackupRestoreChunk(lilka::Partition* part, const String& filename, size_t offset, long fSize);
 
     // Drawing loops
     void backupListMenuShow(); // [DONE]
     void partOpsListMenuShow(); // [DONE]
     void run() override; // [DONE]
+
+    // Drawing StatusBar //? Toolbar, right?
+    void queueDraw();
 
     size_t lastProgress = 0;
     std::vector<size_t> selectedParts;

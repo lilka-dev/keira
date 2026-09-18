@@ -63,7 +63,7 @@ void PartManagerApp::loadPartListMenu() {
             part->getLabel(),
             0,
             lilka::colors::White,
-            "", // TODO: add BOOT flag marking partition from which boot has been done
+            part->isRunning() ? "RUN" : "",
             LILKA_MENU_CLBK_CAST(&PartManagerApp::onPartListMenu),
             LILKA_MENU_CLBK_DATA_CAST(this)
         );
@@ -105,6 +105,8 @@ void PartManagerApp::loadPartOpsListMenu() {
         LILKA_MENU_CLBK_CAST(&PartManagerApp::onPartListOpsRestore),
         LILKA_MENU_CLBK_DATA_CAST(this)
     );
+
+    if ()
 
     if (selectedParts.size()) {
         for (size_t i = 0; i < selectedParts.size(); i++) {
@@ -174,12 +176,25 @@ void PartManagerApp::backup(const String& path, size_t index) {
 
     lilka::partitions[index]->backup(
         partFilename,
-        LILKA_PARTITIONS_ON_CHUNK_CLBK_CAST(&PartManagerApp::onBackupChunk),
+        LILKA_PARTITIONS_ON_CHUNK_CLBK_CAST(&PartManagerApp::onBackupRestoreChunk),
         LILKA_PARTITIONS_ON_CHUNK__CLBK_DATA_CAST(this)
     );
 }
 //---------------------------------------------------------------------------
 void PartManagerApp::restore(const String& path, size_t index) {
+    lastProgress = 101; // force first frame to draw :D
+
+    progress.setTitle("Restoring...");
+    String partFilename = lilka::fileutils.joinPath(path, lilka::partitions[index]->getLabel()) + ".img";
+
+    String message = partFilename + String("\n->\n") + String(lilka::partitions[index]->getLabel());
+    progress.setMessage(message);
+
+    lilka::partitions[index]->flash(
+        partFilename,
+        LILKA_PARTITIONS_ON_CHUNK_CLBK_CAST(&PartManagerApp::onBackupRestoreChunk),
+        LILKA_PARTITIONS_ON_CHUNK__CLBK_DATA_CAST(this)
+    );
 }
 //---------------------------------------------------------------------------
 void PartManagerApp::selectPart(size_t index) {
@@ -219,7 +234,7 @@ void PartManagerApp::onPartListMenu() {
     HANDLE_EXIT(partListMenu);
 
     auto cursor = partListMenu.getCursor();
-
+    // Information about partition
     if (button == K_BTN_OPEN) {
         if (cursor >= lilka::partitions.size()) return;
 
@@ -237,7 +252,7 @@ void PartManagerApp::onPartListMenu() {
         DRAW_MENU_CONTINUE(partListMenu);
         return;
     }
-
+    // Context menu
     if (button == K_BTN_CONTEXT_MENU) {
         // selectPart(cursor);
         partOpsListMenuShow();
@@ -308,23 +323,35 @@ void PartManagerApp::onPartListOpsRestore() {
 void PartManagerApp::onPartListOpsSelect() {
     PM_DBG LEP;
     HANDLE_EXIT(partOpsListMenu);
-    if (selectedParts.size() == 0) {
-        auto cursor = partListMenu.getCursor();
-        selectPart(cursor);
-    }
+
+    auto cursor = partListMenu.getCursor();
+
+    selectPart(cursor);
 }
 //---------------------------------------------------------------------------
 void PartManagerApp::onPartListOpsSelectAll() {
     PM_DBG LEP;
     HANDLE_EXIT(partOpsListMenu);
+
+    for (size_t i = 0; i < lilka::partitions.size(); i++)
+        selectPart(i);
 }
 //---------------------------------------------------------------------------
 void PartManagerApp::onPartListOpsDeselect() {
     PM_DBG LEP;
+    HANDLE_EXIT(partOpsListMenu);
+
+    auto cursor = partListMenu.getCursor();
+
+    deselectPart(cursor);
 }
 //---------------------------------------------------------------------------
 void PartManagerApp::onPartListOpsDeselectAll() {
     PM_DBG LEP;
+    HANDLE_EXIT(partOpsListMenu);
+
+    for (size_t i = 0; i < lilka::partitions.size(); i++)
+        deselectPart(i);
 }
 /////////////////////////////////////////////////////////////////////////////
 
@@ -337,9 +364,9 @@ void PartManagerApp::onAnyMenuBack() {
 /////////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////////
-// Callbacks [partitions[i]->erase()]
+// Callbacks [partitions[i]->erase()/flash]
 /////////////////////////////////////////////////////////////////////////////
-bool PartManagerApp::onBackupChunk(lilka::Partition* part, const String& filename, size_t offset, long fSize) {
+bool PartManagerApp::onBackupRestoreChunk(lilka::Partition* part, const String& filename, size_t offset, long fSize) {
     // PM_DBG LEP;
 
     size_t currentProgress = (offset * 100) / fSize;
@@ -352,13 +379,6 @@ bool PartManagerApp::onBackupChunk(lilka::Partition* part, const String& filenam
         queueDraw();
     }
 
-    return true;
-}
-/////////////////////////////////////////////////////////////////////////////
-// Callbacks [partitions[i]->flash()]
-/////////////////////////////////////////////////////////////////////////////
-bool PartManagerApp::onRestoreChunk(lilka::Partition* part, const String& filename, size_t offset, long fSize) {
-    PM_DBG LEP;
     return true;
 }
 /////////////////////////////////////////////////////////////////////////////
@@ -380,6 +400,27 @@ void PartManagerApp::run() {
     PM_DBG LEP;
     DRAW_MENU(partListMenu);
 }
+/////////////////////////////////////////////////////////////////////////////
+// Drawing StatusBar //? Toolbar, right?
+/////////////////////////////////////////////////////////////////////////////
+void PartManagerApp::queueDraw() {
+    canvas->fillRect(
+        0, canvas->height() - STATUS_BAR_HEIGHT, canvas->width(), STATUS_BAR_HEIGHT, STATUS_BAR_FILL_COLOR
+    );
+
+    canvas->setCursor(STATUS_BAR_SAFE_DISTANCE, canvas->height() - 20 / 2); // FONT_Y / 2
+    canvas->setFont(FONT_8x13);
+
+    canvas->setTextBound(
+        STATUS_BAR_SAFE_DISTANCE, canvas->height() - STATUS_BAR_HEIGHT, STATUS_BAR_WIDTH, STATUS_BAR_HEIGHT
+    );
+    if (selectedParts.size() > 0) {
+        canvas->printf("Selected %d entries", selectedParts.size());
+    }
+    App::queueDraw();
+}
+/////////////////////////////////////////////////////////////////////////////
+
 #undef DRAW_MENU
 #undef HANDLE_EXIT
 #undef DRAW_MENU_CONTINUE
