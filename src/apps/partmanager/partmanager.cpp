@@ -3,6 +3,8 @@
 #include "keira/utils/string.h"
 #include "keira/debug.h"
 #include <lilka/partitions.h>
+#include <dirent.h>
+
 //TODO: do not expose button
 #define HANDLE_EXIT(MENU)           \
     auto button = MENU.getButton(); \
@@ -20,17 +22,8 @@
 #define DRAW_MENU_CONTINUE(MENU) MENU.isFinished()
 
 PartManagerApp::PartManagerApp() : App("PartManager") {
-    loadPartListMenu();
-    loadPartOpsListMenu();
 }
 
-void PartManagerApp::loadBackupListMenu() {
-    DIR* d = opendir(PART_MGR_BACKUP_PATH);
-    if (!d) {
-        mkdir(PART_MGR_BACKUP_PATH, PART_MGR_MKDIR_MODE);
-    }
-    // <>
-}
 /////////////////////////////////////////////////////////////////////////////
 // checks
 /////////////////////////////////////////////////////////////////////////////
@@ -46,6 +39,86 @@ bool PartManagerApp::isSelectedPart(size_t index) {
 /////////////////////////////////////////////////////////////////////////////
 // Menu configuration
 /////////////////////////////////////////////////////////////////////////////
+void PartManagerApp::loadBackupListMenu() {
+    backupListMenu.clearItems();
+
+    // Check if backup directory exists
+    DIR* d = opendir(PART_MGR_BACKUP_PATH);
+    if (!d) return;
+
+    // Iterate over directory entries
+    struct dirent* backupEntry = NULL;
+    while (backupEntry = readdir(d)) {
+        // skip all except dirs
+        if (backupEntry->d_type != DT_DIR) continue;
+
+        String backupDirPath = lilka::fileutils.joinPath(PART_MGR_BACKUP_PATH, backupEntry->d_name);
+        // skip non openable backups
+        DIR* d2 = opendir(backupDirPath.c_str());
+        if (!d2) continue;
+
+        // build image list for current backup
+        std::vector<String> imageList;
+        struct dirent* imageEntry = NULL;
+        size_t extLen = strlen(PART_MGR_IMG_EXT);
+        while (imageEntry = readdir(d2)) {
+            // skip all except files
+            if (imageEntry->d_type != DT_REG) continue;
+
+            // check extension
+            char* mbExt = imageEntry->d_name + strlen(imageEntry->d_name) - extLen;
+            if (strcasecmp(mbExt, PART_MGR_IMG_EXT) == 0) {
+                imageList.push_back(String(imageEntry->d_name));
+            }
+        }
+        closedir(d2);
+
+        // Determine if backup contains all needed images for restore
+        bool backupComplete = true;
+        for (size_t i = 0; i < selectedParts.size(); i++) {
+            bool imageFound = false;
+            String partImage = lilka::partitions[selectedParts[i]]->getLabel();
+            partImage += PART_MGR_BACKUP_PATH;
+            for (size_t j = 0; j < imageList.size(); j++) {
+                if (strcasecmp(partImage.c_str(), imageList[i].c_str()) == 0) {
+                    imageFound = true;
+                    break;
+                }
+            }
+            if (!imageFound) {
+                backupComplete = false;
+                break;
+            }
+        }
+
+        // If satisfies demands, add to list
+        if (backupComplete) {
+            backupListMenu.addItem(
+                backupEntry->d_name,
+                0,
+                lilka::colors::White,
+                "",
+                LILKA_MENU_CLBK_CAST(&PartManagerApp::onBackupListMenu),
+                LILKA_MENU_CLBK_DATA_CAST(this)
+            );
+        }
+        // TODO: it seems that process can take a while
+        // Add into it notification/interruption
+    }
+
+    // Back
+    backupListMenu.addItem(
+        K_S_MENU_BACK,
+        0,
+        lilka::colors::White,
+        "",
+        LILKA_MENU_CLBK_CAST(&PartManagerApp::onAnyMenuBack),
+        LILKA_MENU_CLBK_DATA_CAST(this)
+    );
+
+    closedir(d);
+}
+//---------------------------------------------------------------------------
 void PartManagerApp::loadPartListMenu() {
     PM_DBG LEP;
     // Backup cursor
@@ -82,7 +155,7 @@ void PartManagerApp::loadPartListMenu() {
     bool isCursorValid = ((lastCursor > 0) && (lastCursor <= lilka::partitions.size()));
     if (isCursorValid) partListMenu.setCursor(lastCursor);
 }
-
+//---------------------------------------------------------------------------
 void PartManagerApp::loadPartOpsListMenu() {
     PM_DBG LEP;
     // partOpsListMenu
@@ -106,8 +179,7 @@ void PartManagerApp::loadPartOpsListMenu() {
         LILKA_MENU_CLBK_DATA_CAST(this)
     );
 
-    if ()
-
+    // TODO: this can be more simple
     if (selectedParts.size()) {
         for (size_t i = 0; i < selectedParts.size(); i++) {
             if (partOpsListMenu.getCursor() == selectedParts[i]) {
@@ -159,7 +231,6 @@ void PartManagerApp::loadPartOpsListMenu() {
         LILKA_MENU_CLBK_DATA_CAST(this)
     );
 }
-
 /////////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////////
@@ -169,7 +240,7 @@ void PartManagerApp::backup(const String& path, size_t index) {
     lastProgress = 101; // force first frame to draw :D
 
     progress.setTitle("Backup...");
-    String partFilename = lilka::fileutils.joinPath(path, lilka::partitions[index]->getLabel()) + ".img";
+    String partFilename = lilka::fileutils.joinPath(path, lilka::partitions[index]->getLabel()) + PART_MGR_IMG_EXT;
 
     String message = String(lilka::partitions[index]->getLabel()) + String("\n->\n") + partFilename;
     progress.setMessage(message);
@@ -185,7 +256,7 @@ void PartManagerApp::restore(const String& path, size_t index) {
     lastProgress = 101; // force first frame to draw :D
 
     progress.setTitle("Restoring...");
-    String partFilename = lilka::fileutils.joinPath(path, lilka::partitions[index]->getLabel()) + ".img";
+    String partFilename = lilka::fileutils.joinPath(path, lilka::partitions[index]->getLabel()) + PART_MGR_IMG_EXT;
 
     String message = partFilename + String("\n->\n") + String(lilka::partitions[index]->getLabel());
     progress.setMessage(message);
@@ -388,16 +459,19 @@ bool PartManagerApp::onBackupRestoreChunk(lilka::Partition* part, const String& 
 /////////////////////////////////////////////////////////////////////////////
 void PartManagerApp::backupListMenuShow() {
     PM_DBG LEP;
+    loadBackupListMenu();
     DRAW_MENU(backupListMenu);
 }
 //---------------------------------------------------------------------------
 void PartManagerApp::partOpsListMenuShow() {
     PM_DBG LEP;
+    loadPartOpsListMenu();
     DRAW_MENU(partOpsListMenu);
 }
 //---------------------------------------------------------------------------
 void PartManagerApp::run() {
     PM_DBG LEP;
+    loadPartListMenu();
     DRAW_MENU(partListMenu);
 }
 /////////////////////////////////////////////////////////////////////////////
