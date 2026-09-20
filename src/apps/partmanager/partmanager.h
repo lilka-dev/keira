@@ -39,13 +39,13 @@ private:
     bool isSelectedPart(size_t index); // [DONE]
 
     // Menu configuration
-    void loadBackupListMenu();
+    void loadBackupListMenu(); // [DONE]
     void loadPartListMenu(); // [DONE]
     void loadPartOpsListMenu(); // [DONE]
 
     // Actions
-    void backup(const String& path, size_t index);
-    void restore(const String& path, size_t index);
+    void backup(const String& path, size_t index); // [DONE]
+    void restore(const String& path, size_t index); // [DONE]
     void selectPart(size_t index); // [DONE]
     void deselectPart(size_t index); // [DONE]
 
@@ -57,7 +57,7 @@ private:
 
     // Callbacks [partOpsListMenu]
     void onPartListOpsBackup(); // [DONE]
-    void onPartListOpsRestore();
+    void onPartListOpsRestore(); // [DONE]
     void onPartListOpsSelect(); // [DONE]
     void onPartListOpsSelectAll(); // [DONE]
     void onPartListOpsDeselect(); // [DONE]

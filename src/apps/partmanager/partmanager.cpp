@@ -46,7 +46,15 @@ void PartManagerApp::loadBackupListMenu() {
     DIR* d = opendir(PART_MGR_BACKUP_PATH);
     if (!d) return;
 
-    // Iterate over directory entries
+    // Build list of required partition images
+    std::vector<String> partImageList;
+    for (size_t i = 0; i < selectedParts.size(); i++) {
+        String partImage = lilka::partitions[selectedParts[i]]->getLabel();
+        partImage += PART_MGR_IMG_EXT;
+        partImageList.push_back(partImage);
+    }
+
+    // Iterate over directory entries[backups]
     struct dirent* backupEntry = NULL;
     while (backupEntry = readdir(d)) {
         // skip all except dirs
@@ -58,29 +66,27 @@ void PartManagerApp::loadBackupListMenu() {
         if (!d2) continue;
 
         // build image list for current backup
-        std::vector<String> imageList;
-        struct dirent* imageEntry = NULL;
+        std::vector<String> backupImageList;
+        struct dirent* backupFileEntry = NULL;
         size_t extLen = strlen(PART_MGR_IMG_EXT);
-        while (imageEntry = readdir(d2)) {
+        while (backupFileEntry = readdir(d2)) {
             // skip all except files
-            if (imageEntry->d_type != DT_REG) continue;
+            if (backupFileEntry->d_type != DT_REG) continue;
 
             // check extension
-            char* mbExt = imageEntry->d_name + strlen(imageEntry->d_name) - extLen;
+            char* mbExt = backupFileEntry->d_name + strlen(backupFileEntry->d_name) - extLen;
             if (strcasecmp(mbExt, PART_MGR_IMG_EXT) == 0) {
-                imageList.push_back(String(imageEntry->d_name));
+                backupImageList.push_back(String(backupFileEntry->d_name));
             }
         }
         closedir(d2);
 
         // Determine if backup contains all needed images for restore
         bool backupComplete = true;
-        for (size_t i = 0; i < selectedParts.size(); i++) {
+        for (size_t i = 0; i < partImageList.size(); i++) {
             bool imageFound = false;
-            String partImage = lilka::partitions[selectedParts[i]]->getLabel();
-            partImage += PART_MGR_BACKUP_PATH;
-            for (size_t j = 0; j < imageList.size(); j++) {
-                if (strcasecmp(partImage.c_str(), imageList[i].c_str()) == 0) {
+            for (size_t j = 0; j < backupImageList.size(); j++) {
+                if (strcasecmp(partImageList[i].c_str(), backupImageList[j].c_str()) == 0) {
                     imageFound = true;
                     break;
                 }
@@ -294,6 +300,38 @@ void PartManagerApp::deselectPart(size_t index) {
 /////////////////////////////////////////////////////////////////////////////
 void PartManagerApp::onBackupListMenu() {
     PM_DBG LEP;
+    HANDLE_EXIT(backupListMenu);
+
+    // Determine selected backup name
+    auto cursor = backupListMenu.getCursor();
+    lilka::MenuItem backupNameItem;
+    backupListMenu.getItem(cursor, &backupNameItem);
+    String backupName = backupNameItem.title;
+
+    String backupPath = lilka::fileutils.joinPath(PART_MGR_BACKUP_PATH, backupName);
+
+    if (button == K_BTN_OPEN) {
+        // Enlisting all expected changes
+        String opCaveats = "This command would flash these partitions:\n";
+        for (size_t i = 0; i < selectedParts.size(); i++) {
+            if (i != selectedParts.size() - 1)
+                opCaveats = opCaveats + lilka::partitions[selectedParts[i]]->getLabel() + ", ";
+            else opCaveats = opCaveats + lilka::partitions[selectedParts[i]]->getLabel();
+        }
+
+        // Ask for confirmation
+        bool userConfirm = confirm(backupName, opCaveats);
+
+        if (userConfirm) {
+            // Restore each selected partition
+            for (size_t i = 0; i < selectedParts.size(); i++) {
+                restore(backupPath, selectedParts[i]);
+            }
+
+            // Clear selection
+            selectedParts.clear();
+        }
+    }
 }
 /////////////////////////////////////////////////////////////////////////////
 
@@ -389,6 +427,20 @@ void PartManagerApp::onPartListOpsBackup() {
 void PartManagerApp::onPartListOpsRestore() {
     PM_DBG LEP;
     HANDLE_EXIT(partOpsListMenu);
+
+    // If nothing selected, select last partition in focus
+    if (selectedParts.size() == 0) {
+        auto cursor = partListMenu.getCursor();
+        selectPart(cursor);
+    }
+    // Load backups satisfying list of selected partitions
+    loadBackupListMenu();
+
+    // Display them
+    backupListMenuShow();
+
+    // Ensure we have a clean selection list before return
+    selectedParts.clear();
 }
 //---------------------------------------------------------------------------
 void PartManagerApp::onPartListOpsSelect() {
