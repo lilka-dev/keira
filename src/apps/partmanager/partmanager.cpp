@@ -3,6 +3,7 @@
 #include "keira/utils/string.h"
 #include "keira/debug.h"
 #include <lilka/partitions.h>
+#include <lilka/controller.h>
 #include <dirent.h>
 
 //TODO: do not expose button
@@ -40,6 +41,8 @@ bool PartManagerApp::isSelectedPart(size_t index) {
 // Menu configuration
 /////////////////////////////////////////////////////////////////////////////
 void PartManagerApp::loadBackupListMenu() {
+    backupListMenu.setTitle("Backups");
+
     backupListMenu.clearItems();
 
     // Check if backup directory exists
@@ -137,15 +140,17 @@ void PartManagerApp::loadPartListMenu() {
     partListMenu.addActivationButton(PART_MGR_SELECT_TOGGLE_BUTTON);
     partListMenu.setTitle(K_S_PARTITION_TABLE);
 
+    size_t i = 0;
     for (const auto& part : lilka::partitions) {
         partListMenu.addItem(
             part->getLabel(),
-            0,
+            isSelectedPart(i) ? PART_MGR_SELECTED_PART_ICON : PART_MGR_PART_ICON,
             lilka::colors::White,
             part->isRunning() ? "RUN" : "",
             LILKA_MENU_CLBK_CAST(&PartManagerApp::onPartListMenu),
             LILKA_MENU_CLBK_DATA_CAST(this)
         );
+        i++;
     }
     // Back
     partListMenu.addItem(
@@ -165,8 +170,13 @@ void PartManagerApp::loadPartListMenu() {
 void PartManagerApp::loadPartOpsListMenu() {
     PM_DBG LEP;
     // partOpsListMenu
+    partOpsListMenu.setTitle("Options");
     partOpsListMenu.clearItems();
     partOpsListMenu.addActivationButton(K_BTN_EXIT);
+
+    auto partCursor = partListMenu.getCursor();
+    auto curSelected = isSelectedPart(partCursor);
+    auto countSelected = selectedParts.size();
 
     partOpsListMenu.addItem(
         "Backup",
@@ -176,6 +186,7 @@ void PartManagerApp::loadPartOpsListMenu() {
         LILKA_MENU_CLBK_CAST(&PartManagerApp::onPartListOpsBackup),
         LILKA_MENU_CLBK_DATA_CAST(this)
     );
+
     partOpsListMenu.addItem(
         "Restore",
         0,
@@ -185,22 +196,17 @@ void PartManagerApp::loadPartOpsListMenu() {
         LILKA_MENU_CLBK_DATA_CAST(this)
     );
 
-    // TODO: this can be more simple
-    if (selectedParts.size()) {
-        for (size_t i = 0; i < selectedParts.size(); i++) {
-            if (partOpsListMenu.getCursor() == selectedParts[i]) {
-                partOpsListMenu.addItem(
-                    "Deselect",
-                    0,
-                    lilka::colors::White,
-                    "",
-                    LILKA_MENU_CLBK_CAST(&PartManagerApp::onPartListOpsDeselect),
-                    LILKA_MENU_CLBK_DATA_CAST(this)
-                );
-                break;
-            }
-        }
+    if (curSelected)
+        partOpsListMenu.addItem(
+            "Deselect",
+            0,
+            lilka::colors::White,
+            "",
+            LILKA_MENU_CLBK_CAST(&PartManagerApp::onPartListOpsDeselect),
+            LILKA_MENU_CLBK_DATA_CAST(this)
+        );
 
+    if (countSelected)
         partOpsListMenu.addItem(
             "Deselect all",
             0,
@@ -209,24 +215,27 @@ void PartManagerApp::loadPartOpsListMenu() {
             LILKA_MENU_CLBK_CAST(&PartManagerApp::onPartListOpsDeselectAll),
             LILKA_MENU_CLBK_DATA_CAST(this)
         );
-    }
 
-    partOpsListMenu.addItem(
-        "Select",
-        0,
-        lilka::colors::White,
-        "",
-        LILKA_MENU_CLBK_CAST(&PartManagerApp::onPartListOpsSelect),
-        LILKA_MENU_CLBK_DATA_CAST(this)
-    );
-    partOpsListMenu.addItem(
-        "Select all",
-        0,
-        lilka::colors::White,
-        "",
-        LILKA_MENU_CLBK_CAST(&PartManagerApp::onPartListOpsSelectAll),
-        LILKA_MENU_CLBK_DATA_CAST(this)
-    );
+    if (!curSelected)
+        partOpsListMenu.addItem(
+            "Select",
+            0,
+            lilka::colors::White,
+            "",
+            LILKA_MENU_CLBK_CAST(&PartManagerApp::onPartListOpsSelect),
+            LILKA_MENU_CLBK_DATA_CAST(this)
+        );
+
+    if (countSelected != lilka::partitions.size())
+        partOpsListMenu.addItem(
+            "Select all",
+            0,
+            lilka::colors::White,
+            "",
+            LILKA_MENU_CLBK_CAST(&PartManagerApp::onPartListOpsSelectAll),
+            LILKA_MENU_CLBK_DATA_CAST(this)
+        );
+
     // Back
     partOpsListMenu.addItem(
         K_S_MENU_BACK,
@@ -242,7 +251,7 @@ void PartManagerApp::loadPartOpsListMenu() {
 /////////////////////////////////////////////////////////////////////////////
 // Actions
 /////////////////////////////////////////////////////////////////////////////
-void PartManagerApp::backup(const String& path, size_t index) {
+bool PartManagerApp::backup(const String& path, size_t index) {
     lastProgress = 101; // force first frame to draw :D
 
     progress.setTitle("Backup...");
@@ -251,14 +260,14 @@ void PartManagerApp::backup(const String& path, size_t index) {
     String message = String(lilka::partitions[index]->getLabel()) + String("\n->\n") + partFilename;
     progress.setMessage(message);
 
-    lilka::partitions[index]->backup(
+    return lilka::partitions[index]->backup(
         partFilename,
         LILKA_PARTITIONS_ON_CHUNK_CLBK_CAST(&PartManagerApp::onBackupRestoreChunk),
         LILKA_PARTITIONS_ON_CHUNK__CLBK_DATA_CAST(this)
     );
 }
 //---------------------------------------------------------------------------
-void PartManagerApp::restore(const String& path, size_t index) {
+bool PartManagerApp::restore(const String& path, size_t index) {
     lastProgress = 101; // force first frame to draw :D
 
     progress.setTitle("Restoring...");
@@ -267,7 +276,7 @@ void PartManagerApp::restore(const String& path, size_t index) {
     String message = partFilename + String("\n->\n") + String(lilka::partitions[index]->getLabel());
     progress.setMessage(message);
 
-    lilka::partitions[index]->flash(
+    return lilka::partitions[index]->flash(
         partFilename,
         LILKA_PARTITIONS_ON_CHUNK_CLBK_CAST(&PartManagerApp::onBackupRestoreChunk),
         LILKA_PARTITIONS_ON_CHUNK__CLBK_DATA_CAST(this)
@@ -325,11 +334,14 @@ void PartManagerApp::onBackupListMenu() {
         if (userConfirm) {
             // Restore each selected partition
             for (size_t i = 0; i < selectedParts.size(); i++) {
-                restore(backupPath, selectedParts[i]);
+                // Break on error or user interrupt
+                if (!restore(backupPath, selectedParts[i])) break;
             }
 
             // Clear selection
             selectedParts.clear();
+            // Update icons
+            loadPartListMenu();
         }
     }
 }
@@ -373,6 +385,10 @@ void PartManagerApp::onPartListMenu() {
     if (button == PART_MGR_SELECT_TOGGLE_BUTTON) {
         if (isSelectedPart(cursor)) deselectPart(cursor);
         else selectPart(cursor);
+
+        // Reload part list for icons change
+        loadPartListMenu();
+
         DRAW_MENU_CONTINUE(partListMenu);
         return;
     }
@@ -416,11 +432,14 @@ void PartManagerApp::onPartListOpsBackup() {
 
         // Backup each selected partition
         for (size_t i = 0; i < selectedParts.size(); i++) {
-            backup(backupPath, selectedParts[i]);
+            // Break on error or user interrupt
+            if (!backup(backupPath, selectedParts[i])) break;
         }
 
         // Clear selection
         selectedParts.clear();
+        // Update icons
+        loadPartListMenu();
     }
 }
 //---------------------------------------------------------------------------
@@ -433,6 +452,23 @@ void PartManagerApp::onPartListOpsRestore() {
         auto cursor = partListMenu.getCursor();
         selectPart(cursor);
     }
+
+    // Find out if running partition selected
+    for (size_t i = 0; i < selectedParts.size(); i++) {
+        auto partIndex = selectedParts[i];
+        lilka::Partition* curPart = lilka::partitions[partIndex];
+
+        if (curPart->isRunning()) {
+            String alertMessage =
+                StringFormat("Partition %s is currently runing, so can't be restored. Skiping...", curPart->getLabel());
+            alert("", alertMessage);
+
+            deselectPart(partIndex);
+
+            break;
+        }
+    }
+
     // Load backups satisfying list of selected partitions
     loadBackupListMenu();
 
@@ -441,6 +477,8 @@ void PartManagerApp::onPartListOpsRestore() {
 
     // Ensure we have a clean selection list before return
     selectedParts.clear();
+    // Update icons
+    loadPartListMenu();
 }
 //---------------------------------------------------------------------------
 void PartManagerApp::onPartListOpsSelect() {
@@ -491,6 +529,10 @@ void PartManagerApp::onAnyMenuBack() {
 /////////////////////////////////////////////////////////////////////////////
 bool PartManagerApp::onBackupRestoreChunk(lilka::Partition* part, const String& filename, size_t offset, long fSize) {
     // PM_DBG LEP;
+    auto ctrlState = lilka::controller.getState();
+    if (ctrlState.a.justPressed) {
+        if (confirm("Are you sure?", "Are you sure you want to interrupt that operation?")) return false;
+    }
 
     size_t currentProgress = (offset * 100) / fSize;
 
@@ -564,7 +606,7 @@ void PartManagerApp::queueDraw() {
 // On a filesystem it's just a folder, which consists from one or multiple *.img files
 // Name of each file is a label of partition from which backup was taken from
 //
-// Partition from which we just boot isn't restorable(need to try that), but backupable
+// Partition from which we just boot isn't restorable, but backupable
 // anyways
 //
 // NOTE: Backups use no encryption, therefore any secrets(wifi password in nvs) can be
@@ -582,7 +624,7 @@ void PartManagerApp::queueDraw() {
 // -> iterate over backups and filter ones whose match all selectedParts criteria
 // -> restore
 //
-// word ``default`` for a backup have a special meaning
-// and may be checked on a system launch proposing restoration of modified data
-// in case this feature would be ever delivered
+// word ``default`` for a backup may have a special meaning in future, in case
+// we would like to add auto restore option on each boot, via validation of
+// partition checksum in case this feature would be ever delivered
 /////////////////////////////////////////////////////////////////////////////
