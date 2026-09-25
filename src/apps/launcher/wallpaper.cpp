@@ -177,7 +177,9 @@ void Wallpaper::blit(const uint16_t* pixels, int x, int y, int w, int h, int str
         int bufferY = y + row;
         if (bufferY < 0) continue;
         if (bufferY >= height) break;
-        memcpy(&buffer[bufferY * width + x + startX], &pixels[row * stride + startX], (endX - startX) * sizeof(uint16_t));
+        memcpy(
+            &buffer[bufferY * width + x + startX], &pixels[row * stride + startX], (endX - startX) * sizeof(uint16_t)
+        );
     }
 }
 

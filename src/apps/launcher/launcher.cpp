@@ -65,13 +65,8 @@
 #include "keira/utils/string.h"
 
 // Home screen wallpaper, first existing one is used
-static const char* const WALLPAPER_PATHS[] = {
-    "/sd/wallpaper.gif",
-    "/sd/wallpaper.png",
-    "/sd/wallpaper.jpg",
-    "/sd/wallpaper.jpeg",
-    "/sd/wallpaper.bmp"
-};
+static const char* const WALLPAPER_PATHS[] =
+    {"/sd/wallpaper.gif", "/sd/wallpaper.png", "/sd/wallpaper.jpg", "/sd/wallpaper.jpeg", "/sd/wallpaper.bmp"};
 
 LauncherApp::LauncherApp() : App("Launcher") {
     setktStackSize(8192); // Yeah, this one is heavy as fuck
