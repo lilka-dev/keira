@@ -34,6 +34,7 @@
 #define FT_SOUND_COLOR      lilka::colors::Plum_web
 #define FT_LT_COLOR         lilka::colors::Pink_lace
 #define FT_SO_COLOR         lilka::colors::Aquamarine
+#define FT_IMAGE_COLOR      lilka::colors::Jasmine
 #define FT_DIR_COLOR        lilka::colors::Arylide_yellow
 #define FT_OTHER_COLOR      lilka::colors::Light_gray
 //////////////////////////////////////////////////////////////////////////////
@@ -51,6 +52,7 @@
 #define FT_SOUND_ICON           &music_img
 #define FT_LT_ICON              &music_img
 #define FT_SO_ICON              &bin_img
+#define FT_IMAGE_ICON           &normalfile_img
 #define FT_DIR_ICON             &folder_img
 #define FT_OTHER_ICON           &normalfile_img
 #define FM_SELECTED_FOLDER_ICON &selectedfolder_img
@@ -129,6 +131,7 @@ typedef enum {
     FT_SOUND,
     FT_LT,
     FT_SO,
+    FT_IMAGE,
     FT_DIR,
     FT_OTHER
 } FileType;
@@ -302,6 +305,7 @@ private:
     void onFileOpenWithLilTracker();
     void onFileOpenWithMadPlayer();
     void onFileOpenWithDynApp();
+    void onFileOpenWithImageViewer();
 
     // Callbacks [fileListMenu]:
     void onFileListMenuItem();

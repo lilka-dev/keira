@@ -130,6 +130,14 @@ FileManagerApp::FileManagerApp(const String& path) :
         LILKA_MENU_CLBK_DATA_CAST(this)
     );
     fileOpenWithMenu.addItem(
+        K_S_FMANAGER_IMAGE_VIEWER,
+        0,
+        lilka::colors::White,
+        "",
+        LILKA_MENU_CLBK_CAST(&FileManagerApp::onFileOpenWithImageViewer),
+        LILKA_MENU_CLBK_DATA_CAST(this)
+    );
+    fileOpenWithMenu.addItem(
         K_S_MENU_BACK,
         0,
         lilka::colors::White,
@@ -322,6 +330,11 @@ FMEntry FileManagerApp::pathToEntry(const String& path) {
         newEntry.type = FT_SO;
         newEntry.icon = FT_SO_ICON;
         newEntry.color = FT_SO_COLOR;
+    } else if (lowerCasedPath.endsWith(".png") || lowerCasedPath.endsWith(".jpg") || lowerCasedPath.endsWith(".jpeg") ||
+               lowerCasedPath.endsWith(".gif") || lowerCasedPath.endsWith(".bmp")) {
+        newEntry.type = FT_IMAGE;
+        newEntry.icon = FT_IMAGE_ICON;
+        newEntry.color = FT_IMAGE_COLOR;
     } else {
         newEntry.type = FT_OTHER;
         newEntry.icon = FT_OTHER_ICON;
@@ -365,6 +378,9 @@ void FileManagerApp::openCurrentEntry() {
             break;
         case FT_SO:
             K_FT_SO_HANDLER(path);
+            break;
+        case FT_IMAGE:
+            K_FT_IMAGE_HANDLER(path);
             break;
         case FT_DIR:
             FT_DEFAULT_DIR_HANDLER;
@@ -516,6 +532,16 @@ void FileManagerApp::onFileOpenWithDynApp() {
     if (button == FM_EXIT_BUTTON) return; // Exit
 
     K_FT_SO_HANDLER(lilka::fileutils.joinPath(currentEntry.path, currentEntry.name));
+}
+
+void FileManagerApp::onFileOpenWithImageViewer() {
+    FM_DBG LEP;
+
+    FM_MENU_HANDLE_EXIT(fileOpenWithMenu);
+
+    K_FT_IMAGE_HANDLER(lilka::fileutils.joinPath(currentEntry.path, currentEntry.name));
+
+    FM_DBG LXP;
 }
 
 // FILE SELECTION MENU BELOW:
