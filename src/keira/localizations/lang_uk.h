@@ -541,19 +541,19 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // apps/partmanager/partmanager.cpp ///////////////////////////////////////////////////////////////////
-#define K_S_PART_MGR_OPTIONS                       "Options"
-#define K_S_PART_MGR_BACKUPS                       "Backups"
-#define K_S_PART_MGR_OPT_BACKUP                    "Backup"
-#define K_S_PART_MGR_OPT_RESTORE                   "Restore"
-#define K_S_PART_MGR_OPT_DESELECT                  "Deselect"
-#define K_S_PART_MGR_OPT_DESELECT_ALL              "Deselect all"
-#define K_S_PART_MGR_OPT_SELECT                    "Select"
-#define K_S_PART_MGR_OPT_SELECT_ALL                "Select all"
-#define K_S_PART_MGR_ENTER_BACKUP_NAME             "Enter backup name:"
-#define K_S_PART_MGR_BACKUP_CAVEATS                "This command would flash these partitions:\n" 
-#define K_S_PART_MGR_PART_RUNNING_FMT              "Partition %s is running. Skiping..."
+#define K_S_PART_MGR_OPTIONS                       "Опції"
+#define K_S_PART_MGR_BACKUPS                       "Резервні копії"
+#define K_S_PART_MGR_OPT_BACKUP                    "Резервна копія"
+#define K_S_PART_MGR_OPT_RESTORE                   "Відновити"
+#define K_S_PART_MGR_OPT_DESELECT                  "Зняти вибір"
+#define K_S_PART_MGR_OPT_DESELECT_ALL              "Зняти обране"
+#define K_S_PART_MGR_OPT_SELECT                    "Обрати"
+#define K_S_PART_MGR_OPT_SELECT_ALL                "Обрати все"
+#define K_S_PART_MGR_ENTER_BACKUP_NAME             "Введіть назву резервної копії:"
+#define K_S_PART_MGR_BACKUP_CAVEATS                "Ця команда зробить резервні копії обраних розділів:\n" 
+#define K_S_PART_MGR_PART_RUNNING_FMT              "Розділ %s використовується. Пропуск..."
 
-#define K_S_PART_MGR_INTERRUPT_CONFIRM             "Do you want to interrupt that operation?"
-#define K_S_PART_MGR_SELECTED_ENTRIES_FMT          "Selected %d entries", 
+#define K_S_PART_MGR_INTERRUPT_CONFIRM             "Чи бажаєте ви перервати операцію?"
+#define K_S_PART_MGR_SELECTED_ENTRIES_FMT          "Обрано %d розділ(ів)", 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // clang-format on
