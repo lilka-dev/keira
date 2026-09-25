@@ -359,14 +359,14 @@ void PartManagerApp::onPartListMenu() {
     if (button == K_BTN_OPEN) {
         if (cursor >= lilka::partitions.size()) return;
 
-        lilka::Partition* part = lilka::partitions[cursor];
+        const lilka::Partition* part = lilka::partitions[cursor];
 
         alert(
-            lilka::partitions[cursor]->getLabel(),
+            part->getLabel(),
             StringFormat(
                 K_S_LAUNCHER_PARTITION_FMT,
-                String(lilka::partitions[cursor]->getAddress(), HEX).c_str(),
-                String(lilka::partitions[cursor]->getSize(), HEX).c_str()
+                String(part->getAddress(), HEX).c_str(),
+                String(part->getSize(), HEX).c_str()
             )
         );
 

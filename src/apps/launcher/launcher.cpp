@@ -184,7 +184,13 @@ void LauncherApp::run() {
                     ITEM::SUBMENU(
                         K_S_LAUNCHER_SD,
                         {
-                            ITEM::MENU(K_S_PARTITION_TABLE, [this]() { this->runApp<PartManagerApp>();; }),
+                            ITEM::MENU(
+                                K_S_PARTITION_TABLE,
+                                [this]() {
+                                    this->runApp<PartManagerApp>();
+                                    ;
+                                }
+                            ),
                             ITEM::MENU(K_S_LAUNCHER_SD_FORMAT, [this]() { this->formatSD(); }),
                             ITEM::MENU(K_S_LAUNCHER_SD_SPEED, [this]() { this->setSpiSDSpeed(); }),
                         }
