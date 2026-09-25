@@ -41,7 +41,7 @@ bool PartManagerApp::isSelectedPart(size_t index) {
 // Menu configuration
 /////////////////////////////////////////////////////////////////////////////
 void PartManagerApp::loadBackupListMenu() {
-    backupListMenu.setTitle("Backups");
+    backupListMenu.setTitle(K_S_PART_MGR_BACKUPS);
 
     backupListMenu.clearItems();
 
@@ -170,7 +170,7 @@ void PartManagerApp::loadPartListMenu() {
 void PartManagerApp::loadPartOpsListMenu() {
     PM_DBG LEP;
     // partOpsListMenu
-    partOpsListMenu.setTitle("Options");
+    partOpsListMenu.setTitle(K_S_PART_MGR_OPTIONS);
     partOpsListMenu.clearItems();
     partOpsListMenu.addActivationButton(K_BTN_EXIT);
 
@@ -179,7 +179,7 @@ void PartManagerApp::loadPartOpsListMenu() {
     auto countSelected = selectedParts.size();
 
     partOpsListMenu.addItem(
-        "Backup",
+        K_S_PART_MGR_OPT_BACKUP,
         0,
         lilka::colors::White,
         "",
@@ -188,7 +188,7 @@ void PartManagerApp::loadPartOpsListMenu() {
     );
 
     partOpsListMenu.addItem(
-        "Restore",
+        K_S_PART_MGR_OPT_RESTORE,
         0,
         lilka::colors::White,
         "",
@@ -198,7 +198,7 @@ void PartManagerApp::loadPartOpsListMenu() {
 
     if (curSelected)
         partOpsListMenu.addItem(
-            "Deselect",
+            K_S_PART_MGR_OPT_DESELECT,
             0,
             lilka::colors::White,
             "",
@@ -208,7 +208,7 @@ void PartManagerApp::loadPartOpsListMenu() {
 
     if (countSelected)
         partOpsListMenu.addItem(
-            "Deselect all",
+            K_S_PART_MGR_OPT_DESELECT_ALL,
             0,
             lilka::colors::White,
             "",
@@ -218,7 +218,7 @@ void PartManagerApp::loadPartOpsListMenu() {
 
     if (!curSelected)
         partOpsListMenu.addItem(
-            "Select",
+            K_S_PART_MGR_OPT_SELECT,
             0,
             lilka::colors::White,
             "",
@@ -228,7 +228,7 @@ void PartManagerApp::loadPartOpsListMenu() {
 
     if (countSelected != lilka::partitions.size())
         partOpsListMenu.addItem(
-            "Select all",
+            K_S_PART_MGR_OPT_SELECT_ALL,
             0,
             lilka::colors::White,
             "",
@@ -254,7 +254,7 @@ void PartManagerApp::loadPartOpsListMenu() {
 bool PartManagerApp::backup(const String& path, size_t index) {
     lastProgress = 101; // force first frame to draw :D
 
-    progress.setTitle("Backup...");
+    progress.setTitle(K_S_PART_MGR_BACKUP);
     String partFilename = lilka::fileutils.joinPath(path, lilka::partitions[index]->getLabel()) + PART_MGR_IMG_EXT;
 
     String message = String(lilka::partitions[index]->getLabel()) + String("\n->\n") + partFilename;
@@ -270,7 +270,7 @@ bool PartManagerApp::backup(const String& path, size_t index) {
 bool PartManagerApp::restore(const String& path, size_t index) {
     lastProgress = 101; // force first frame to draw :D
 
-    progress.setTitle("Restoring...");
+    progress.setTitle(K_S_PART_MGR_OPT_RESTORE);
     String partFilename = lilka::fileutils.joinPath(path, lilka::partitions[index]->getLabel()) + PART_MGR_IMG_EXT;
 
     String message = partFilename + String("\n->\n") + String(lilka::partitions[index]->getLabel());
@@ -321,7 +321,7 @@ void PartManagerApp::onBackupListMenu() {
 
     if (button == K_BTN_OPEN) {
         // Enlisting all expected changes
-        String opCaveats = "This command would flash these partitions:\n";
+        String opCaveats = K_S_PART_MGR_BACKUP_CAVEATS;
         for (size_t i = 0; i < selectedParts.size(); i++) {
             if (i != selectedParts.size() - 1)
                 opCaveats = opCaveats + lilka::partitions[selectedParts[i]]->getLabel() + ", ";
@@ -408,10 +408,10 @@ void PartManagerApp::onPartListOpsBackup() {
         selectPart(cursor);
     }
 
-    String backupName = input("Enter backup name");
+    String backupName = input(K_S_PART_MGR_ENTER_BACKUP_NAME);
 
     // Enlisting all expected changes
-    String opCaveats = "This command would backup these partitions:\n";
+    String opCaveats = K_S_PART_MGR_BACKUP_CAVEAETS;
     for (size_t i = 0; i < selectedParts.size(); i++) {
         if (i != selectedParts.size() - 1)
             opCaveats = opCaveats + lilka::partitions[selectedParts[i]]->getLabel() + ", ";
@@ -459,8 +459,7 @@ void PartManagerApp::onPartListOpsRestore() {
         lilka::Partition* curPart = lilka::partitions[partIndex];
 
         if (curPart->isRunning()) {
-            String alertMessage =
-                StringFormat("Partition %s is currently runing, so can't be restored. Skiping...", curPart->getLabel());
+            String alertMessage = StringFormat(K_S_PART_MGR_PART_RUNNING_FMT, curPart->getLabel());
             alert("", alertMessage);
 
             deselectPart(partIndex);
@@ -531,7 +530,7 @@ bool PartManagerApp::onBackupRestoreChunk(lilka::Partition* part, const String& 
     // PM_DBG LEP;
     auto ctrlState = lilka::controller.getState();
     if (ctrlState.a.justPressed) {
-        if (confirm("Are you sure?", "Are you sure you want to interrupt that operation?")) return false;
+        if (confirm(K_S_ARE_YOU_SURE, K_S_PART_MGR_INTERRUPT_CONFIRM)) return false;
     }
 
     size_t currentProgress = (offset * 100) / fSize;
@@ -583,7 +582,7 @@ void PartManagerApp::queueDraw() {
         STATUS_BAR_SAFE_DISTANCE, canvas->height() - STATUS_BAR_HEIGHT, STATUS_BAR_WIDTH, STATUS_BAR_HEIGHT
     );
     if (selectedParts.size() > 0) {
-        canvas->printf("Selected %d entries", selectedParts.size());
+        canvas->printf(K_S_PART_MGR_SELECTED_ENTRIES_FMT, selectedParts.size());
     }
     App::queueDraw();
 }

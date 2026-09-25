@@ -12,6 +12,7 @@
 #define K_S_CURRENT_LANGUAGE_SHORT      "uk"
 #define K_S_CURRENT_LANGUAGE_FULL       "Українська"
 
+#define K_S_ARE_YOU_SURE                "Ви впевнені?"
 #define K_S_ERROR                       "Помилка"
 #define K_S_ATTENTION                   "Увага"
 #define K_S_SUCCESS                     "Успіх"
@@ -200,7 +201,7 @@
 #define K_S_FMANAGER_DELETE_SELECTED                      "Видалити вибране"
 #define K_S_FMANAGER_CLEAR_SELECTION                      "Очистити вибране"
 #define K_S_FMANAGER_CALC_INTERRUPTED                     "Не обчислено"
-#define K_S_FMANAGER_ARE_YOU_SURE_ALERT                   "Ви впевнені?"
+#define K_S_FMANAGER_ARE_YOU_SURE_ALERT                   K_S_ARE_YOU_SURE
 #define K_S_FMANAGER_THIS_OP_WOULD_DELETE_FILE_FMT        "Ця операція видалить файл %s\nПродовжити: START\nВихід: B"
 #define K_S_FMANAGER_THIS_OP_WOULD_DELETE_COUNT_FILES_FMT "Ця операція видалить %d файлів\nПродовжити: START\nВихід: B"
 #define K_S_FMANAGER_SELECTED_ENTRIES_EXIT_FMT            "Вибрано %d файлів\nПідтвердити вихід: START\nПовернутися: B"
@@ -537,5 +538,22 @@
 #define K_S_LUA_CRYPTO_INVALID_HEX_STRING          "Невірний hex-рядок"
 #define K_S_LUA_CRYPTO_INVALID_DATA_SIZE           "Невірний розмір зашифрованих даних"
 #define K_S_LUA_CRYPTO_INVALID_KEY_OR_DATA         "Невірний ключ або пошкоджені дані"
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// apps/partmanager/partmanager.cpp ///////////////////////////////////////////////////////////////////
+#define K_S_PART_MGR_OPTIONS                       "Options"
+#define K_S_PART_MGR_BACKUPS                       "Backups"
+#define K_S_PART_MGR_OPT_BACKUP                    "Backup"
+#define K_S_PART_MGR_OPT_RESTORE                   "Restore"
+#define K_S_PART_MGR_OPT_DESELECT                  "Deselect"
+#define K_S_PART_MGR_OPT_DESELECT_ALL              "Deselect all"
+#define K_S_PART_MGR_OPT_SELECT                    "Select"
+#define K_S_PART_MGR_OPT_SELECT_ALL                "Select all"
+#define K_S_PART_MGR_ENTER_BACKUP_NAME             "Enter backup name:"
+#define K_S_PART_MGR_BACKUP_CAVEATS                "This command would flash these partitions:\n" 
+#define K_S_PART_MGR_PART_RUNNING_FMT              "Partition %s is running. Skiping..."
+
+#define K_S_PART_MGR_INTERRUPT_CONFIRM             "Do you want to interrupt that operation?"
+#define K_S_PART_MGR_SELECTED_ENTRIES_FMT          "Selected %d entries", 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // clang-format on
