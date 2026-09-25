@@ -53,6 +53,7 @@
 
 // apps/launcher.cpp //////////////////////////////////////////////////////////////////////////////////
 #define K_S_LAUNCHER_MAIN_MENU         "Головне меню"
+#define K_S_LAUNCHER_HOME_HINT         "Натисніть A для меню"
 #define K_S_LAUNCHER_APPS              "Додатки"
 #define K_S_LAUNCHER_DEMOS             "Демо"
 #define K_S_LAUNCHER_LINES             "Лінії"

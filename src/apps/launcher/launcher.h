@@ -60,6 +60,7 @@ private:
     ITEM_LIST loadCatalogItems();
     std::vector<String> catalogItemNames_;
 
+    void homeScreen(item_t& mainMenu);
     void showMenu(const char* title, ITEM_LIST& menu, bool back = true);
     template <typename T, typename... Args>
     void runApp(Args&&... args);
