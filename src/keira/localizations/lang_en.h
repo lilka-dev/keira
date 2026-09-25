@@ -52,6 +52,11 @@
 #define K_S_SERVICE_DIE_FMT     "Service %s died"
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// apps/imageviewer.cpp ///////////////////////////////////////////////////////////////////////////////
+#define K_S_IMAGEVIEWER_NAME      "Image Viewer"
+#define K_S_IMAGEVIEWER_CANT_OPEN "Can't open image"
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
 // apps/launcher.cpp //////////////////////////////////////////////////////////////////////////////////
 #define K_S_LAUNCHER_MAIN_MENU         "Main menu"
 #define K_S_LAUNCHER_HOME_HINT         "Press A for menu"
@@ -202,6 +207,7 @@
 #define K_S_FMANAGER_LILTRACKER                    K_S_LAUNCHER_LILTRACKER
 #define K_S_FMANAGER_MAD_PLAYER                    "MadPlayer"
 #define K_S_FMANAGER_DYNAPP                        "DynApp (.so)"
+#define K_S_FMANAGER_IMAGE_VIEWER                  K_S_IMAGEVIEWER_NAME
 #define K_S_FMANAGER_ACTIONS_ON_SELECTED           "Actions on selected"
 #define K_S_FMANAGER_COPY_SELECTED                 "Copy selected"
 #define K_S_FMANAGER_MOVE_SELECTED                 "Move selected"

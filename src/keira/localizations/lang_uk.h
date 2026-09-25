@@ -51,6 +51,11 @@
 #define K_S_SERVICE_DIE_FMT     "Service %s died"
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// apps/imageviewer.cpp ///////////////////////////////////////////////////////////////////////////////
+#define K_S_IMAGEVIEWER_NAME      "Переглядач зображень"
+#define K_S_IMAGEVIEWER_CANT_OPEN "Не вдалося відкрити зображення"
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
 // apps/launcher.cpp //////////////////////////////////////////////////////////////////////////////////
 #define K_S_LAUNCHER_MAIN_MENU         "Головне меню"
 #define K_S_LAUNCHER_HOME_HINT         "Натисніть A для меню"
@@ -195,6 +200,7 @@
 #define K_S_FMANAGER_LILTRACKER                           K_S_LAUNCHER_LILTRACKER
 #define K_S_FMANAGER_MAD_PLAYER                           "MadPlayer"
 #define K_S_FMANAGER_DYNAPP                                "DynApp (.so)"
+#define K_S_FMANAGER_IMAGE_VIEWER                         K_S_IMAGEVIEWER_NAME
 #define K_S_FMANAGER_ACTIONS_ON_SELECTED                  "Дії над вибраним"
 #define K_S_FMANAGER_COPY_SELECTED                        "Копіювати вибране"
 #define K_S_FMANAGER_MOVE_SELECTED                        "Перемістити вибране"
