@@ -254,7 +254,7 @@ void PartManagerApp::loadPartOpsListMenu() {
 bool PartManagerApp::backup(const String& path, size_t index) {
     lastProgress = 101; // force first frame to draw :D
 
-    progress.setTitle(K_S_PART_MGR_BACKUP);
+    progress.setTitle(K_S_PART_MGR_OPT_BACKUP);
     String partFilename = lilka::fileutils.joinPath(path, lilka::partitions[index]->getLabel()) + PART_MGR_IMG_EXT;
 
     String message = String(lilka::partitions[index]->getLabel()) + String("\n->\n") + partFilename;
@@ -359,7 +359,7 @@ void PartManagerApp::onPartListMenu() {
     if (button == K_BTN_OPEN) {
         if (cursor >= lilka::partitions.size()) return;
 
-        const lilka::Partition* part = lilka::partitions[cursor];
+        lilka::Partition* part = lilka::partitions[cursor];
 
         alert(
             part->getLabel(),
@@ -411,7 +411,7 @@ void PartManagerApp::onPartListOpsBackup() {
     String backupName = input(K_S_PART_MGR_ENTER_BACKUP_NAME);
 
     // Enlisting all expected changes
-    String opCaveats = K_S_PART_MGR_BACKUP_CAVEAETS;
+    String opCaveats = K_S_PART_MGR_BACKUP_CAVEATS;
     for (size_t i = 0; i < selectedParts.size(); i++) {
         if (i != selectedParts.size() - 1)
             opCaveats = opCaveats + lilka::partitions[selectedParts[i]]->getLabel() + ", ";

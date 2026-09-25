@@ -562,6 +562,6 @@
 #define K_S_PART_MGR_PART_RUNNING_FMT              "Partition %s is running. Skiping..."
 
 #define K_S_PART_MGR_INTERRUPT_CONFIRM             "Do you want to interrupt that operation?"
-#define K_S_PART_MGR_SELECTED_ENTRIES_FMT          "Selected %d entries", 
+#define K_S_PART_MGR_SELECTED_ENTRIES_FMT          "Selected %d entries" 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // clang-format on

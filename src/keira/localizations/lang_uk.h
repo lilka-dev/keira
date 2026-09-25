@@ -554,6 +554,6 @@
 #define K_S_PART_MGR_PART_RUNNING_FMT              "Розділ %s використовується. Пропуск..."
 
 #define K_S_PART_MGR_INTERRUPT_CONFIRM             "Чи бажаєте ви перервати операцію?"
-#define K_S_PART_MGR_SELECTED_ENTRIES_FMT          "Обрано %d розділ(ів)", 
+#define K_S_PART_MGR_SELECTED_ENTRIES_FMT          "Обрано %d розділ(ів)" 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // clang-format on
