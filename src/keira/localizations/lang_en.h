@@ -54,6 +54,7 @@
 
 // apps/launcher.cpp //////////////////////////////////////////////////////////////////////////////////
 #define K_S_LAUNCHER_MAIN_MENU         "Main menu"
+#define K_S_LAUNCHER_HOME_HINT         "Press A for menu"
 #define K_S_LAUNCHER_APPS              "Applications"
 #define K_S_LAUNCHER_DEMOS             "Demo"
 #define K_S_LAUNCHER_LINES             "Lines"

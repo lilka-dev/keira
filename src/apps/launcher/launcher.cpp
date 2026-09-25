@@ -4,6 +4,7 @@
 #include "keira/utils/mem.h"
 #include "keira/keira.h"
 #include "launcher.h"
+#include "wallpaper.h"
 #include "keira/appmanager.h"
 
 #include "keira/servicemanager.h"
@@ -62,6 +63,10 @@
 
 #include "keira/ksystem.h"
 #include "keira/utils/string.h"
+
+// Home screen wallpaper, first existing one is used
+static const char* const WALLPAPER_PATHS[] =
+    {"/sd/wallpaper.gif", "/sd/wallpaper.png", "/sd/wallpaper.jpg", "/sd/wallpaper.jpeg", "/sd/wallpaper.bmp"};
 
 LauncherApp::LauncherApp() : App("Launcher") {
     setktStackSize(8192); // Yeah, this one is heavy as fuck
@@ -451,7 +456,48 @@ void LauncherApp::run() {
             ),
         }
     );
-    showMenu(root_item.name, root_item.submenu, false);
+    homeScreen(root_item);
+}
+
+void LauncherApp::homeScreen(item_t& mainMenu) {
+    Wallpaper wallpaper;
+    while (1) {
+        // Wallpaper is reopened each time to free its memory while the menu and apps are running
+        for (const char* path : WALLPAPER_PATHS) {
+            if (wallpaper.open(path, canvas->width(), canvas->height())) break;
+        }
+
+        while (1) {
+            int delayMs = 0;
+            if (wallpaper.isOpen()) {
+                delayMs = wallpaper.nextFrame();
+                wallpaper.draw(canvas);
+            } else {
+                canvas->fillScreen(lilka::colors::Black);
+            }
+            canvas->setFont(FONT_9x15);
+            canvas->setTextColor(lilka::colors::White);
+            canvas->drawTextAligned(
+                K_S_LAUNCHER_HOME_HINT, canvas->width() / 2, canvas->height() - 4, lilka::ALIGN_CENTER, lilka::ALIGN_END
+            );
+            queueDraw();
+
+            // Wait for the next frame while staying responsive to buttons
+            TickType_t frameEnd = xTaskGetTickCount() + pdMS_TO_TICKS(delayMs > 0 ? delayMs : 30);
+            bool openMenu = false;
+            do {
+                if (lilka::controller.getState().a.justPressed) {
+                    openMenu = true;
+                    break;
+                }
+                vTaskDelay(pdMS_TO_TICKS(10));
+            } while (xTaskGetTickCount() < frameEnd);
+            if (openMenu) break;
+        }
+
+        wallpaper.close();
+        showMenu(mainMenu.name, mainMenu.submenu);
+    }
 }
 void LauncherApp::showMenu(const char* title, ITEM_LIST& list, bool back) {
     int itemCount = list.size();
