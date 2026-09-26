@@ -220,6 +220,8 @@
 
 #define K_S_FMANAGER_MULTIBOOT_STARTING             "Починаємо..."
 #define K_S_FMANAGER_MULTIBOOT_ERROR_FMT            "Етап: %d\nКод: %d"
+#define K_S_FMANAGER_MULTIBOOT_BCKP_SPIFFS          "Бекап SPIFFS"
+#define K_S_FMANAGER_MULTIBOOT_RESTORE_SPIFFS       "Відновлення SPIFFS"
 #define K_S_FMANAGER_SORTING                        "Сортування..."
 #define K_S_FMANAGER_ALMOST_DONE                    "Майже готово..."
 #define K_S_FMANAGER_THIS_OP_WOULD_DELETE_FILE      "Ця операція видалить файл\n"
