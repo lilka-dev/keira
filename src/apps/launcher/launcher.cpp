@@ -47,6 +47,7 @@
 #include "apps/pastebin/pastebinApp.h"
 #include "apps/usbdrive/usbdrive.h"
 #include "apps/soundsettings/sound.h"
+#include "apps/partmanager/partmanager.h"
 
 // Icons
 #include "apps/icons/demos.h"
@@ -191,7 +192,13 @@ void LauncherApp::run() {
                     ITEM::SUBMENU(
                         K_S_LAUNCHER_SD,
                         {
-                            ITEM::MENU(K_S_PARTITION_TABLE, [this]() { this->partitions(); }),
+                            ITEM::MENU(
+                                K_S_PARTITION_TABLE,
+                                [this]() {
+                                    this->runApp<PartManagerApp>();
+                                    ;
+                                }
+                            ),
                             ITEM::MENU(K_S_LAUNCHER_SD_FORMAT, [this]() { this->formatSD(); }),
                             ITEM::MENU(K_S_LAUNCHER_SD_SPEED, [this]() { this->setSpiSDSpeed(); }),
                         }
@@ -918,27 +925,7 @@ void LauncherApp::showEasterEgg() {
         taskYIELD();
     }
 }
-void LauncherApp::partitions() {
-    // TODO : support more than 16 partitions
-    String names[16];
-    int partitionCount = lilka::sys.get_partition_labels(names);
 
-    ITEM_LIST partitionsMenu;
-    for (int i = 0; i < partitionCount; i++) {
-        String partition = names[i];
-        partitionsMenu.push_back(ITEM::MENU(names[i].c_str(), [this, partition]() {
-            alert(
-                partition,
-                StringFormat(
-                    K_S_LAUNCHER_PARTITION_FMT,
-                    String(lilka::sys.get_partition_address(partition.c_str()), HEX).c_str(),
-                    String(lilka::sys.get_partition_size(partition.c_str()), HEX).c_str()
-                )
-            );
-        }));
-    }
-    showMenu(K_S_PARTITION_TABLE, partitionsMenu);
-}
 void LauncherApp::formatSD() {
     if (!confirm(K_S_LAUNCHER_FORMAT, K_S_LAUNCHER_FORMAT_DISCLAIMER_ALERT)) return;
 

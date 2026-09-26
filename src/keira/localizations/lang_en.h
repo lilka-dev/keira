@@ -12,6 +12,7 @@
 #define K_S_CURRENT_LANGUAGE_SHORT      "en"
 #define K_S_CURRENT_LANGUAGE_FULL       "English"
 
+#define K_S_ARE_YOU_SURE                "Are you sure?"
 #define K_S_ERROR                       "Error"
 #define K_S_ATTENTION                   "Attention"
 #define K_S_SUCCESS                     "Success"
@@ -215,7 +216,7 @@
 #define K_S_FMANAGER_DELETE_SELECTED               "Delete selected"
 #define K_S_FMANAGER_CLEAR_SELECTION               "Clear selection"
 #define K_S_FMANAGER_CALC_INTERRUPTED              "Not computed"
-#define K_S_FMANAGER_ARE_YOU_SURE_ALERT            "Are you sure"
+#define K_S_FMANAGER_ARE_YOU_SURE_ALERT            K_S_ARE_YOU_SURE
 
 #define K_S_FMANAGER_THIS_OP_WOULD_DELETE_FILE_FMT          "This operation would delete file\n %s\nProceed: START\nExit: B"
 #define K_S_FMANAGER_THIS_OP_WOULD_DELETE_COUNT_FILES_FMT   "This operation would delete %d file(s)\nProceed: START\nExit: B"
@@ -553,5 +554,22 @@
 #define K_S_LUA_CRYPTO_INVALID_HEX_STRING          "Invalid hex string"
 #define K_S_LUA_CRYPTO_INVALID_DATA_SIZE           "Invalid encrypted data size"
 #define K_S_LUA_CRYPTO_INVALID_KEY_OR_DATA         "Invalid key or corrupted data"
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// apps/partmanager/partmanager.cpp ///////////////////////////////////////////////////////////////////
+#define K_S_PART_MGR_OPTIONS                       "Options"
+#define K_S_PART_MGR_BACKUPS                       "Backups"
+#define K_S_PART_MGR_OPT_BACKUP                    "Backup"
+#define K_S_PART_MGR_OPT_RESTORE                   "Restore"
+#define K_S_PART_MGR_OPT_DESELECT                  "Deselect"
+#define K_S_PART_MGR_OPT_DESELECT_ALL              "Deselect all"
+#define K_S_PART_MGR_OPT_SELECT                    "Select"
+#define K_S_PART_MGR_OPT_SELECT_ALL                "Select all"
+#define K_S_PART_MGR_ENTER_BACKUP_NAME             "Enter backup name:"
+#define K_S_PART_MGR_BACKUP_CAVEATS                "This command would flash these partitions:\n" 
+#define K_S_PART_MGR_PART_RUNNING_FMT              "Partition %s is running. Skiping..."
+
+#define K_S_PART_MGR_INTERRUPT_CONFIRM             "Do you want to interrupt that operation?"
+#define K_S_PART_MGR_SELECTED_ENTRIES_FMT          "Selected %d entries" 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // clang-format on

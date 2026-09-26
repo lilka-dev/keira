@@ -74,7 +74,6 @@ private:
     void about();
     void info();
     void showEasterEgg();
-    void partitions();
     void formatSD();
     void factoryReset();
 };

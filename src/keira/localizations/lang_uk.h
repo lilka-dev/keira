@@ -12,6 +12,7 @@
 #define K_S_CURRENT_LANGUAGE_SHORT      "uk"
 #define K_S_CURRENT_LANGUAGE_FULL       "Українська"
 
+#define K_S_ARE_YOU_SURE                "Ви впевнені?"
 #define K_S_ERROR                       "Помилка"
 #define K_S_ATTENTION                   "Увага"
 #define K_S_SUCCESS                     "Успіх"
@@ -208,7 +209,7 @@
 #define K_S_FMANAGER_DELETE_SELECTED                      "Видалити вибране"
 #define K_S_FMANAGER_CLEAR_SELECTION                      "Очистити вибране"
 #define K_S_FMANAGER_CALC_INTERRUPTED                     "Не обчислено"
-#define K_S_FMANAGER_ARE_YOU_SURE_ALERT                   "Ви впевнені?"
+#define K_S_FMANAGER_ARE_YOU_SURE_ALERT                   K_S_ARE_YOU_SURE
 #define K_S_FMANAGER_THIS_OP_WOULD_DELETE_FILE_FMT        "Ця операція видалить файл %s\nПродовжити: START\nВихід: B"
 #define K_S_FMANAGER_THIS_OP_WOULD_DELETE_COUNT_FILES_FMT "Ця операція видалить %d файлів\nПродовжити: START\nВихід: B"
 #define K_S_FMANAGER_SELECTED_ENTRIES_EXIT_FMT            "Вибрано %d файлів\nПідтвердити вихід: START\nПовернутися: B"
@@ -545,5 +546,22 @@
 #define K_S_LUA_CRYPTO_INVALID_HEX_STRING          "Невірний hex-рядок"
 #define K_S_LUA_CRYPTO_INVALID_DATA_SIZE           "Невірний розмір зашифрованих даних"
 #define K_S_LUA_CRYPTO_INVALID_KEY_OR_DATA         "Невірний ключ або пошкоджені дані"
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// apps/partmanager/partmanager.cpp ///////////////////////////////////////////////////////////////////
+#define K_S_PART_MGR_OPTIONS                       "Опції"
+#define K_S_PART_MGR_BACKUPS                       "Резервні копії"
+#define K_S_PART_MGR_OPT_BACKUP                    "Резервна копія"
+#define K_S_PART_MGR_OPT_RESTORE                   "Відновити"
+#define K_S_PART_MGR_OPT_DESELECT                  "Зняти вибір"
+#define K_S_PART_MGR_OPT_DESELECT_ALL              "Зняти обране"
+#define K_S_PART_MGR_OPT_SELECT                    "Обрати"
+#define K_S_PART_MGR_OPT_SELECT_ALL                "Обрати все"
+#define K_S_PART_MGR_ENTER_BACKUP_NAME             "Введіть назву резервної копії:"
+#define K_S_PART_MGR_BACKUP_CAVEATS                "Ця команда зробить резервні копії обраних розділів:\n" 
+#define K_S_PART_MGR_PART_RUNNING_FMT              "Розділ %s використовується. Пропуск..."
+
+#define K_S_PART_MGR_INTERRUPT_CONFIRM             "Чи бажаєте ви перервати операцію?"
+#define K_S_PART_MGR_SELECTED_ENTRIES_FMT          "Обрано %d розділ(ів)" 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // clang-format on
