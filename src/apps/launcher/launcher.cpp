@@ -35,6 +35,7 @@
 #include "apps/gpiomanager/gpiomanager.h"
 #include "apps/tamagotchi/tamagotchi.h"
 #include "apps/lua/luarunner.h"
+#include "apps/lua/luawallpaper.h"
 #include "apps/mjs/mjsrunner.h"
 #include "apps/nes/nesapp.h"
 #include "apps/weather/weather.h"
@@ -64,7 +65,8 @@
 #include "keira/ksystem.h"
 #include "keira/utils/string.h"
 
-// Home screen wallpaper, first existing one is used
+// Home screen wallpaper, Lua script takes priority over images, first existing image is used
+static const char* const WALLPAPER_LUA_PATH = "/sd/wallpaper.lua";
 static const char* const WALLPAPER_PATHS[] =
     {"/sd/wallpaper.gif", "/sd/wallpaper.png", "/sd/wallpaper.jpg", "/sd/wallpaper.jpeg", "/sd/wallpaper.bmp"};
 
@@ -461,20 +463,31 @@ void LauncherApp::run() {
 
 void LauncherApp::homeScreen(item_t& mainMenu) {
     Wallpaper wallpaper;
+    LuaWallpaper luaWallpaper;
     while (1) {
         // Wallpaper is reopened each time to free its memory while the menu and apps are running
-        for (const char* path : WALLPAPER_PATHS) {
-            if (wallpaper.open(path, canvas->width(), canvas->height())) break;
+        if (!luaWallpaper.open(WALLPAPER_LUA_PATH, this)) {
+            for (const char* path : WALLPAPER_PATHS) {
+                if (wallpaper.open(path, canvas->width(), canvas->height())) break;
+            }
         }
 
+        TickType_t lastFrame = xTaskGetTickCount();
         while (1) {
             int delayMs = 0;
-            if (wallpaper.isOpen()) {
+            TickType_t now = xTaskGetTickCount();
+            if (luaWallpaper.isOpen()) {
+                // Script error closes Lua wallpaper, black screen is shown instead
+                if (!luaWallpaper.frame(pdTICKS_TO_MS(now - lastFrame))) {
+                    canvas->fillScreen(lilka::colors::Black);
+                }
+            } else if (wallpaper.isOpen()) {
                 delayMs = wallpaper.nextFrame();
                 wallpaper.draw(canvas);
             } else {
                 canvas->fillScreen(lilka::colors::Black);
             }
+            lastFrame = now;
             canvas->setFont(FONT_9x15);
             canvas->setTextColor(lilka::colors::White);
             canvas->drawTextAligned(
@@ -495,6 +508,7 @@ void LauncherApp::homeScreen(item_t& mainMenu) {
             if (openMenu) break;
         }
 
+        luaWallpaper.close();
         wallpaper.close();
         showMenu(mainMenu.name, mainMenu.submenu);
     }

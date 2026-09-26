@@ -15,6 +15,9 @@
 #    define LUA_DBG if (0)
 #endif
 
+// Lua allocator that falls back to PSRAM when internal RAM runs low
+void* lua_smart_alloc(void* ud, void* ptr, size_t osize, size_t nsize);
+
 // Abstract Lua runner app. Sets up Lua VM and provides a method to run Lua code.
 // Does not implement the run method.
 class AbstractLuaRunnerApp : public App {
