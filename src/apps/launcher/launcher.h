@@ -59,6 +59,8 @@ private:
     void run() override;
     ITEM_LIST loadCatalogItems();
     std::vector<String> catalogItemNames_;
+    // Cached autorun setting, menu redraws every frame and it's stored in NVS
+    bool autorunEnabled = false;
 
     void homeScreen(item_t& mainMenu);
     void showMenu(const char* title, ITEM_LIST& menu, bool back = true);

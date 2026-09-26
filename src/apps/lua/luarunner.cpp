@@ -31,6 +31,7 @@
 #include "lualilka_socket.h"
 #include "lualilka_mqtt.h"
 #include "lualilka_httpserver.h"
+#include "lualilka_service.h"
 #include "keira/ksound/sound.h"
 #define SERIAL_DELAY 1000
 
@@ -191,6 +192,7 @@ void AbstractLuaRunnerApp::luaSetup(const char* dir) {
     lualilka_mqtt_register(L);
     lualilka_httpserver_register(L);
     lualilka_state_register(L);
+    lualilka_service_register(L);
 
     // lilka::serial.log("lua: init canvas");
     // lilka::Canvas* canvas = new lilka::Canvas();

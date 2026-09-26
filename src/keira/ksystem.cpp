@@ -15,6 +15,7 @@
 #include "services/ftp/ftp.h"
 #include "services/web/web.h"
 #include "services/mdns/mdns.h"
+#include "services/script/script.h"
 
 // Apps:
 #include "apps/statusbar/statusbar.h"
@@ -157,6 +158,9 @@ void KeiraSystem::launchServices() {
     services.spawn(new MDNSService());
 
     // GUIDELINE: To add a new service register it here
+
+    // User scripts go last, so they can rely on system services
+    ScriptService::autorun();
 }
 
 // Verify OTA Update

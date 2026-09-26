@@ -41,6 +41,7 @@
 #define K_S_LAUNCHER_MDNS               K_S_MDNS
 #define K_S_LAUNCHER_MDNS_HOSTNAME      "Ім'я хоста"
 #define K_S_LAUNCHER_MDNS_ENTER_HOSTNAME "Введіть ім'я хоста:"
+#define K_S_LAUNCHER_AUTORUN            "Автозапуск"
 #define K_S_CHANGE_ON_NEXT_BOOT         "Зміни вступлять в силу при наступному завантаженні"
 #define K_S_OS_NAME                     "Keira OS"
 #define K_S_OS_DESCRIPTION              "by Андерсон & friends"

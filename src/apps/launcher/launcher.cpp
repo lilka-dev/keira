@@ -14,6 +14,7 @@
 #include "services/telnet/telnet.h"
 #include "services/web/web.h"
 #include "services/mdns/mdns.h"
+#include "services/script/script.h"
 // Demos:
 #include "apps/demos/lines/lines.h"
 #include "apps/demos/disk/disk.h"
@@ -70,7 +71,7 @@ static const char* const WALLPAPER_LUA_PATH = "/sd/wallpaper.lua";
 static const char* const WALLPAPER_PATHS[] =
     {"/sd/wallpaper.gif", "/sd/wallpaper.png", "/sd/wallpaper.jpg", "/sd/wallpaper.jpeg", "/sd/wallpaper.bmp"};
 
-LauncherApp::LauncherApp() : App("Launcher") {
+LauncherApp::LauncherApp() : App("Launcher"), autorunEnabled(ScriptService::getAutorunEnabled()) {
     setktStackSize(8192); // Yeah, this one is heavy as fuck
 }
 
@@ -324,6 +325,24 @@ void LauncherApp::run() {
                                             MDNSService* mdnsService =
                                                 static_cast<MDNSService*>(ksystem.services["mdns"]);
                                             menuItem->postfix = mdnsService->getFullHostname();
+                                        }
+                                    ),
+                                }
+                            ),
+                            ITEM::SUBMENU(
+                                K_S_LAUNCHER_AUTORUN,
+                                {
+                                    ITEM::MENU(
+                                        K_S_STATUS,
+                                        [this]() {
+                                            autorunEnabled = !autorunEnabled;
+                                            ScriptService::setAutorunEnabled(autorunEnabled);
+                                        },
+                                        nullptr,
+                                        lilka::colors::White,
+                                        [this](void* item) {
+                                            lilka::MenuItem* menuItem = static_cast<lilka::MenuItem*>(item);
+                                            menuItem->postfix = autorunEnabled ? K_S_ON : K_S_OFF;
                                         }
                                     ),
                                 }

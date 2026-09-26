@@ -36,6 +36,17 @@ KeiraThread* ThreadManager::operator[](const char* name) {
     return NULL;
 }
 
+void ThreadManager::forEach(const std::function<void(KeiraThread*)>& fn) {
+    KMTX_LOCK(lock);
+
+    for (auto& thread : threads)
+        fn(thread);
+    for (auto& thread : threadsToRun)
+        fn(thread);
+
+    KMTX_UNLOCK(lock);
+}
+
 void ThreadManager::threadsClean() {
     KMTX_LOCK(lock);
 
