@@ -37,7 +37,7 @@ static String mjs_get_dir(struct mjs* mjs) {
 }
 
 // Custom load() function that resolves relative paths using __dir__
-static void mjs_custom_load(struct mjs* mjs) {
+void mjs_custom_load(struct mjs* mjs) {
     mjs_val_t arg0 = mjs_arg(mjs, 0);
     if (!mjs_is_string(arg0)) {
         mjs_set_errorf(mjs, MJS_BAD_ARGS_ERROR, "load() requires a string path argument");

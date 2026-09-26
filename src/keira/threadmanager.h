@@ -24,6 +24,7 @@
 #include "keira/thread.h"
 // Libraries:
 #include <vector>
+#include <functional>
 
 #include "keira/bits/threadmanager.h"
 // Uncomment to get debug information
@@ -40,6 +41,10 @@ public:
 
     // Seek thread by name
     KeiraThread* operator[](const char* name);
+
+    // Calls fn for each running and pending thread while holding manager lock.
+    // Threads can't be deleted meanwhile, but pointers must not be kept after fn returns
+    void forEach(const std::function<void(KeiraThread*)>& fn);
 
     virtual void threadsClean();
     virtual void threadsRun();

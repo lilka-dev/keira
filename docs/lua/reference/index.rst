@@ -23,6 +23,7 @@ Lua API
     audio
     sdcard
     state
+    service
     wifi
     serial
     http
