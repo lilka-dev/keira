@@ -3,7 +3,7 @@ indent_style = space
 indent_size = 4
 trim_trailing_whitespace = true
 
-[platformio.ini]
-indent_style = tab
+[{CMakeLists.txt,*.cmake}]
+indent_style = space
 indent_size = 4
 trim_trailing_whitespace = true

@@ -9,7 +9,6 @@ ScanI2CApp::ScanI2CApp() : App("I2C Scanner") {
 }
 
 void ScanI2CApp::run() {
-#if LILKA_VERSION >= 2
     lilka::Canvas buffer(canvas->width(), canvas->height());
     buffer.begin();
     buffer.fillScreen(0);
@@ -51,12 +50,4 @@ void ScanI2CApp::run() {
     while (!lilka::controller.getState().a.justPressed) {
         taskYIELD();
     }
-#else
-    lilka::Alert alert(K_S_ERROR, K_S_LILKA_V2_OR_HIGHER_REQUIRED);
-    alert.draw(canvas);
-    queueDraw();
-    while (!alert.isFinished()) {
-        alert.update();
-    }
-#endif
 }

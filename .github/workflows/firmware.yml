@@ -17,26 +17,21 @@ permissions:
 jobs:
   keira:
     runs-on: ubuntu-latest
+    # Must match KEIRA_IDF_VERSION in boards/lilka_v2/board.cmake
+    container: espressif/idf:v4.4.7
+    defaults:
+      run:
+        shell: bash
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
-          submodules: recursive
-          fetch-depth: 0
+          submodules: true
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
-          path: |
-            ~/.cache/pip
-            ~/.platformio/.cache
-            ./.pio
-          key: ${{ runner.os }}-keira
-
-      - uses: actions/setup-python@v4
-        with:
-          python-version: '3.9'
-
-      - name: Install PlatformIO Core
-        run: pip install --upgrade platformio
+          path: .ccache
+          key: ccache-${{ hashFiles('.gitmodules', 'boards/**') }}-${{ github.sha }}
+          restore-keys: ccache-${{ hashFiles('.gitmodules', 'boards/**') }}-
 
       - name: Extract version and generate Keira header
         id: version
@@ -73,39 +68,36 @@ jobs:
           #endif // KEIRA_VERSION_AUTO_GEN_H
           EOF
 
+          echo "VERSION_TYPE=$VERSION_TYPE" >> "$GITHUB_OUTPUT"
+
           echo "Generated version:"
           cat src/keira/keira_version_auto_gen.h
 
       - name: Build and package firmware
         run: |
+          # container: jobs skip the image entrypoint, so set up the IDF environment here
+          . "$IDF_PATH/export.sh"
+          export CCACHE_DIR="$GITHUB_WORKSPACE/.ccache"
+
+          # build <build dir> <suffix> [compile flags]
+          build() {
+            idf.py -B "$1" -DKEIRA_BUILD_FLAGS="$3" build
+            cp "$1/keira.bin" "out/keira$2.bin"
+            cp "$1/partition_table/partition-table.bin" out/partitions.bin
+            cp "$1/bootloader/bootloader.bin" out/bootloader.bin
+            (cd "$1" && esptool.py --chip esp32s3 merge_bin -o "$GITHUB_WORKSPACE/out/KeiraOS_merged$2.bin" @flash_args)
+          }
+
           mkdir -p out
           if [[ "${{ steps.version.outputs.VERSION_TYPE }}" != "KEIRA_VERSION_TYPE_DEV" ]]; then
             echo "Tag detected - building for all languages"
             for lang in $(cat languages.txt); do
               echo "Building for $lang"
-              PLATFORMIO_BUILD_FLAGS=-D$lang pio run -e v2
-              cp .pio/build/v2/firmware.bin out/keira_${lang}.bin
-              cp .pio/build/v2/partitions.bin out/partitions.bin
-              cp .pio/build/v2/bootloader.bin out/bootloader.bin
-              pip install esptool
-              esptool.py --chip esp32s3 merge_bin \
-                -o out/KeiraOS_merged_${lang}.bin \
-                0x0 out/bootloader.bin \
-                0x8000 out/partitions.bin \
-                0x10000 out/keira_${lang}.bin
+              build "build/$lang" "_$lang" "-D$lang"
             done
           else
             echo "Main branch or PR - building for default language only"
-            pio run -e v2
-            cp .pio/build/v2/firmware.bin out/keira.bin
-            cp .pio/build/v2/partitions.bin out/partitions.bin
-            cp .pio/build/v2/bootloader.bin out/bootloader.bin
-            pip install esptool
-            esptool.py --chip esp32s3 merge_bin \
-              -o out/KeiraOS_merged.bin \
-              0x0 out/bootloader.bin \
-              0x8000 out/partitions.bin \
-              0x10000 out/keira.bin
+            build build ""
           fi
 
       - name: Upload firmware artifacts

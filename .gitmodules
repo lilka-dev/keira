@@ -1,0 +1,52 @@
+[submodule "components/arduino"]
+	path = components/arduino
+	url = https://github.com/espressif/arduino-esp32.git
+	shallow = true
+[submodule "components/lilka/sdk"]
+	path = components/lilka/sdk
+	url = https://github.com/lilka-dev/sdk.git
+	shallow = true
+[submodule "components/Arduino_GFX/Arduino_GFX"]
+	path = components/Arduino_GFX/Arduino_GFX
+	url = https://github.com/moononournation/Arduino_GFX.git
+	shallow = true
+[submodule "components/ArduinoJson/ArduinoJson"]
+	path = components/ArduinoJson/ArduinoJson
+	url = https://github.com/bblanchon/ArduinoJson.git
+	shallow = true
+[submodule "components/ESPTelnet/ESPTelnet"]
+	path = components/ESPTelnet/ESPTelnet
+	url = https://github.com/LennartHennigs/ESPTelnet.git
+	shallow = true
+[submodule "components/ESP8266Audio/ESP8266Audio"]
+	path = components/ESP8266Audio/ESP8266Audio
+	url = https://github.com/earlephilhower/ESP8266Audio.git
+	shallow = true
+[submodule "components/AnimatedGIF/AnimatedGIF"]
+	path = components/AnimatedGIF/AnimatedGIF
+	url = https://github.com/bitbank2/AnimatedGIF.git
+	shallow = true
+[submodule "components/JPEGDEC/JPEGDEC"]
+	path = components/JPEGDEC/JPEGDEC
+	url = https://github.com/bitbank2/JPEGDEC.git
+	shallow = true
+[submodule "components/lua/arduino-lua"]
+	path = components/lua/arduino-lua
+	url = https://github.com/mischief/arduino-lua.git
+	shallow = true
+[submodule "components/U8g2/U8g2_Arduino"]
+	path = components/U8g2/U8g2_Arduino
+	url = https://github.com/olikraus/U8g2_Arduino.git
+	shallow = true
+[submodule "components/nofrendo/arduino-nofrendo"]
+	path = components/nofrendo/arduino-nofrendo
+	url = https://github.com/lilka-dev/arduino-nofrendo.git
+	shallow = true
+[submodule "components/arduino_tinyusb/tinyusb"]
+	path = components/arduino_tinyusb/tinyusb
+	url = https://github.com/hathach/tinyusb.git
+	shallow = true
+[submodule "components/esp-dsp"]
+	path = components/esp-dsp
+	url = https://github.com/espressif/esp-dsp.git
+	shallow = true
