@@ -10,6 +10,19 @@
 
 #define MAX_FPS 60
 
+// Arduino_TFT skips address window commands (CASET/RASET) when the window did not change since the last write.
+// The display shares its SPI bus with the SD card, and a command can be lost right after SD transfers. With the
+// cache, a single lost RASET leaves every following frame written into a stale window (e.g. a fullscreen app drawn
+// 24px lower, over the previous app's area). Invalidating the cache re-sends the window with each frame.
+struct DisplayWindowCache : Arduino_TFT {
+    static void invalidate(Arduino_TFT& tft) {
+        tft.*(&DisplayWindowCache::_currentX) = 0xFFFF;
+        tft.*(&DisplayWindowCache::_currentY) = 0xFFFF;
+        tft.*(&DisplayWindowCache::_currentW) = 0xFFFF;
+        tft.*(&DisplayWindowCache::_currentH) = 0xFFFF;
+    }
+};
+
 AppManager::AppManager() {
     setName(APPMANAGER_NAME);
     setktStackSize(APPMANAGER_STACK);
@@ -90,6 +103,7 @@ void AppManager::run() {
 
             // Redraw app
             if (app->getRedraw()) {
+                DisplayWindowCache::invalidate(lilka::display);
                 if (app->flags & AppFlags::APP_FLAG_INTERLACED) {
                     lilka::display.drawCanvasInterlaced(app->backCanvas, app->frame % 2);
                 } else {
