@@ -1,6 +1,7 @@
 # Lilka v2 (ESP32-S3) sdkconfig defaults for ESP-IDF 4.4.7 + arduino-esp32 2.0.17.
-# Derived from arduino-esp32 2.0.17's prebuilt esp32s3 sdkconfig (qio_opi variant), the one
-# PlatformIO builds linked against, minimized to non-default values.
+# Derived from arduino-esp32 2.0.17's prebuilt esp32s3 sdkconfig plus the qio_opi variant
+# overrides (octal PSRAM, initialized at boot), the one PlatformIO builds linked against,
+# minimized to non-default values.
 
 CONFIG_BOOTLOADER_LOG_LEVEL_NONE=y
 CONFIG_BOOTLOADER_APP_ROLLBACK_ENABLE=y
@@ -25,7 +26,8 @@ CONFIG_ESP32S3_DEFAULT_CPU_FREQ_240=y
 CONFIG_ESP32S3_SPIRAM_SUPPORT=y
 CONFIG_SPIRAM_MODE_OCT=y
 CONFIG_SPIRAM_SPEED_80M=y
-# CONFIG_SPIRAM_BOOT_INIT is not set
+CONFIG_SPIRAM_BOOT_INIT=y
+CONFIG_SPIRAM_IGNORE_NOTFOUND=y
 CONFIG_SPIRAM_MALLOC_ALWAYSINTERNAL=4096
 CONFIG_SPIRAM_TRY_ALLOCATE_WIFI_LWIP=y
 CONFIG_SPIRAM_MALLOC_RESERVE_INTERNAL=0

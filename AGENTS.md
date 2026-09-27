@@ -34,7 +34,9 @@
 - `data/spiffs/` becomes the internal filesystem image (`make flash-fs`); `data/img/` and `data/assets/` are repo-only images and design sources
 - Bumping the Lilka SDK submodule (`components/lilka/sdk`): also update `LILKA_SDK_VERSION` in `components/lilka/CMakeLists.txt` (configure fails on mismatch)
 - A board is a `boards/<board>/` dir with `board.cmake`, `sdkconfig.defaults` and `partitions.csv`; select it with `make BOARD=<board>`
-- sdkconfig is generated in the build dir; persist config changes in `boards/<board>/sdkconfig.defaults`
+- Build dirs: `build/` (default board, same as plain `idf.py`), `build-<board>/` for others, `<dir>-docker/` for Docker builds — never mix host and Docker builds in one dir
+- Local ESP-IDF must be the pinned tag with matching submodules (`git submodule update --init --recursive`) and its own CMake 3.x (`idf_tools.py install cmake`); CMake 4 is rejected at configure time
+- sdkconfig is generated in the build dir and is not refreshed from defaults; after changing `boards/<board>/sdkconfig.defaults` run `make fullclean`
 - One-off compile flags: `make FLAGS="-DLANG_EN -DFMANAGER_DEBUG"` (`-DKEIRA_BUILD_FLAGS=...` for `idf.py`)
 - **v2** (ESP32-S3) is the only supported board; v1 support was removed
 - `clang-format` and `cppcheck` are enforced in CI — run `make clang-format` and `make cppcheck` before committing

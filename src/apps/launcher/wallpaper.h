@@ -26,6 +26,8 @@ private:
     // Copies a block of pixels into buffer at image position (x, y), clipping it to buffer bounds
     void blit(const uint16_t* pixels, int x, int y, int w, int h, int stride);
 
+    // Reads whole file into PSRAM, returns nullptr if it is bigger than maxSize or can't be read
+    static uint8_t* readFile(const char* path, int32_t maxSize, int32_t* size);
     static void* fileOpen(const char* path, int32_t* size);
     static void fileClose(void* handle);
     static int32_t fileRead(FILE* file, int32_t size, int32_t* pos, uint8_t* buf, int32_t len);
@@ -35,6 +37,8 @@ private:
     static void gifFree(void* p);
 
     std::unique_ptr<AnimatedGIF> gif;
+    // GIF file contents, decoded from memory to keep the SD card bus free while frames are drawn
+    uint8_t* gifData = nullptr;
     uint16_t* buffer = nullptr;
     int16_t width = 0;
     int16_t height = 0;

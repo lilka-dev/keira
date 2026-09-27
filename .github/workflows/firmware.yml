@@ -93,7 +93,7 @@ jobs:
             echo "Tag detected - building for all languages"
             for lang in $(cat languages.txt); do
               echo "Building for $lang"
-              build "build/$lang" "_$lang" "-D$lang"
+              build "build-$lang" "_$lang" "-D$lang"
             done
           else
             echo "Main branch or PR - building for default language only"

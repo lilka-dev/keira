@@ -1,5 +1,8 @@
 BOARD ?= lilka_v2
-BUILD_DIR ?= build/$(BOARD)
+# Default board builds in build/, same as plain idf.py; other boards get build-<board>/
+BUILD_DIR ?= $(if $(filter lilka_v2,$(BOARD)),build,build-$(BOARD))
+# Host and container paths differ, so Docker builds can't share a build dir with local ones
+DOCKER_BUILD_DIR ?= $(BUILD_DIR)-docker
 PORT ?=
 # Extra compile flags for one build, e.g. make FLAGS="-DLANG_EN -DFMANAGER_DEBUG"
 FLAGS ?=
@@ -9,7 +12,7 @@ IDF_VERSION := $(shell sed -n 's/.*KEIRA_IDF_VERSION "\(.*\)".*/\1/p' boards/$(B
 IDF_IMAGE ?= espressif/idf:v$(IDF_VERSION)
 DOCKER ?= docker
 
-IDF_PY = idf.py -B $(BUILD_DIR) -DKEIRA_BOARD=$(BOARD) -DKEIRA_BUILD_FLAGS="$(subst $() ,;,$(strip $(FLAGS)))" $(if $(PORT),-p $(PORT))
+IDF_PY = idf.py -B $(1) -DKEIRA_BOARD=$(BOARD) -DKEIRA_BUILD_FLAGS="$(subst $() ,;,$(strip $(FLAGS)))" $(if $(PORT),-p $(PORT))
 
 CPPCHECK ?= cppcheck
 CLANG_FORMAT ?= $(shell command -v clang-format-20 2>/dev/null || echo clang-format)
@@ -27,34 +30,44 @@ submodules: ## Fetch pinned library submodules
 .PHONY: all build
 all: build
 build: ## Build firmware (needs ESP-IDF in the environment)
-	$(IDF_PY) build
+	$(call IDF_PY,$(BUILD_DIR)) build
 
 .PHONY: docker-build
 docker-build: ## Build firmware in the pinned ESP-IDF Docker image
 	$(DOCKER) run --rm -u $$(id -u):$$(id -g) -e HOME=/tmp -v "$(CURDIR)":/project -w /project $(IDF_IMAGE) \
-		$(IDF_PY) build
+		$(call IDF_PY,$(DOCKER_BUILD_DIR)) build
+
+.PHONY: docker-flash
+docker-flash: ## Flash the docker-build output (needs only esptool.py locally)
+	cd $(DOCKER_BUILD_DIR) && esptool.py --chip esp32s3 $(if $(PORT),-p $(PORT)) -b 460800 \
+		--before default_reset --after hard_reset write_flash @flash_args
+
+.PHONY: docker-monitor
+docker-monitor: ## Serial monitor for the docker-build output (no local CMake/build needed), PORT is required
+	python $(IDF_PATH)/tools/idf_monitor.py --port $(PORT) --baud 115200 \
+		--toolchain-prefix xtensa-esp32s3-elf- --target esp32s3 $(DOCKER_BUILD_DIR)/keira.elf
 
 .PHONY: flash
 flash: ## Flash bootloader, partition table and firmware
-	$(IDF_PY) flash
+	$(call IDF_PY,$(BUILD_DIR)) flash
 
 .PHONY: flash-fs
 flash-fs: ## Flash the SPIFFS image built from data/spiffs/ (overwrites files on the device)
-	$(IDF_PY) spiffs-flash
+	$(call IDF_PY,$(BUILD_DIR)) spiffs-flash
 
 .PHONY: monitor
 monitor: ## Serial monitor with backtrace decoding
-	$(IDF_PY) monitor
+	$(call IDF_PY,$(BUILD_DIR)) monitor
 
 .PHONY: menuconfig
 menuconfig: ## Edit sdkconfig for this build dir (persist changes in boards/$(BOARD)/sdkconfig.defaults)
-	$(IDF_PY) menuconfig
+	$(call IDF_PY,$(BUILD_DIR)) menuconfig
 
 .PHONY: clean fullclean
 clean: ## Remove build outputs
-	$(IDF_PY) clean
+	$(call IDF_PY,$(BUILD_DIR)) clean
 fullclean: ## Remove the whole build dir, including sdkconfig
-	$(IDF_PY) fullclean
+	rm -rf $(BUILD_DIR)
 
 .PHONY: compile_commands
 compile_commands: ## Link compile_commands.json from the build dir

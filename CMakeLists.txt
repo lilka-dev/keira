@@ -10,6 +10,13 @@
 
 cmake_minimum_required(VERSION 3.16)
 
+# ESP-IDF 4.4 does not configure with CMake 4 (dropped compatibility with its old cmake_minimum_required calls)
+if(CMAKE_VERSION VERSION_GREATER_EQUAL 4.0)
+    message(FATAL_ERROR "CMake ${CMAKE_VERSION} is not supported by ESP-IDF 4.4, use the CMake shipped with it: "
+                        "run '$IDF_PATH/tools/idf_tools.py install cmake', then re-source export.sh "
+                        "(or build with 'make docker-build').")
+endif()
+
 set(KEIRA_BOARD "lilka_v2" CACHE STRING "Target board, one of boards/<name>")
 set(KEIRA_BOARD_DIR "${CMAKE_CURRENT_LIST_DIR}/boards/${KEIRA_BOARD}")
 if(NOT EXISTS "${KEIRA_BOARD_DIR}/board.cmake")

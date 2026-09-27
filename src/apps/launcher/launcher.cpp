@@ -521,8 +521,9 @@ void LauncherApp::homeScreen(item_t& mainMenu) {
             );
             queueDraw();
 
-            // Wait for the next frame while staying responsive to buttons
-            TickType_t frameEnd = xTaskGetTickCount() + pdMS_TO_TICKS(delayMs > 0 ? delayMs : 30);
+            // Wait for the next frame while staying responsive to buttons.
+            // Frame delay counts from the frame start, so decoding time is not added on top of it
+            TickType_t frameEnd = now + pdMS_TO_TICKS(delayMs > 0 ? delayMs : 30);
             bool openMenu = false;
             do {
                 if (lilka::controller.getState().a.justPressed) {

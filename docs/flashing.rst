@@ -29,14 +29,26 @@ Keira збирається за допомогою `ESP-IDF <https://docs.espres
 
        make docker-build
 
-   **З локально встановленим ESP-IDF v4.4.7** (встановіть його за `інструкцією Espressif <https://docs.espressif.com/projects/esp-idf/en/v4.4.7/esp32s3/get-started/index.html>`_ або через розширення **ESP-IDF** для VS Code, обравши версію ``v4.4.7``):
+   Зібрану в Docker прошивку можна завантажити командою ``make docker-flash PORT=...`` (потрібен лише ``esptool.py``).
+
+   **З локально встановленим ESP-IDF v4.4.7**:
 
    .. code-block:: bash
 
-       . $HOME/esp/esp-idf/export.sh   # шлях до вашого ESP-IDF
+       git clone -b v4.4.7 --recursive --shallow-submodules https://github.com/espressif/esp-idf ~/esp/esp-idf-v4.4.7
+       cd ~/esp/esp-idf-v4.4.7
+       ./install.sh esp32s3
+       python tools/idf_tools.py install cmake   # ESP-IDF 4.4 не працює з CMake 4
+
+       . ~/esp/esp-idf-v4.4.7/export.sh
+       cd <шлях до keira>
        make build
 
-   Перша збірка може зайняти деякий час. Результат збірки знаходиться в ``build/lilka_v2/``.
+   .. warning::
+
+       Підмодулі ESP-IDF мають відповідати тегу ``v4.4.7``. Якщо ви перемкнули наявний репозиторій ESP-IDF на цей тег, обов'язково виконайте ``git submodule update --init --recursive`` в ньому — інакше збірка використає бібліотеки Wi-Fi/PHY з іншої версії.
+
+   Перша збірка може зайняти деякий час. Результат збірки знаходиться в ``build/`` (для Docker — в ``build-docker/``).
 
    .. note::
 
