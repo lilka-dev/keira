@@ -3,6 +3,7 @@
 // Boot:
 #include <lilka/multiboot.h>
 #include <esp_ota_ops.h>
+#include "keira/usb/usbphy.h"
 
 // Services:
 #ifdef KEIRA_WATCHDOG
@@ -211,6 +212,10 @@ void KeiraSystem::showStartupScreen() {
 
 // Prepare system to launch
 void KeiraSystem::setup() {
+    // A crash while USB Drive was open leaves the USB PHY on USB-OTG (it survives resets): take it back,
+    // or there's no serial port
+    if (usb_phy_is_otg()) usb_phy_switch_to_serial_jtag();
+
     // Init Hardware
     lilka::begin();
 

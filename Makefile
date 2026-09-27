@@ -38,9 +38,16 @@ docker-build: ## Build firmware in the pinned ESP-IDF Docker image
 		$(call IDF_PY,$(DOCKER_BUILD_DIR)) build
 
 .PHONY: docker-flash
-docker-flash: ## Flash the docker-build output (needs only esptool.py locally)
+docker-flash: ## Flash the docker-build output (needs only esptool.py locally, one that has --after watchdog_reset)
+	@# While USB Drive is open, the port is Keira's TinyUSB CDC: the reset drops the board into download mode
+	@# on USB-Serial/JTAG and the port re-enumerates under the same name, which esptool can't follow.
+	@# So kick it first, wait for the port, then flash. Harmless otherwise
+	-@esptool.py --chip esp32s3 $(if $(PORT),-p $(PORT)) --before default_reset --after no_reset \
+		--connect-attempts 1 read_mac >/dev/null 2>&1; \
+		sleep 1; for i in $$(seq 20); do [ -z "$(PORT)" ] || [ -e "$(PORT)" ] && break; sleep 0.25; done
+	@# A hard reset (RTS) through USB-Serial/JTAG leaves the chip in download mode, the watchdog reset boots the app
 	cd $(DOCKER_BUILD_DIR) && esptool.py --chip esp32s3 $(if $(PORT),-p $(PORT)) -b 460800 \
-		--before default_reset --after hard_reset write_flash @flash_args
+		--before default_reset --after watchdog_reset write_flash @flash_args
 
 .PHONY: docker-monitor
 docker-monitor: ## Serial monitor for the docker-build output (no local CMake/build needed), PORT is required

@@ -401,7 +401,7 @@
 // apps/usbdrive/usbdrive.cpp /////////////////////////////////////////////////////////////////////////
 #define K_S_USB_DRIVE_TITLE                       "USB Drive"
 #define K_S_USB_DRIVE_EXPERIMENTAL_TITLE          "Warning"
-#define K_S_USB_DRIVE_EXPERIMENTAL_WARNING        "Experimental feature.\nSerial will be disabled.\n\n[START] - OK  [A] - Cancel"
+#define K_S_USB_DRIVE_EXPERIMENTAL_WARNING        "Experimental feature.\nSerial port reconnects\nwhile the drive is on.\n\n[START] - OK  [A] - Cancel"
 #define K_S_USB_DRIVE_INITIALIZING                "Initializing USB..."
 #define K_S_USB_DRIVE_INIT_ERROR                  "USB initialization error"
 #define K_S_USB_DRIVE_NO_SD                       "SD card not available"
@@ -412,7 +412,6 @@
 #define K_S_USB_DRIVE_SAFE_EJECT                  "Safely eject before exit"
 #define K_S_USB_DRIVE_PRESS_A_TO_EXIT             "[A] - exit"
 #define K_S_USB_DRIVE_DISCONNECTING               "Disconnecting..."
-#define K_S_USB_DRIVE_REBOOT_REQUIRED             "Device will reboot..."
 #define K_S_USB_DRIVE_NOT_EJECTED                 "Not safely ejected!"
 #define K_S_USB_DRIVE_EJECT_WARNING               "Data may be corrupted"
 #define K_S_USB_DRIVE_PRESS_START_CONTINUE        "[START] - continue"
