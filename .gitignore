@@ -1,4 +1,6 @@
-.pio
 .vscode
 *.cache*
 compile_commands.json
+build/
+build-*/
+build.log

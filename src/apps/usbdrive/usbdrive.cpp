@@ -4,174 +4,75 @@
 
 #include <lilka.h>
 #include <SD.h>
-#include <SPI.h>
+#include <ff.h>
+#include <diskio.h>
+#include <diskio_impl.h>
 
-// TinyUSB includes for composite device (CDC + MSC)
-#include "USB.h"
-#include "USBCDC.h"
-#include "USBMSC.h"
-
-// Global pointers for MSC callbacks
-static USBMSC* mscDevice = nullptr;
-static bool sdCardReady = false;
-static bool driveEjected = false; // Track if host safely ejected the drive
-static uint32_t sdCardSectors = 0;
-static uint16_t sdCardSectorSize = 512;
-
-// MSC Callbacks - these are called by TinyUSB
-static int32_t onMSCRead(uint32_t lba, uint32_t offset, void* buffer, uint32_t bufsize) {
-    if (!sdCardReady) return -1;
-
-    uint32_t bytesToRead = bufsize;
-    uint8_t* buf = static_cast<uint8_t*>(buffer);
-
-    // Read sectors
-    uint32_t sectorsToRead = (bytesToRead + sdCardSectorSize - 1) / sdCardSectorSize;
-    for (uint32_t i = 0; i < sectorsToRead; i++) {
-        if (!SD.readRAW(buf + i * sdCardSectorSize, lba + i)) {
-            return -1;
-        }
+bool SDBlockDevice::begin() {
+    uint32_t count = SD.numSectors();
+    uint16_t size = SD.sectorSize();
+    if (count == 0) {
+        lilka::serial.err("USB MSC: failed to get SD card size");
+        return false;
     }
-
-    return bytesToRead;
-}
-
-static int32_t onMSCWrite(uint32_t lba, uint32_t offset, uint8_t* buffer, uint32_t bufsize) {
-    if (!sdCardReady) return -1;
-
-    uint32_t bytesToWrite = bufsize;
-
-    // Write sectors
-    uint32_t sectorsToWrite = (bytesToWrite + sdCardSectorSize - 1) / sdCardSectorSize;
-    for (uint32_t i = 0; i < sectorsToWrite; i++) {
-        if (!SD.writeRAW(buffer + i * sdCardSectorSize, lba + i)) {
-            return -1;
-        }
-    }
-
-    return bytesToWrite;
-}
-
-// Called when host wants to eject the drive
-static bool onMSCStartStop(uint8_t power_condition, bool start, bool load_eject) {
-    lilka::serial.log("USB MSC: StartStop power=%d start=%d eject=%d", power_condition, start, load_eject);
-
-    if (load_eject) {
-        if (!start) {
-            // Host is ejecting the drive - mark as safely ejected
-            sdCardReady = false;
-            driveEjected = true;
-            lilka::serial.log("USB MSC: Drive safely ejected by host");
-        } else {
-            // Host is loading/mounting the drive
-            sdCardReady = true;
-            driveEjected = false;
-            lilka::serial.log("USB MSC: Drive mounted by host");
-        }
-    }
-
+    // SD cards use 512-byte sectors at the physical level
+    sectorSize = size ? size : 512;
+    sectors = count;
+    pdrv = findDrive();
+    lilka::serial.log(
+        "USB MSC: SD card %llu bytes, sector size %u, sectors %lu, %s",
+        static_cast<uint64_t>(sectors) * sectorSize,
+        static_cast<unsigned>(sectorSize),
+        static_cast<unsigned long>(sectors),
+        pdrv == NO_DRIVE ? "single-sector access" : "multi-sector access"
+    );
     return true;
 }
 
-// Called to check if device is ready
-static bool onMSCReady() {
-    return sdCardReady;
+// SD.readRAW()/writeRAW() move one sector per SD command, which makes USB MSC slow (the host reads
+// megabytes of FAT on mount). The same driver does multi-sector transfers (CMD18/CMD25) through the
+// FatFs diskio layer, but the SD object keeps its drive number private: find it here. Every slot below
+// the first free one is registered, and the SD card is the one returning the same sector 0
+uint8_t SDBlockDevice::findDrive() {
+    BYTE firstFree = FF_VOLUMES;
+    if (ff_diskio_get_drive(&firstFree) != ESP_OK) firstFree = FF_VOLUMES;
+    if (sectorSize > sizeof(probe) / 2) return NO_DRIVE;
+    if (!SD.readRAW(probe, 0)) return NO_DRIVE;
+    for (BYTE drive = 0; drive < firstFree; drive++) {
+        if (disk_read(drive, probe + sectorSize, 0, 1) != RES_OK) continue;
+        if (memcmp(probe, probe + sectorSize, sectorSize) == 0) return drive;
+    }
+    return NO_DRIVE;
 }
 
-// Check if drive was safely ejected
-bool USBDriveApp::isDriveEjected() {
-    return driveEjected;
+bool SDBlockDevice::readBlocks(uint32_t lba, uint8_t* dst, uint32_t count) {
+    if (pdrv != NO_DRIVE) return disk_read(pdrv, dst, lba, count) == RES_OK;
+    for (uint32_t i = 0; i < count; i++) {
+        if (!SD.readRAW(dst + i * sectorSize, lba + i)) return false;
+    }
+    return true;
 }
 
-USBDriveApp::USBDriveApp() : App("USB Drive"), mscInitialized(false) {
+bool SDBlockDevice::writeBlocks(uint32_t lba, const uint8_t* src, uint32_t count) {
+    if (pdrv != NO_DRIVE) return disk_write(pdrv, src, lba, count) == RES_OK;
+    for (uint32_t i = 0; i < count; i++) {
+        // writeRAW doesn't modify the buffer, its signature just lacks const
+        if (!SD.writeRAW(const_cast<uint8_t*>(src + i * sectorSize), lba + i)) return false;
+    }
+    return true;
+}
+
+USBDriveApp::USBDriveApp() : App("USB Drive") {
     setFlags(APP_FLAG_FULLSCREEN);
 }
 
-bool USBDriveApp::initUSBMSC() {
-    // Check if SD card is available
-    if (!lilka::fileutils.isSDAvailable()) {
-        lilka::serial.err("USB MSC: SD card not available");
-        return false;
-    }
-
-    // Get SD card info
-    uint64_t cardSize = SD.cardSize();
-    if (cardSize == 0) {
-        lilka::serial.err("USB MSC: Failed to get card size");
-        return false;
-    }
-
-    // Get sector size from SD card (typically 512 bytes, but can vary)
-    // SD cards use 512-byte sectors at the physical level
-    sdCardSectorSize = SD.sectorSize();
-    if (sdCardSectorSize == 0) {
-        // Fallback to standard sector size if not available
-        sdCardSectorSize = 512;
-        lilka::serial.log("USB MSC: Using default sector size: %d", sdCardSectorSize);
-    }
-
-    sdCardSectors = cardSize / sdCardSectorSize;
-    sdCardReady = true;
-
-    lilka::serial.log(
-        "USB MSC: Card size: %llu bytes, sector size: %d, sectors: %lu", cardSize, sdCardSectorSize, sdCardSectors
-    );
-
-    // Create MSC device
-    mscDevice = new USBMSC();
-    if (!mscDevice) {
-        lilka::serial.err("USB MSC: Failed to create MSC device");
-        sdCardReady = false;
-        return false;
-    }
-
-    // Configure MSC
-    mscDevice->vendorID("Lilka");
-    mscDevice->productID("SD Card");
-    mscDevice->productRevision("1.0");
-    mscDevice->onRead(onMSCRead);
-    mscDevice->onWrite(onMSCWrite);
-    mscDevice->onStartStop(onMSCStartStop);
-    mscDevice->mediaPresent(true);
-
-    // Begin MSC with sector count and size
-    if (!mscDevice->begin(sdCardSectors, sdCardSectorSize)) {
-        lilka::serial.err("USB MSC: Failed to begin MSC");
-        delete mscDevice;
-        mscDevice = nullptr;
-        sdCardReady = false;
-        return false;
-    }
-
-    // Configure composite USB device (CDC + MSC)
-    // CDC is already configured at boot (ARDUINO_USB_CDC_ON_BOOT=1)
-    // We just need to ensure USB is started - it will enumerate as composite device
-    USB.productName("Lilka");
-    USB.manufacturerName("Lilka Team");
-
-    if (!USB) {
-        USB.begin();
-    }
-
-    lilka::serial.log("USB MSC: Composite device (CDC+MSC) initialized");
-    return true;
-}
-
-void USBDriveApp::deinitUSBMSC() {
-    if (mscInitialized) {
-        sdCardReady = false;
-
-        if (mscDevice) {
-            mscDevice->end();
-            delete mscDevice;
-            mscDevice = nullptr;
+void USBDriveApp::waitForExit() {
+    while (true) {
+        lilka::State state = lilka::controller.getState();
+        if (state.a.justPressed || state.b.justPressed) {
+            return;
         }
-
-        // Note: USB.end() might cause issues, so we just disable the MSC
-        // The USB stack will be reset on reboot
-
-        mscInitialized = false;
-        lilka::serial.log("USB MSC: Deinitialized");
+        vTaskDelay(50 / portTICK_PERIOD_MS);
     }
 }
 
@@ -190,15 +91,8 @@ void USBDriveApp::run() {
         canvas->setCursor(16, 120);
         canvas->print(K_S_USB_DRIVE_PRESS_A_TO_EXIT);
         queueDraw();
-
-        // Wait for button press
-        while (true) {
-            lilka::State state = lilka::controller.getState();
-            if (state.a.justPressed || state.b.justPressed) {
-                return;
-            }
-            vTaskDelay(50 / portTICK_PERIOD_MS);
-        }
+        waitForExit();
+        return;
     }
 
     canvas->fillScreen(lilka::colors::Black);
@@ -212,10 +106,9 @@ void USBDriveApp::run() {
     canvas->print(K_S_USB_DRIVE_CONNECT_USB);
     queueDraw();
 
-    // Try to initialize USB MSC
-    mscInitialized = initUSBMSC();
-
-    if (!mscInitialized) {
+    // Switch the port to the CDC + MSC device, the serial monitor keeps working on it
+    if (!sd.begin() || !usb.begin() || !usb.attachDisk(&sd)) {
+        stop();
         // Show error - SD card is OK but USB init failed
         canvas->fillScreen(lilka::colors::Black);
         canvas->setTextColor(lilka::colors::Red);
@@ -226,126 +119,128 @@ void USBDriveApp::run() {
         canvas->setCursor(16, 120);
         canvas->print(K_S_USB_DRIVE_PRESS_A_TO_EXIT);
         queueDraw();
-
-        // Wait for button press
-        while (true) {
-            lilka::State state = lilka::controller.getState();
-            if (state.a.justPressed || state.b.justPressed) {
-                return;
-            }
-            vTaskDelay(50 / portTICK_PERIOD_MS);
-        }
+        waitForExit();
+        return;
     }
 
-    // Show success screen with instructions
+    // Redraw only when the status changes: the display shares the SPI bus with the SD card
+    int shownStatus = -1;
     while (true) {
-        canvas->fillScreen(lilka::colors::Black);
-
-        // Title
-        canvas->setTextColor(lilka::colors::Jasmine);
-        canvas->setFont(FONT_9x15);
-        canvas->setCursor(16, 30);
-        canvas->print(K_S_USB_DRIVE_TITLE);
-
-        // USB icon (simple representation)
-        int centerX = canvas->width() / 2;
-        int iconY = 60;
-        canvas->fillRoundRect(centerX - 20, iconY, 40, 50, 5, lilka::colors::Dim_gray);
-        canvas->fillRect(centerX - 15, iconY + 5, 30, 20, lilka::colors::White);
-        canvas->fillRect(centerX - 5, iconY + 50, 10, 15, lilka::colors::Dim_gray);
-
-        // Status - show different message if ejected
-        if (isDriveEjected()) {
-            canvas->setTextColor(lilka::colors::Arylide_yellow);
-            canvas->setCursor(16, 140);
-            canvas->print(K_S_USB_DRIVE_EJECTED);
-        } else {
-            canvas->setTextColor(lilka::colors::Mint);
-            canvas->setCursor(16, 140);
-            canvas->print(K_S_USB_DRIVE_CONNECTED);
+        int status = usb.isEjected() ? 0 : (!usb.isMounted() ? 1 : 2);
+        if (status != shownStatus) {
+            shownStatus = status;
+            drawStatus(status);
         }
 
-        // Instructions
-        canvas->setTextColor(lilka::colors::Light_gray);
-        canvas->setFont(FONT_6x13);
-        canvas->setCursor(16, 170);
-        canvas->print(K_S_USB_DRIVE_PC_INSTRUCTION);
-
-        canvas->setCursor(16, 185);
-        canvas->print(K_S_USB_DRIVE_SAFE_EJECT);
-
-        // Exit instruction
-        canvas->setTextColor(lilka::colors::Arylide_yellow);
-        canvas->setCursor(16, 205);
-        canvas->print(K_S_USB_DRIVE_PRESS_A_TO_EXIT);
-
-        queueDraw();
-
-        // Check for exit button with delay to prevent flickering
         vTaskDelay(50 / portTICK_PERIOD_MS);
         lilka::State state = lilka::controller.getState();
-        if (state.a.justPressed) {
-            // Warn if not safely ejected
-            if (!isDriveEjected()) {
-                canvas->fillScreen(lilka::colors::Black);
-                canvas->setTextColor(lilka::colors::Red);
-                canvas->setFont(FONT_9x15);
-                canvas->setCursor(16, 60);
-                canvas->print(K_S_USB_DRIVE_NOT_EJECTED);
-                canvas->setTextColor(lilka::colors::White);
-                canvas->setFont(FONT_6x13);
-                canvas->setCursor(16, 100);
-                canvas->print(K_S_USB_DRIVE_EJECT_WARNING);
-                canvas->setTextColor(lilka::colors::Arylide_yellow);
-                canvas->setCursor(16, 140);
-                canvas->print(K_S_USB_DRIVE_PRESS_START_CONTINUE);
-                canvas->setCursor(16, 160);
-                canvas->print(K_S_USB_DRIVE_PRESS_B_CANCEL);
-                queueDraw();
+        if (!state.a.justPressed) continue;
 
-                // Wait for confirmation
-                bool cancelled = false;
-                while (true) {
-                    lilka::State confirmState = lilka::controller.getState();
-                    if (confirmState.start.justPressed) {
-                        break; // Continue with exit
-                    }
-                    if (confirmState.b.justPressed) {
-                        cancelled = true;
-                        break; // Cancel - go back to main loop
-                    }
-                    vTaskDelay(50 / portTICK_PERIOD_MS);
-                }
-
-                if (cancelled) {
-                    continue; // Cancel - go back to main screen
-                }
-            }
-
-            // Show reboot message - USB stack changes require reboot
+        // Warn if not safely ejected
+        if (!usb.isEjected()) {
             canvas->fillScreen(lilka::colors::Black);
-            canvas->setTextColor(lilka::colors::Arylide_yellow);
+            canvas->setTextColor(lilka::colors::Red);
             canvas->setFont(FONT_9x15);
-            canvas->setCursor(16, 80);
-            canvas->print(K_S_USB_DRIVE_DISCONNECTING);
+            canvas->setCursor(16, 60);
+            canvas->print(K_S_USB_DRIVE_NOT_EJECTED);
             canvas->setTextColor(lilka::colors::White);
             canvas->setFont(FONT_6x13);
-            canvas->setCursor(16, 120);
-            canvas->print(K_S_USB_DRIVE_REBOOT_REQUIRED);
+            canvas->setCursor(16, 100);
+            canvas->print(K_S_USB_DRIVE_EJECT_WARNING);
+            canvas->setTextColor(lilka::colors::Arylide_yellow);
+            canvas->setCursor(16, 140);
+            canvas->print(K_S_USB_DRIVE_PRESS_START_CONTINUE);
+            canvas->setCursor(16, 160);
+            canvas->print(K_S_USB_DRIVE_PRESS_B_CANCEL);
             queueDraw();
 
-            deinitUSBMSC();
-            vTaskDelay(2000 / portTICK_PERIOD_MS);
+            // Wait for confirmation
+            bool cancelled = false;
+            while (true) {
+                lilka::State confirmState = lilka::controller.getState();
+                if (confirmState.start.justPressed) {
+                    break; // Continue with exit
+                }
+                if (confirmState.b.justPressed) {
+                    cancelled = true;
+                    break; // Cancel - go back to main loop
+                }
+                vTaskDelay(50 / portTICK_PERIOD_MS);
+            }
 
-            // Reboot the device
-            ESP.restart();
-            return;
+            if (cancelled) {
+                shownStatus = -1; // Back to the main screen
+                continue;
+            }
         }
 
-        vTaskDelay(100 / portTICK_PERIOD_MS);
+        canvas->fillScreen(lilka::colors::Black);
+        canvas->setTextColor(lilka::colors::Arylide_yellow);
+        canvas->setFont(FONT_9x15);
+        canvas->setCursor(16, 80);
+        canvas->print(K_S_USB_DRIVE_DISCONNECTING);
+        queueDraw();
+
+        stop();
+        return;
     }
 }
 
+void USBDriveApp::drawStatus(int status) {
+    canvas->fillScreen(lilka::colors::Black);
+
+    // Title
+    canvas->setTextColor(lilka::colors::Jasmine);
+    canvas->setFont(FONT_9x15);
+    canvas->setCursor(16, 30);
+    canvas->print(K_S_USB_DRIVE_TITLE);
+
+    // USB icon (simple representation)
+    int centerX = canvas->width() / 2;
+    int iconY = 60;
+    canvas->fillRoundRect(centerX - 20, iconY, 40, 50, 5, lilka::colors::Dim_gray);
+    canvas->fillRect(centerX - 15, iconY + 5, 30, 20, lilka::colors::White);
+    canvas->fillRect(centerX - 5, iconY + 50, 10, 15, lilka::colors::Dim_gray);
+
+    // Status
+    canvas->setCursor(16, 140);
+    if (status == 0) {
+        canvas->setTextColor(lilka::colors::Arylide_yellow);
+        canvas->print(K_S_USB_DRIVE_EJECTED);
+    } else if (status == 1) {
+        canvas->setTextColor(lilka::colors::Light_gray);
+        canvas->print(K_S_USB_DRIVE_CONNECT_USB);
+    } else {
+        canvas->setTextColor(lilka::colors::Mint);
+        canvas->print(K_S_USB_DRIVE_CONNECTED);
+    }
+
+    // Instructions
+    canvas->setTextColor(lilka::colors::Light_gray);
+    canvas->setFont(FONT_6x13);
+    canvas->setCursor(16, 170);
+    canvas->print(K_S_USB_DRIVE_PC_INSTRUCTION);
+
+    canvas->setCursor(16, 185);
+    canvas->print(K_S_USB_DRIVE_SAFE_EJECT);
+
+    // Exit instruction
+    canvas->setTextColor(lilka::colors::Arylide_yellow);
+    canvas->setCursor(16, 205);
+    canvas->print(K_S_USB_DRIVE_PRESS_A_TO_EXIT);
+
+    queueDraw();
+}
+
+// Give the port back to USB-Serial/JTAG and let Keira see what the host changed
+void USBDriveApp::stop() {
+    if (!usb.isActive()) return;
+    usb.end();
+    // The host wrote to the card behind FATFS's back, its cached state is stale: remount
+    SD.end();
+    lilka::fileutils.initSD();
+}
+
 void USBDriveApp::onExit() {
-    deinitUSBMSC();
+    stop();
 }
