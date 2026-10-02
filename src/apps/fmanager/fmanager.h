@@ -52,7 +52,7 @@
 #define FT_SOUND_ICON           &music_img
 #define FT_LT_ICON              &music_img
 #define FT_SO_ICON              &bin_img
-#define FT_IMAGE_ICON           &normalfile_img
+#define FT_IMAGE_ICON           &imagefile_img
 #define FT_DIR_ICON             &folder_img
 #define FT_OTHER_ICON           &normalfile_img
 #define FM_SELECTED_FOLDER_ICON &selectedfolder_img
@@ -107,6 +107,7 @@
 #include "apps/icons/music.h"
 #include "apps/icons/selectedfile.h"
 #include "apps/icons/selectedfolder.h"
+#include "apps/icons/imagefile.h"
 
 // very bad test
 // /sd/1 => /sd/1122/1
