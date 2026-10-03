@@ -121,6 +121,18 @@ String App::input(const String& title, const String& value, bool masked) {
     return inputDialog.getValue();
 }
 ///////////////////////////////////////////////////////////////////////////////
+//========================================================================
+//  App UI Misc:
+//========================================================================
+// Set toolbar contents
+void App::setToolBar(const String& toolbar) {
+    this->toolBarLabel = toolbar;
+}
+void App::setToolBarColor(uint16_t color, uint16_t bgcolor) {
+    this->toolBarColor = color;
+    this->toolBarBgColor = bgcolor;
+}
+//////////////////////////////////////////////////////////////////////////
 //=============================================================================
 //  App Canvas management
 //=============================================================================
@@ -211,6 +223,21 @@ void App::deinitCanvas() {
 }
 //-----------------------------------------------------------------------------
 void App::queueDraw() {
+    // Draw toolbar on top of canvas
+    if (toolBarLabel != "") {
+        canvas->fillRect(0, canvas->height() - TOOL_BAR_HEIGHT, canvas->width(), TOOL_BAR_HEIGHT, this->toolBarBgColor);
+
+        canvas->setCursor(TOOL_BAR_SAFE_DISTANCE, canvas->height() - 20 / 2); // FONT_Y / 2
+        canvas->setFont(FONT_8x13);
+        canvas->setTextColor(this->toolBarColor);
+
+        canvas->setTextBound(
+            TOOL_BAR_SAFE_DISTANCE, canvas->height() - TOOL_BAR_HEIGHT, TOOL_BAR_WIDTH, TOOL_BAR_HEIGHT
+        );
+
+        canvas->printf(this->toolBarLabel.c_str());
+    }
+
     KMTX_LOCK(canvasMutex);
 
     // Detect if frame was skipped. Need to readjust priorities in this case

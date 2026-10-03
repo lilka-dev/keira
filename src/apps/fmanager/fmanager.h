@@ -70,14 +70,9 @@
 #define FM_MKDIR_MODE                    0777
 #define FM_DEFAULT_NEW_FOLDER_NAME       "New Folder"
 
-// STATUS BAR SETTINGS:  /////////////////////////////////////////////////////
-#define STATUS_BAR_HEIGHT        30
-#define STATUS_BAR_SAFE_DISTANCE 38
-#define STATUS_BAR_WIDTH         canvas->width() - STATUS_BAR_SAFE_DISTANCE * 2
-#define STATUS_BAR_TEXT_COLOR    lilka::colors::White
-#define STATUS_BAR_FILL_COLOR    lilka::colors::Black
-#define FM_ERRNO_TIME            5000 // time to show last error
-#define FM_FREE_SPACE_UPDATE     5000
+// TOOL BAR SETTINGS:  ///////////////////////////////////////////////////////
+#define FM_ERRNO_TIME        5000 // time to show last error
+#define FM_FREE_SPACE_UPDATE 5000
 //////////////////////////////////////////////////////////////////////////////
 
 #define ENTRY_NOT_FOUND_INDEX UINT16_MAX
@@ -111,7 +106,7 @@
 
 // very bad test
 // /sd/1 => /sd/1122/1
-// no need with status bar
+// no need with tool bar
 #define MAKE_SANDWICH(X) \
     if (0) ksystem.apps.startToast(X)
 
@@ -258,7 +253,7 @@ private:
     int lastSpaceUsageTime = 0;
 
     // Manual draw
-    void drawStatusBar();
+    void drawToolBar();
     void spaceUsageUpdate(); // updates freeSpaceStr for current filesystem(by dir)
 
     // Menu:
@@ -326,8 +321,9 @@ private:
     std::vector<FMEntry, SPIRamAllocator<FMEntry>> currentDirEntries;
     std::vector<FMEntry, SPIRamAllocator<FMEntry>> selectedDirEntries;
 
-    // Status bar stuff
+    // Tool bar stuff
     int errnoTime = 0;
     String errnoStr = "";
     String spaceUsageStr = "";
+    String sToolBar = "";
 };
