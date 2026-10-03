@@ -1364,11 +1364,11 @@ void FileManagerApp::drawToolBar() {
     }
 
     // Other significant data to show
-    if (sTooBar == "" && mode == FM_MODE_SELECT) {
+    if (sToolBar == "" && mode == FM_MODE_SELECT) {
         sToolBar = StringFormat(K_S_FMANAGER_SELECTED_FILES_FMT, selectedDirEntries.size());
     }
 
-    if (sTooBar == "" && mode == FM_MODE_VIEW) {
+    if (sToolBar == "" && mode == FM_MODE_VIEW) {
         auto fileListMenuIndex = fileListMenu.getCursor();
         auto dirLength = currentDirEntries.size();
         if (fileListMenuIndex != dirLength) {
