@@ -317,8 +317,10 @@ FMEntry FileManagerApp::pathToEntry(const String& path) {
         newEntry.type = FT_JS_SCRIPT;
         newEntry.icon = FT_JS_SCRIPT_ICON;
         newEntry.color = FT_JS_SCRIPT_COLOR;
-    } else if (lowerCasedPath.endsWith(".mod") || lowerCasedPath.endsWith(".wav") || lowerCasedPath.endsWith(".mp3") ||
-               lowerCasedPath.endsWith(".aac") || lowerCasedPath.endsWith(".flac")) {
+    } else if (
+        lowerCasedPath.endsWith(".mod") || lowerCasedPath.endsWith(".wav") || lowerCasedPath.endsWith(".mp3") ||
+        lowerCasedPath.endsWith(".aac") || lowerCasedPath.endsWith(".flac")
+    ) {
         newEntry.type = FT_SOUND;
         newEntry.icon = FT_SOUND_ICON;
         newEntry.color = FT_SOUND_COLOR;
@@ -330,8 +332,10 @@ FMEntry FileManagerApp::pathToEntry(const String& path) {
         newEntry.type = FT_SO;
         newEntry.icon = FT_SO_ICON;
         newEntry.color = FT_SO_COLOR;
-    } else if (lowerCasedPath.endsWith(".png") || lowerCasedPath.endsWith(".jpg") || lowerCasedPath.endsWith(".jpeg") ||
-               lowerCasedPath.endsWith(".gif") || lowerCasedPath.endsWith(".bmp")) {
+    } else if (
+        lowerCasedPath.endsWith(".png") || lowerCasedPath.endsWith(".jpg") || lowerCasedPath.endsWith(".jpeg") ||
+        lowerCasedPath.endsWith(".gif") || lowerCasedPath.endsWith(".bmp")
+    ) {
         newEntry.type = FT_IMAGE;
         newEntry.icon = FT_IMAGE_ICON;
         newEntry.color = FT_IMAGE_COLOR;
@@ -1328,7 +1332,8 @@ void FileManagerApp::run() {
 }
 
 void FileManagerApp::queueDraw() {
-    drawStatusBar();
+    // TODO: ToolBar part unified, so we can probably avoid overriding queueDraw at all
+    drawToolBar();
     App::queueDraw();
 }
 void FileManagerApp::spaceUsageUpdate() {
@@ -1344,43 +1349,37 @@ void FileManagerApp::spaceUsageUpdate() {
         }
     }
 }
-void FileManagerApp::drawStatusBar() {
-    spaceUsageUpdate();
-    canvas->fillRect(
-        0, canvas->height() - STATUS_BAR_HEIGHT, canvas->width(), STATUS_BAR_HEIGHT, STATUS_BAR_FILL_COLOR
-    );
-    // Uncomment those to get an idea where is x, and where is y
-    // Draw xy
-    //canvas->drawLine(0, 0, 50, 0, lilka::colors::Red);
-    //canvas->drawLine(0, 0, 0, 50, lilka::colors::Blue);
-    // canvas->printf("Height %d, width %d", canvas->height(), canvas->width());
+void FileManagerApp::drawToolBar() {
+    sToolBar = "";
 
-    canvas->setCursor(STATUS_BAR_SAFE_DISTANCE, canvas->height() - 20 / 2); // FONT_Y / 2
-    canvas->setFont(FONT_8x13);
+    uint16_t toolBarColor = lilka::colors::White;
+    uint16_t toolBarBgColor = lilka::colors::Black;
 
-    canvas->setTextBound(
-        STATUS_BAR_SAFE_DISTANCE, canvas->height() - STATUS_BAR_HEIGHT, STATUS_BAR_WIDTH, STATUS_BAR_HEIGHT
-    );
     // Show errno if set
     if (errno != 0) {
         errnoTime = millis();
         errnoStr = String(errno) + ":" + strerror(errno);
         errno = 0;
     }
+
     if ((millis() - errnoTime) <= FM_ERRNO_TIME) {
-        canvas->setTextColor(lilka::colors::Red);
-        canvas->printf("%s", errnoStr.c_str());
+        toolBarColor = lilka::colors::Red;
+        sToolBar = errnoStr.c_str();
         return;
     }
     // Other significant data to show
     if (mode == FM_MODE_SELECT) {
-        canvas->setTextColor(lilka::colors::White);
-        canvas->printf(K_S_FMANAGER_SELECTED_FILES_FMT, selectedDirEntries.size());
+        sToolBar = StringFormat(K_S_FMANAGER_SELECTED_FILES_FMT, selectedDirEntries.size());
     } else if (mode == FM_MODE_VIEW) {
-        canvas->setTextColor(lilka::colors::White);
         auto fileListMenuIndex = fileListMenu.getCursor();
         auto dirLength = currentDirEntries.size();
-        if (fileListMenuIndex != dirLength)
-            canvas->printf("(%s) [ %d / %d ] ", spaceUsageStr.c_str(), fileListMenuIndex + 1, dirLength);
+        if (fileListMenuIndex != dirLength) {
+            spaceUsageUpdate();
+            sToolBar = StringFormat("(%s) [ %d / %d ] ", spaceUsageStr.c_str(), fileListMenuIndex + 1, dirLength);
+        }
     }
+
+    // Configure tool bar
+    setToolBarColor(toolBarColor, toolBarBgColor);
+    setToolBar(sToolBar);
 }
