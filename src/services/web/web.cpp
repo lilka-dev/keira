@@ -1,6 +1,7 @@
 #include "web.h"
 #include "esp_http_server.h"
 #include "keira/ksystem.h"
+#include "keira/vfs/spiram/spiram.h"
 
 // TODO: html to header generator with compression
 
@@ -674,8 +675,6 @@ static const char* contentLengthHeader = "Content-Length";
 static const char* fileHeaderDivider = "\r\n\r\n";
 static volatile bool pendingRestart = false;
 
-static volatile bool pendingMultiboot = false;
-static String pendingMultibootPath = "";
 static volatile int multibootProgress = -1; // -1=idle, -2=error, 0-100=progress
 
 static esp_err_t index_handler(httpd_req_t* req) {
@@ -1207,7 +1206,6 @@ static esp_err_t sd_upload_handler(httpd_req_t* req) {
 }
 
 static esp_err_t multiboot_upload_handler(httpd_req_t* req) {
-    // TODO: replace with sd_upload_handler + spiramvfs file + multibootapp spawn
     String lastError = "No error";
     esp_err_t res = httpd_resp_set_type(req, "text/plain");
     if (res != ESP_OK) return res;
@@ -1215,19 +1213,13 @@ static esp_err_t multiboot_upload_handler(httpd_req_t* req) {
     int contentLength = getContentLength(req);
     lilka::serial.log("Multiboot upload size %d", contentLength);
 
-    auto sdRoot = lilka::fileutils.getSDRoot();
-    if (sdRoot.length() == 0) {
-        httpd_resp_set_status(req, HTTPD_500);
-        return httpd_resp_sendstr(req, "SD card not available");
-    }
-
     char* buf = static_cast<char*>(malloc(WEB_BUFFER_FS_OP));
     if (!buf) {
         httpd_resp_set_status(req, HTTPD_500);
         return httpd_resp_sendstr(req, "Memory allocation failed");
     }
 
-    String filePath = lilka::fileutils.joinPath(sdRoot, "_web_multiboot.bin");
+    String filePath = String(LILKA_TMP_ROOT) + "/_web_multiboot.bin";
     FILE* file = NULL;
     bool seekBinary = true;
     esp_err_t err = ESP_OK;
@@ -1244,7 +1236,7 @@ static esp_err_t multiboot_upload_handler(httpd_req_t* req) {
         if (seekBinary) {
             file = fopen(filePath.c_str(), "wb");
             if (!file) {
-                lastError = "Failed to create file on SD card";
+                lastError = "Failed to create file in /tmp";
                 err = ESP_FAIL;
                 break;
             }
@@ -1264,11 +1256,12 @@ static esp_err_t multiboot_upload_handler(httpd_req_t* req) {
     free(buf);
 
     if (err == ESP_OK) {
-        lilka::serial.log("Multiboot file saved, scheduling boot: %s", filePath.c_str());
-        pendingMultibootPath = filePath;
-        pendingMultiboot = true;
+        fclose(file);
+        lilka::serial.log("Multiboot file saved to %s, launching app", filePath.c_str());
+        ksystem.apps.spawn(new MultiBootApp(filePath));
         res = httpd_resp_sendstr(req, "OK");
     } else {
+        if (file) fclose(file);
         httpd_resp_set_status(req, HTTPD_500);
         res = httpd_resp_sendstr(req, lastError.c_str());
     }
@@ -1568,13 +1561,17 @@ static esp_err_t boot_handler(httpd_req_t* req) {
         return httpd_resp_sendstr(req, "No file path specified");
     }
 
-    auto sdRoot = lilka::fileutils.getSDRoot();
-    if (sdRoot.length() == 0) {
-        httpd_resp_set_status(req, HTTPD_500);
-        return httpd_resp_sendstr(req, "SD card not available");
+    String filePath;
+    if (sdCardSelected) {
+        auto sdRoot = lilka::fileutils.getSDRoot();
+        if (sdRoot.length() == 0) {
+            httpd_resp_set_status(req, HTTPD_500);
+            return httpd_resp_sendstr(req, "SD card not available");
+        }
+        filePath = lilka::fileutils.joinPath(sdRoot, query);
+    } else {
+        filePath = String(LILKA_TMP_ROOT) + "/" + query;
     }
-
-    String filePath = lilka::fileutils.joinPath(sdRoot, query);
 
     struct stat statbuf;
     if (stat(filePath.c_str(), &statbuf) != 0) {
@@ -1591,8 +1588,7 @@ static esp_err_t boot_handler(httpd_req_t* req) {
 
     lilka::serial.log("Boot request for: %s", filePath.c_str());
     multibootProgress = 0;
-    pendingMultibootPath = filePath;
-    pendingMultiboot = true;
+    ksystem.apps.spawn(new MultiBootApp(filePath));
     return httpd_resp_sendstr(req, "OK");
 }
 
@@ -1659,73 +1655,6 @@ void WebService::run() {
         if (pendingRestart) {
             vTaskDelay(pdMS_TO_TICKS(2000));
             esp_restart();
-        }
-
-        if (pendingMultiboot && pendingMultibootPath.length() > 0) {
-            // Stop HTTP server before multiboot
-
-            // Create dedicated task for multiboot (like catalog app does)
-            String pathCopy = pendingMultibootPath;
-            pendingMultiboot = false;
-            pendingMultibootPath = "";
-
-            xTaskCreate(
-                [](void* param) {
-                    String* path = static_cast<String*>(param);
-                    vTaskDelay(pdMS_TO_TICKS(1000));
-
-                    lilka::serial.log("Starting multiboot: %s", path->c_str());
-
-                    int error = lilka::multiboot.start(*path);
-                    if (error) {
-                        lilka::serial.log("Multiboot start error: %d", error);
-                        multibootProgress = -2;
-                        delete path;
-                        vTaskDelete(NULL);
-                        return;
-                    }
-
-                    size_t totalBytes = lilka::multiboot.getBytesTotal();
-                    lilka::serial.log("Multiboot size: %d bytes", totalBytes);
-
-                    int lastProgress = -1;
-                    while ((error = lilka::multiboot.process()) > 0) {
-                        size_t written = lilka::multiboot.getBytesWritten();
-                        int progress = (totalBytes > 0) ? (written * 100 / totalBytes) : 0;
-
-                        multibootProgress = progress;
-
-                        if (progress != lastProgress && progress % 10 == 0) {
-                            lilka::serial.log("Multiboot progress: %d%% (%d/%d bytes)", progress, written, totalBytes);
-                            lastProgress = progress;
-                        }
-
-                        vTaskDelay(pdMS_TO_TICKS(10));
-                    }
-
-                    if (error < 0) {
-                        lilka::serial.log("Multiboot process error: %d", error);
-                        multibootProgress = -2;
-                        delete path;
-                        vTaskDelete(NULL);
-                        return;
-                    }
-
-                    multibootProgress = 100;
-                    error = lilka::multiboot.finishAndReboot();
-                    if (error) {
-                        lilka::serial.log("Multiboot finish error: %d", error);
-                        multibootProgress = -2;
-                    }
-                    delete path;
-                    vTaskDelete(NULL);
-                },
-                "multiboot",
-                16384,
-                new String(pathCopy),
-                1,
-                NULL
-            );
         }
 
         if (!networkService) {
