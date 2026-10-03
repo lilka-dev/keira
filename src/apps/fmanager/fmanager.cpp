@@ -317,10 +317,8 @@ FMEntry FileManagerApp::pathToEntry(const String& path) {
         newEntry.type = FT_JS_SCRIPT;
         newEntry.icon = FT_JS_SCRIPT_ICON;
         newEntry.color = FT_JS_SCRIPT_COLOR;
-    } else if (
-        lowerCasedPath.endsWith(".mod") || lowerCasedPath.endsWith(".wav") || lowerCasedPath.endsWith(".mp3") ||
-        lowerCasedPath.endsWith(".aac") || lowerCasedPath.endsWith(".flac")
-    ) {
+    } else if (lowerCasedPath.endsWith(".mod") || lowerCasedPath.endsWith(".wav") || lowerCasedPath.endsWith(".mp3") ||
+               lowerCasedPath.endsWith(".aac") || lowerCasedPath.endsWith(".flac")) {
         newEntry.type = FT_SOUND;
         newEntry.icon = FT_SOUND_ICON;
         newEntry.color = FT_SOUND_COLOR;
@@ -332,10 +330,8 @@ FMEntry FileManagerApp::pathToEntry(const String& path) {
         newEntry.type = FT_SO;
         newEntry.icon = FT_SO_ICON;
         newEntry.color = FT_SO_COLOR;
-    } else if (
-        lowerCasedPath.endsWith(".png") || lowerCasedPath.endsWith(".jpg") || lowerCasedPath.endsWith(".jpeg") ||
-        lowerCasedPath.endsWith(".gif") || lowerCasedPath.endsWith(".bmp")
-    ) {
+    } else if (lowerCasedPath.endsWith(".png") || lowerCasedPath.endsWith(".jpg") || lowerCasedPath.endsWith(".jpeg") ||
+               lowerCasedPath.endsWith(".gif") || lowerCasedPath.endsWith(".bmp")) {
         newEntry.type = FT_IMAGE;
         newEntry.icon = FT_IMAGE_ICON;
         newEntry.color = FT_IMAGE_COLOR;
@@ -1365,12 +1361,14 @@ void FileManagerApp::drawToolBar() {
     if ((millis() - errnoTime) <= FM_ERRNO_TIME) {
         toolBarColor = lilka::colors::Red;
         sToolBar = errnoStr.c_str();
-        return;
     }
+
     // Other significant data to show
-    if (mode == FM_MODE_SELECT) {
+    if (sTooBar == "" && mode == FM_MODE_SELECT) {
         sToolBar = StringFormat(K_S_FMANAGER_SELECTED_FILES_FMT, selectedDirEntries.size());
-    } else if (mode == FM_MODE_VIEW) {
+    }
+
+    if (sTooBar == "" && mode == FM_MODE_VIEW) {
         auto fileListMenuIndex = fileListMenu.getCursor();
         auto dirLength = currentDirEntries.size();
         if (fileListMenuIndex != dirLength) {
