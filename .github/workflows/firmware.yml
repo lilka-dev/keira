@@ -40,23 +40,29 @@ jobs:
 
       - name: Extract version and generate Keira header
         id: version
+        env:
+          RELEASE_PRERELEASE: ${{ github.event.release.prerelease }}
         run: |
           if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
             TAG="${GITHUB_REF#refs/tags/}"
             VERSION="${TAG#v}"
+            PRERELEASE="false"
             IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
 
             # Use prerelease info from event payload if available
-            if [[ "${GITHUB_EVENT_NAME}" == "release" && "${GITHUB_EVENT_RELEASE_PRERELEASE}" == "true" ]]; then
+            if [[ "${GITHUB_EVENT_NAME}" == "release" && "${RELEASE_PRERELEASE}" == "true" ]]; then
               VERSION_TYPE="KEIRA_VERSION_TYPE_PRE_RELEASE"
+              PRERELEASE="true"
             else
               VERSION_TYPE="KEIRA_VERSION_TYPE_RELEASE"
             fi
           else
+            TAG=""
             MAJOR=0
             MINOR=0
             PATCH=0
             VERSION="0.0.0"
+            PRERELEASE="false"
             VERSION_TYPE="KEIRA_VERSION_TYPE_DEV"
           fi
 
@@ -75,6 +81,11 @@ jobs:
 
           echo "Generated version:"
           cat src/keira/keira_version_auto_gen.h
+
+          echo "TAG=$TAG" >> "$GITHUB_OUTPUT"
+          echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "VERSION_TYPE=$VERSION_TYPE" >> "$GITHUB_OUTPUT"
+          echo "PRERELEASE=$PRERELEASE" >> "$GITHUB_OUTPUT"
 
       - name: Build and package firmware
         run: |
@@ -108,17 +119,37 @@ jobs:
               0x10000 out/keira.bin
           fi
 
+      # Manifest used by Keira OTA updater, available at:
+      # https://github.com/lilka-dev/keira/releases/latest/download/keira_firmware.json
+      - name: Generate firmware manifest
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python tools/gen_firmware_json.py \
+            --repo "${{ github.repository }}" \
+            --tag "${{ steps.version.outputs.TAG }}" \
+            --prerelease "${{ steps.version.outputs.PRERELEASE }}" \
+            --bin-dir out \
+            --history 5 \
+            --output out/keira_firmware.json
+          cat out/keira_firmware.json
+
       - name: Upload firmware artifacts
         uses: actions/upload-artifact@v4
         with:
           name: KeiraOS-firmware
-          path: out/*.bin
+          path: |
+            out/*.bin
+            out/*.json
 
       - name: Upload KeiraOS bins to Release
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: out/*.bin
+          files: |
+            out/*.bin
+            out/keira_firmware.json
 
   github-releases-to-discord:
     needs: keira

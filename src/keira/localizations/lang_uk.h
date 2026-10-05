@@ -563,5 +563,19 @@
 
 #define K_S_PART_MGR_INTERRUPT_CONFIRM             "Чи бажаєте ви перервати операцію?"
 #define K_S_PART_MGR_SELECTED_ENTRIES_FMT          "Обрано %d розділ(ів)" 
+// Keira update //////////////////////////////////////////////////////////////////////////////////////
+#define K_S_LAUNCHER_KEIRA_UPDATE           "Оновити Keira"
+#define K_S_KEIRA_UPDATE                    "Оновлення Keira"
+#define K_S_KEIRA_UPDATE_CHECKING           "Перевірка оновлень..."
+#define K_S_KEIRA_UPDATE_FETCH_FAILED       "Не вдалося отримати інформацію про оновлення"
+#define K_S_KEIRA_UPDATE_PARSE_FAILED       "Некоректна інформація про оновлення"
+#define K_S_KEIRA_UPDATE_NO_VERSIONS        "Немає доступних прошивок"
+#define K_S_KEIRA_UPDATE_CURRENT            "поточна"
+#define K_S_KEIRA_UPDATE_LATEST             "остання"
+#define K_S_KEIRA_UPDATE_PRERELEASE         "пре"
+#define K_S_KEIRA_UPDATE_CONFIRM_FMT        "Встановити v%s?\n\nПоточна: v%s\nМова: %s\nРозмір: %s\nДата: %s\n\nSTART - продовжити\nB - скасувати"
+#define K_S_KEIRA_UPDATE_DOWNLOADING_FMT    "Встановлення v%s...\n\nB - скасувати"
+#define K_S_KEIRA_UPDATE_ERROR_FMT          "Помилка оновлення\n\n%s"
+#define K_S_KEIRA_UPDATE_SUCCESS            "Оновлення встановлено!\n\nСистему буде перезавантажено."
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // clang-format on
