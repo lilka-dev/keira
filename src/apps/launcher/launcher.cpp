@@ -48,6 +48,7 @@
 #include "apps/usbdrive/usbdrive.h"
 #include "apps/soundsettings/sound.h"
 #include "apps/partmanager/partmanager.h"
+#include "apps/keiraupdate/keiraupdate.h"
 
 // Icons
 #include "apps/icons/demos.h"
@@ -476,6 +477,7 @@ void LauncherApp::run() {
                             ITEM::MENU(K_S_LAUNCHER_DEVICE_INFO, [this]() { this->info(); }),
                         }
                     ),
+                    ITEM::MENU(K_S_LAUNCHER_KEIRA_UPDATE, [this]() { this->runApp<KeiraUpdateApp>(); }),
                     ITEM::MENU(K_S_LAUNCHER_FACTORY_RESET, [this]() { this->factoryReset(); }),
                     ITEM::MENU(K_S_LAUNCHER_REBOOT, []() { esp_restart(); }),
                 },
