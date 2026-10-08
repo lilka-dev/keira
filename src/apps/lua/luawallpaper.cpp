@@ -1,12 +1,22 @@
 #include "luawallpaper.h"
 
 #include <stdio.h>
+#include <unistd.h>
 #include <lilka.h>
 #include "luarunner.h"
 #include "lualilka_display.h"
 #include "lualilka_resources.h"
 #include "lualilka_math.h"
 #include "lualilka_geometry.h"
+#include "lualilka_ws2812.h"
+#include "lualilka_sdcard.h"
+#include "lualilka_fs.h"
+#include "lualilka_wifi.h"
+#include "lualilka_http.h"
+#include "lualilka_audio.h"
+#include "lualilka_mqtt.h"
+#include "lualilka_socket.h"
+#include "lualilka_state.h"
 #include "keira/ksound/sound.h"
 
 LuaWallpaper::~LuaWallpaper() {
@@ -46,6 +56,15 @@ bool LuaWallpaper::open(const char* path, App* app) {
     lualilka_resources_register(L);
     lualilka_math_register(L);
     lualilka_geometry_register(L);
+    lualilka_ws2812_register(L);
+    lualilka_sdcard_register(L);
+    lualilka_fs_register(L);
+    lualilka_wifi_register(L);
+    lualilka_http_register(L);
+    lualilka_audio_register(L);
+    lualilka_mqtt_register(L);
+    lualilka_socket_register(L);
+    lualilka_state_register(L);
 
     lua_newtable(L);
     lua_setfield(L, LUA_REGISTRYINDEX, "images");
@@ -54,6 +73,14 @@ bool LuaWallpaper::open(const char* path, App* app) {
 
     lua_newtable(L);
     lua_setglobal(L, "lilka");
+
+    // State is kept next to the script, same as for Lua apps
+    String statePath = String(path).substring(0, String(path).lastIndexOf('.')) + ".state";
+    lua_pushstring(L, statePath.c_str());
+    lua_setfield(L, LUA_REGISTRYINDEX, "state_path");
+    if (access(statePath.c_str(), F_OK) != -1) {
+        lualilka_state_load(L, statePath.c_str());
+    }
 
     if (luaL_loadfile(L, path) != LUA_OK || lua_pcall(L, 0, 0, 0) != LUA_OK) {
         lilka::serial.err("Lua wallpaper: %s", lua_tostring(L, -1));
@@ -75,6 +102,17 @@ bool LuaWallpaper::open(const char* path, App* app) {
 void LuaWallpaper::close() {
     if (L == nullptr) return;
 
+    // Save state table if the script has one
+    lua_getglobal(L, "state");
+    bool hasState = lua_istable(L, -1);
+    lua_pop(L, 1);
+    if (hasState) {
+        lua_getfield(L, LUA_REGISTRYINDEX, "state_path");
+        String statePath = lua_tostring(L, -1);
+        lua_pop(L, 1);
+        lualilka_state_save(L, statePath.c_str());
+    }
+
     // Free images and sounds loaded by the script
     lua_getfield(L, LUA_REGISTRYINDEX, "images");
     lua_pushnil(L);
@@ -84,6 +122,8 @@ void LuaWallpaper::close() {
     }
     lua_pop(L, 1);
 
+    // Stop audio playback before freeing sounds
+    lualilka_audio_cleanup();
     lua_getfield(L, LUA_REGISTRYINDEX, "sounds");
     lua_pushnil(L);
     while (lua_next(L, -2) != 0) {
