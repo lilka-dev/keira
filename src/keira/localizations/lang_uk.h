@@ -172,6 +172,10 @@
 #define K_S_I2C_SCANNER_SCAN_START    "Starting I2C scan..."
 #define K_S_I2C_SCANNER_SCAN_DONE     "I2C scan done."
 #define K_S_I2C_SCANNER_DEVICES_FOUND "Found %d devices."
+#define K_S_I2C_SCANNER_SDA           "SDA"
+#define K_S_I2C_SCANNER_SCL           "SCL"
+#define K_S_I2C_SCANNER_FREQUENCY     "Частота"
+#define K_S_I2C_SCANNER_SCAN          "Сканувати"
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // apps/demos/transform.cpp ///////////////////////////////////////////////////////////////////////////
