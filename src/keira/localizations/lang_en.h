@@ -95,6 +95,9 @@
 #define K_S_LAUNCHER_SD                "SD"
 #define K_S_LAUNCHER_SD_FORMAT         "Format SD"
 #define K_S_LAUNCHER_SD_SPEED          "SD card frequency"
+#define K_S_LAUNCHER_DISPLAY           "Display"
+#define K_S_LAUNCHER_DISPLAY_SPEED     "Display frequency"
+#define K_S_LAUNCHER_DISPLAY_SPI_MODE  "Display SPI mode"
 #define K_S_LAUNCHER_SOUND             "Sound"
 #define K_S_LAUNCHER_SERVICES          K_S_SERVICES
 #define K_S_LAUNCHER_WEB               K_S_WEB
