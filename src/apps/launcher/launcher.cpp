@@ -73,7 +73,7 @@ static const char* const WALLPAPER_PATHS[] =
     {"/sd/wallpaper.gif", "/sd/wallpaper.png", "/sd/wallpaper.jpg", "/sd/wallpaper.jpeg", "/sd/wallpaper.bmp"};
 
 LauncherApp::LauncherApp() : App("Launcher"), autorunEnabled(ScriptService::getAutorunEnabled()) {
-    setktStackSize(8192); // Yeah, this one is heavy as fuck
+    setktStackSize(16384); // Heavy run() frame plus Lua wallpaper modules (http, fs, socket)
 }
 
 void LauncherApp::run() {
