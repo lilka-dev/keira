@@ -144,10 +144,6 @@ static void (*audio_callback)(void* buffer, int length) = NULL;
 int16_t* audio_frame = NULL;
 QueueHandle_t queue;
 int osd_init_sound() {
-#if LILKA_VERSION == 1
-    lilka::serial.err("This part of code should never be called. Audio not supported for this version of lilka");
-    return OSD_INIT_FAILED;
-#elif LILKA_VERSION == 2
     audio_frame = static_cast<int16_t*>(malloc(DEFAULT_FRAGSIZE * 4));
     if (!audio_frame) {
         lilka::serial.err("Failed to allocate audio_frame\n");
@@ -180,9 +176,6 @@ int osd_init_sound() {
     i2s_zero_dma_buffer(esp_i2s::I2S_NUM_0);
     audio_callback = 0;
     return OSD_OK;
-#endif
-
-    return OSD_INIT_FAILED;
 }
 
 void osd_stopsound() {
@@ -225,8 +218,6 @@ void do_audio_frame() {
 }
 
 void osd_setsound(void (*playfunc)(void* buffer, int length)) {
-#if LILKA_VERSION == 1
-#elif LILKA_VERSION == 2
     audio_callback = playfunc;
     xTaskCreatePinnedToCore(
         [](void* arg) {
@@ -252,7 +243,6 @@ void osd_setsound(void (*playfunc)(void* buffer, int length)) {
         &audioTaskHandle,
         1
     );
-#endif
 }
 
 void osd_getsoundinfo(sndinfo_t* info) {

@@ -3,10 +3,14 @@
 // Boot:
 #include <lilka/multiboot.h>
 #include <esp_ota_ops.h>
+#include "keira/usb/usbphy.h"
 
 // Services:
 #ifdef KEIRA_WATCHDOG
 #    include "services/watchdog/watchdog.h"
+#endif
+#ifdef KEIRA_UART_INPUT
+#    include "services/uartinput/uartinput.h"
 #endif
 #include "services/clock/clock.h"
 #include "services/network/network.h"
@@ -42,7 +46,7 @@
 //////////////////////////////////////////////////////////////////////////////
 // GUIDELINE: external libraries to use <> in includes
 //////////////////////////////////////////////////////////////////////////////
-// Even though PlatformIO allows us to do everything wrong way, it's still
+// Even though the build allows us to do everything wrong way, it's still
 // a thing for further code reusage and visually shows local/global scopes
 // of code parts
 //////////////////////////////////////////////////////////////////////////////
@@ -156,6 +160,9 @@ void KeiraSystem::launchServices() {
     services.spawn(new FTPService());
     services.spawn(new WebService());
     services.spawn(new MDNSService());
+#ifdef KEIRA_UART_INPUT
+    services.spawn(new UARTInputService());
+#endif
 
     // GUIDELINE: To add a new service register it here
 
@@ -211,6 +218,10 @@ void KeiraSystem::showStartupScreen() {
 
 // Prepare system to launch
 void KeiraSystem::setup() {
+    // A crash while USB Drive was open leaves the USB PHY on USB-OTG (it survives resets): take it back,
+    // or there's no serial port
+    if (usb_phy_is_otg()) usb_phy_switch_to_serial_jtag();
+
     // Init Hardware
     lilka::begin();
 

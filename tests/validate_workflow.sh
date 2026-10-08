@@ -53,7 +53,7 @@ test_language_detection() {
     echo ""
     echo "Testing build flag generation:"
     for lang in $(cat "$REPO_ROOT/languages.txt"); do
-        echo "Would build with: PLATFORMIO_BUILD_FLAGS=-D$lang"
+        echo "Would build with: idf.py -DKEIRA_BUILD_FLAGS=-D$lang build"
     done
 }
 

@@ -9,8 +9,8 @@
 
 KeiraOS, операційна система для консолей [![Lilka](https://github.com/lilka-dev/lilka)]
 
-![Лілка v2](./img/v21.jpg)
-![Main menu](./img/menu.jpg)
+![Лілка v2](./data/img/v21.jpg)
+![Main menu](./data/img/menu.jpg)
 
 ## 🛠️ Як прошити Lilka (KeiraOS)
 
@@ -83,12 +83,27 @@ KeiraOS, операційна система для консолей [![Lilka](h
 
 ---
 
+## Збірка з вихідного коду
+
+Keira збирається за допомогою ESP-IDF **v4.4.7** та Arduino-ESP32 **2.0.17** як компонента ESP-IDF. Усі бібліотеки підключені як git-підмодулі з зафіксованими версіями в `components/`.
+
+```bash
+git clone --recurse-submodules --shallow-submodules https://github.com/lilka-dev/keira
+cd keira
+make docker-build            # збірка в Docker-образі espressif/idf:v4.4.7
+# або з локальним ESP-IDF v4.4.7:
+make build
+make flash PORT=/dev/ttyACM0
+```
+
+`make help` покаже всі доступні команди. Детальніше: [документація](https://docs.lilka.dev/projects/keira/uk/latest/flashing/).
+
 ## Документація
 
 Повна документація проєкту буде доступна ось тут: <https://docs.lilka.dev/projects/keira/uk/latest/>
 
 ## Архітектура
-![Keira Architecture](./img/keira.png)
+![Keira Architecture](./data/img/keira.png)
 
 ## Спільнота
 
