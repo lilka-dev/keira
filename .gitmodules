@@ -2,10 +2,6 @@
 	path = components/arduino
 	url = https://github.com/espressif/arduino-esp32.git
 	shallow = true
-[submodule "components/lilka/sdk"]
-	path = components/lilka/sdk
-	url = https://github.com/lilka-dev/sdk.git
-	shallow = true
 [submodule "components/Arduino_GFX/Arduino_GFX"]
 	path = components/Arduino_GFX/Arduino_GFX
 	url = https://github.com/moononournation/Arduino_GFX.git

@@ -9,6 +9,9 @@
 #ifdef KEIRA_WATCHDOG
 #    include "services/watchdog/watchdog.h"
 #endif
+#ifdef KEIRA_UART_INPUT
+#    include "services/uartinput/uartinput.h"
+#endif
 #include "services/clock/clock.h"
 #include "services/network/network.h"
 #include "services/screenshot/screenshot.h"
@@ -157,6 +160,9 @@ void KeiraSystem::launchServices() {
     services.spawn(new FTPService());
     services.spawn(new WebService());
     services.spawn(new MDNSService());
+#ifdef KEIRA_UART_INPUT
+    services.spawn(new UARTInputService());
+#endif
 
     // GUIDELINE: To add a new service register it here
 
