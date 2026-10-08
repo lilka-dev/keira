@@ -95,12 +95,7 @@ void ScanI2CApp::run() {
         }
     }
 #else
-    lilka::Alert alert(K_S_ERROR, K_S_LILKA_V2_OR_HIGHER_REQUIRED);
-    alert.draw(canvas);
-    queueDraw();
-    while (!alert.isFinished()) {
-        alert.update();
-    }
+    alert(K_S_ERROR, K_S_LILKA_V2_OR_HIGHER_REQUIRED);
 #endif
 }
 
