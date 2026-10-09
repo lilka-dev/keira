@@ -47,10 +47,7 @@ typedef enum {
 } ExecutionType;
 
 // Catalog categories
-typedef enum {
-    CATALOG_CATEGORY_APPS,
-    CATALOG_CATEGORY_WALLPAPERS
-} CatalogCategory;
+typedef enum { CATALOG_CATEGORY_APPS, CATALOG_CATEGORY_WALLPAPERS } CatalogCategory;
 
 // Source info
 typedef struct {
