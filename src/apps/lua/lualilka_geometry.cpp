@@ -16,16 +16,19 @@ int lualilka_geometry_intersectLines(lua_State* L) {
     float dx = luaL_checknumber(L, 7);
     float dy = luaL_checknumber(L, 8);
 
-    // I have no idea what I'm doing - Copilot wrote this for me, lol
+    // Solve A + t * (B - A) = C + u * (D - C) using 2D cross products: segments intersect when t, u are in [0, 1]
+    float rx = bx - ax, ry = by - ay; // B - A
+    float sx = dx - cx, sy = dy - cy; // D - C
+    float qx = cx - ax, qy = cy - ay; // C - A
 
-    float denominator = (by - ay) * (dx - cx) - (bx - ax) * (dy - cy);
+    float denominator = rx * sy - ry * sx;
     if (denominator == 0) {
         lua_pushboolean(L, false);
         return 1;
     }
 
-    float t = ((cy - ay) * (dx - cx) - (cx - ax) * (dy - cy)) / denominator;
-    float u = -((ay - by) * (cx - ax) - (ax - bx) * (cy - ay)) / denominator;
+    float t = (qx * sy - qy * sx) / denominator;
+    float u = (qx * ry - qy * rx) / denominator;
 
     if (t >= 0 && t <= 1 && u >= 0 && u <= 1) {
         lua_pushboolean(L, true);

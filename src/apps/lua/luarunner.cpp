@@ -243,6 +243,19 @@ void AbstractLuaRunnerApp::luaTeardown() {
     lua_close(L);
 }
 
+void AbstractLuaRunnerApp::resetCanvasState() {
+    for (lilka::Canvas* c : {canvas, backCanvas}) {
+        if (!c) continue;
+        // Match defaults of a freshly constructed lilka::Canvas
+        c->setFont(FONT_10x20);
+        c->setTextBound(0, 0, c->width(), c->height());
+        c->setTextColor(lilka::colors::White);
+        c->setTextSize(1);
+        c->setTextWrap(true);
+        c->setCursor(0, 0);
+    }
+}
+
 int AbstractLuaRunnerApp::execute() {
     // Calls Lua code that's on top of the stack (previously loaded with luaL_loadfile or luaL_loadstring)
 
@@ -250,6 +263,7 @@ int AbstractLuaRunnerApp::execute() {
 
     if (jmpCode == 0) {
         // Run script
+        resetCanvasState();
         canvas->fillScreen(0);
         int retCode = lua_pcall(L, 0, LUA_MULTRET, 0);
         if (retCode) {
