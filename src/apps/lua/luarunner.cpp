@@ -115,19 +115,13 @@ AbstractLuaRunnerApp::AbstractLuaRunnerApp(const char* appName) : App(appName), 
 }
 
 void* lua_smart_alloc(void* ud, void* ptr, size_t osize, size_t nsize) {
-    // If there will be less than 32 KB of free RAM after reallocating, use PSRAM allocator.
+    // Prefer PSRAM to keep internal RAM free for WiFi/TLS/DMA; fall back to internal RAM if PSRAM is exhausted.
     (void)ud;
     (void)osize;
-    int32_t free_mem = heap_caps_get_free_size(MALLOC_CAP_8BIT);
     if (nsize) {
-        uint32_t caps = MALLOC_CAP_8BIT;
-        if (free_mem - nsize < 32 * 1024) {
-            // Less than 32 KB of free RAM after reallocating. Use PSRAM allocator.
-            caps |= MALLOC_CAP_SPIRAM;
-        } else {
-            // More than 32 KB of free RAM after reallocating. Use regular allocator.
-        }
-        return heap_caps_realloc(ptr, nsize, caps);
+        void* newPtr = heap_caps_realloc(ptr, nsize, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+        if (!newPtr) newPtr = heap_caps_realloc(ptr, nsize, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
+        return newPtr;
     } else {
         free(ptr);
         return NULL;
