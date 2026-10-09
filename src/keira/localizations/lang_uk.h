@@ -94,6 +94,9 @@
 #define K_S_LAUNCHER_SD                "SD"
 #define K_S_LAUNCHER_SD_FORMAT         "Форматування SD-карти"
 #define K_S_LAUNCHER_SD_SPEED          "Частота SD картки"
+#define K_S_LAUNCHER_DISPLAY           "Дисплей"
+#define K_S_LAUNCHER_DISPLAY_SPEED     "Частота дисплея"
+#define K_S_LAUNCHER_DISPLAY_SPI_MODE  "Режим SPI дисплея"
 #define K_S_LAUNCHER_SOUND             "Звук"
 #define K_S_LAUNCHER_SERVICES          K_S_SERVICES
 #define K_S_LAUNCHER_WEB               K_S_WEB
