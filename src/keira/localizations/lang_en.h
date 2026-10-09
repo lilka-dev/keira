@@ -262,6 +262,7 @@
 
 #define K_S_LILCATALOG_APPS                          "Apps"
 #define K_S_LILCATALOG_MODS                          "Mods"
+#define K_S_LILCATALOG_WALLPAPERS                    "Wallpapers"
 #define K_S_LILCATALOG_STOP                          "Exit"
 #define K_S_LILCATALOG_BACK                          "Back"
 #define K_S_LILCATALOG_EMPTY                         ""
@@ -270,6 +271,8 @@
 #define K_S_LILCATALOG_INSTALL                       "Install"
 #define K_S_LILCATALOG_REMOVE                        "Delete"
 #define K_S_LILCATALOG_UPDATE                        "Update"
+#define K_S_LILCATALOG_SET_WALLPAPER                 "Set as wallpaper"
+#define K_S_LILCATALOG_WALLPAPER_SET                 "Wallpaper set"
 #define K_S_LILCATALOG_SOURCE                        "Source"
 #define K_S_LILCATALOG_ENTRY_DESCRIPTION             "Description"
 #define K_S_LILCATALOG_LOADING                       "Downloading"
