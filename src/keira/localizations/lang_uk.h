@@ -253,6 +253,7 @@
 
 #define K_S_LILCATALOG_APPS                          "Додатки"
 #define K_S_LILCATALOG_MODS                          "Моди"
+#define K_S_LILCATALOG_WALLPAPERS                    "Шпалери"
 #define K_S_LILCATALOG_STOP                          "Вихід"
 #define K_S_LILCATALOG_BACK                          "Назад"
 #define K_S_LILCATALOG_EMPTY                         ""
@@ -261,6 +262,8 @@
 #define K_S_LILCATALOG_INSTALL                       "Встановити"
 #define K_S_LILCATALOG_REMOVE                        "Видалити"
 #define K_S_LILCATALOG_UPDATE                        "Оновити"
+#define K_S_LILCATALOG_SET_WALLPAPER                 "Встановити як шпалери"
+#define K_S_LILCATALOG_WALLPAPER_SET                 "Шпалери встановлено"
 #define K_S_LILCATALOG_SOURCE                        "Джерело"
 #define K_S_LILCATALOG_ENTRY_DESCRIPTION             "Опис"
 #define K_S_LILCATALOG_LOADING                       "Завантаження"

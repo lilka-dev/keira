@@ -13,7 +13,7 @@
 #include "../fmanager/fmanager.h"
 #include "../dynapp/dynapp.h"
 
-// Base URL for catalog API (apps only)
+// Base URL for catalog API
 #define CATALOG_BASE_URL "https://catalog.lilka.dev"
 
 // Icon size for mini icons (icon_min.bin is RGB565 raw format, 64x64 px)
@@ -21,10 +21,13 @@
 #define CATALOG_ICON_HEIGHT 64
 #define CATALOG_ICON_SIZE   (CATALOG_ICON_WIDTH * CATALOG_ICON_HEIGHT * 2) // 8192 bytes
 
-// Cache paths
-#define CATALOG_ICON_CACHE_FOLDER           "/lilcatalog/icons"
-#define CATALOG_MANIFEST_CACHE_FOLDER       "/lilcatalog/manifests"
-#define CATALOG_SHORT_MANIFEST_CACHE_FOLDER "/lilcatalog/short_manifests"
+// Cache folders (relative to category folder)
+#define CATALOG_ICON_CACHE_FOLDER           "/icons"
+#define CATALOG_MANIFEST_CACHE_FOLDER       "/manifests"
+#define CATALOG_SHORT_MANIFEST_CACHE_FOLDER "/short_manifests"
+
+// Home screen Lua wallpaper loaded by launcher
+#define CATALOG_WALLPAPER_LUA_PATH "/sd/wallpaper.lua"
 
 // HTTP timeout in milliseconds
 #define CATALOG_HTTP_TIMEOUT       10000
@@ -43,6 +46,9 @@ typedef enum {
     EXEC_TYPE_DYNAPP
 } ExecutionType;
 
+// Catalog categories
+typedef enum { CATALOG_CATEGORY_APPS, CATALOG_CATEGORY_WALLPAPERS } CatalogCategory;
+
 // Source info
 typedef struct {
     String type; // "git"
@@ -59,6 +65,7 @@ typedef struct {
 // App entry from manifest
 typedef struct {
     String id;
+    CatalogCategory category = CATALOG_CATEGORY_APPS;
     String name;
     String short_description;
     String description;
@@ -88,6 +95,7 @@ private:
     LilCatalogState entryReturnState = LILCATALOG_LIST; // State to return to from LILCATALOG_ENTRY
 
     String path_catalog_folder;
+    CatalogCategory category = CATALOG_CATEGORY_APPS;
 
     // Pagination
     int currentPage = 0;
@@ -116,6 +124,13 @@ private:
     lilka::Menu installedMenu;
     lilka::Menu entryMenu;
 
+    // Category methods
+    String getCategoryUrl();
+    String getCategoryFolder();
+    String getCategoryFolder(CatalogCategory cat);
+    const char* getCategoryTitle();
+    void openCategory(CatalogCategory cat);
+
     // Network methods
     String httpGet(const String& url, int timeout = CATALOG_HTTP_TIMEOUT);
     bool httpGetBinary(const String& url, uint8_t* buffer, size_t bufferSize, size_t* bytesRead);
@@ -132,21 +147,23 @@ private:
     String getShortManifestCachePath(const String& entryId);
     bool saveShortManifestToCache(const String& entryId, const String& json);
     String loadShortManifestFromCache(const String& entryId);
-    void clearShortManifestCache();
+    void clearShortManifestCache(CatalogCategory cat);
 
     // Icon cache methods
     String getIconCachePath(const String& entryId);
     bool loadIconFromCache(const String& entryId);
     bool saveIconToCache(const String& entryId);
     void loadCurrentIcon();
-    void clearIconCache();
+    void clearIconCache(CatalogCategory cat);
 
     // Manifest cache methods
     String getManifestCachePath(const String& entryId);
     bool saveManifestToCache(const String& entryId, const String& json);
     String loadManifestFromCache(const String& entryId);
     bool loadInstalledApps(); // Load apps from cache for offline mode
-    void clearManifestCache();
+    void loadInstalledEntries(CatalogCategory cat);
+    void clearManifestCache(CatalogCategory cat);
+    void clearFolder(const String& path);
 
     // Parsing
     bool parseIndex(const String& json);
@@ -163,6 +180,7 @@ private:
     void fetchEntry();
     void removeEntry();
     void executeEntry();
+    void setWallpaper();
 
     // UI methods
     void showMainMenu();

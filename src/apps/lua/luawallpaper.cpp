@@ -19,6 +19,22 @@
 #include "lualilka_state.h"
 #include "keira/ksound/sound.h"
 
+// Wallpaper runs on every home screen visit, keep its many small Lua objects in PSRAM so they don't fragment
+// internal RAM, which mbedTLS needs in large contiguous blocks. Internal RAM is only used as a fallback.
+static void* lua_wallpaper_alloc(void* ud, void* ptr, size_t osize, size_t nsize) {
+    (void)ud;
+    (void)osize;
+    if (nsize == 0) {
+        free(ptr);
+        return NULL;
+    }
+    void* result = heap_caps_realloc(ptr, nsize, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+    if (result == NULL) {
+        result = heap_caps_realloc(ptr, nsize, MALLOC_CAP_8BIT);
+    }
+    return result;
+}
+
 LuaWallpaper::~LuaWallpaper() {
     close();
 }
@@ -30,7 +46,7 @@ bool LuaWallpaper::open(const char* path, App* app) {
     if (file == nullptr) return false;
     fclose(file);
 
-    L = lua_newstate(lua_smart_alloc, NULL);
+    L = lua_newstate(lua_wallpaper_alloc, NULL);
     if (L == nullptr) {
         lilka::serial.err("Lua wallpaper: failed to create Lua state");
         return false;
