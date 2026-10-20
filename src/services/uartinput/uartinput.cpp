@@ -1,8 +1,8 @@
 #include "uartinput.h"
 
 typedef struct {
-    const char* name = nullptr;
-    lilka::Button button = lilka::Button::ANY;
+    const char* name;
+    lilka::Button button;
 } UARTInputButtonName;
 
 static const UARTInputButtonName buttonNames[] = {
