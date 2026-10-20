@@ -1,0 +1,10 @@
+#pragma once
+
+// Generated from LILKA_SDK_VERSION in components/lilka/CMakeLists.txt. Defines VERSION_AUTO_GEN_H so the
+// placeholder lilka/version_auto_gen.h from the SDK sources is skipped.
+#define VERSION_AUTO_GEN_H
+
+#define SDK_VERSION_MAJOR @SDK_VERSION_MAJOR@
+#define SDK_VERSION_MINOR @SDK_VERSION_MINOR@
+#define SDK_VERSION_PATCH @SDK_VERSION_PATCH@
+#define SDK_VERSION_TYPE  @SDK_VERSION_TYPE@

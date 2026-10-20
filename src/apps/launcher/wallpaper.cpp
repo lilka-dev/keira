@@ -5,6 +5,8 @@
 
 // Delay between redraws of a static (non-animated) wallpaper
 #define WALLPAPER_STATIC_DELAY_MS 100
+// Bigger GIFs are streamed from the file instead of being loaded into PSRAM
+#define WALLPAPER_GIF_MAX_MEMORY_SIZE (4 * 1024 * 1024)
 
 Wallpaper::~Wallpaper() {
     close();
@@ -48,19 +50,24 @@ bool Wallpaper::open(const char* path, int16_t bufferWidth, int16_t bufferHeight
 bool Wallpaper::openGIF(const char* path) {
     gif.reset(new AnimatedGIF());
     gif->begin(GIF_PALETTE_RGB565_LE);
-    if (!gif->open(
-            path,
-            fileOpen,
-            fileClose,
-            [](GIFFILE* f, uint8_t* buf, int32_t len) {
-                return fileRead(static_cast<FILE*>(f->fHandle), f->iSize, &f->iPos, buf, len);
-            },
-            [](GIFFILE* f, int32_t position) {
-                fseek(static_cast<FILE*>(f->fHandle), position, SEEK_SET);
-                return f->iPos = position;
-            },
-            gifDraw
-        )) {
+    int32_t gifSize = 0;
+    gifData = readFile(path, WALLPAPER_GIF_MAX_MEMORY_SIZE, &gifSize);
+    int opened = gifData != nullptr
+                     ? gif->open(gifData, gifSize, gifDraw)
+                     : gif->open(
+                           path,
+                           fileOpen,
+                           fileClose,
+                           [](GIFFILE* f, uint8_t* buf, int32_t len) {
+                               return fileRead(static_cast<FILE*>(f->fHandle), f->iSize, &f->iPos, buf, len);
+                           },
+                           [](GIFFILE* f, int32_t position) {
+                               fseek(static_cast<FILE*>(f->fHandle), position, SEEK_SET);
+                               return f->iPos = position;
+                           },
+                           gifDraw
+                       );
+    if (!opened) {
         if (gif->getLastError() == GIF_TOO_WIDE) {
             lilka::serial.err("Wallpaper: %s is too wide, max GIF width is %d px", path, MAX_WIDTH);
         } else {
@@ -141,6 +148,10 @@ void Wallpaper::close() {
         gif->close();
         gif.reset();
     }
+    if (gifData != nullptr) {
+        free(gifData);
+        gifData = nullptr;
+    }
     if (buffer != nullptr) {
         free(buffer);
         buffer = nullptr;
@@ -181,6 +192,20 @@ void Wallpaper::blit(const uint16_t* pixels, int x, int y, int w, int h, int str
             &buffer[bufferY * width + x + startX], &pixels[row * stride + startX], (endX - startX) * sizeof(uint16_t)
         );
     }
+}
+
+uint8_t* Wallpaper::readFile(const char* path, int32_t maxSize, int32_t* size) {
+    int32_t fileSize = 0;
+    FILE* file = static_cast<FILE*>(fileOpen(path, &fileSize));
+    if (file == nullptr) return nullptr;
+    uint8_t* data = fileSize > 0 && fileSize <= maxSize ? static_cast<uint8_t*>(ps_malloc(fileSize)) : nullptr;
+    if (data != nullptr && fread(data, 1, fileSize, file) != static_cast<size_t>(fileSize)) {
+        free(data);
+        data = nullptr;
+    }
+    fclose(file);
+    *size = fileSize;
+    return data;
 }
 
 void* Wallpaper::fileOpen(const char* path, int32_t* size) {

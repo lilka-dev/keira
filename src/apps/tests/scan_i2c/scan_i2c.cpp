@@ -5,7 +5,6 @@
 
 #include "keira/utils/string.h"
 
-#if LILKA_VERSION >= 2
 static constexpr uint32_t I2C_FREQUENCIES[] = {100000, 400000, 1000000};
 static constexpr uint8_t I2C_FREQUENCY_COUNT = sizeof(I2C_FREQUENCIES) / sizeof(I2C_FREQUENCIES[0]);
 
@@ -34,13 +33,11 @@ enum ScanI2CMenuItem {
     SCAN_I2C_MENU_SCAN,
     SCAN_I2C_MENU_BACK,
 };
-#endif
 
 ScanI2CApp::ScanI2CApp() : App("I2C Scanner") {
 }
 
 void ScanI2CApp::run() {
-#if LILKA_VERSION >= 2
     lilka::Menu menu("I2C");
     menu.addActivationButton(K_BTN_BACK);
 
@@ -94,23 +91,15 @@ void ScanI2CApp::run() {
                 return;
         }
     }
-#else
-    alert(K_S_ERROR, K_S_LILKA_V2_OR_HIGHER_REQUIRED);
-#endif
 }
 
 uint8_t ScanI2CApp::nextPinIndex(uint8_t current, uint8_t other) const {
-#if LILKA_VERSION >= 2
     uint8_t next = (current + 1) % I2C_PIN_COUNT;
     if (next == other) next = (next + 1) % I2C_PIN_COUNT;
     return next;
-#else
-    return current;
-#endif
 }
 
 void ScanI2CApp::scan() {
-#if LILKA_VERSION >= 2
     const uint8_t sda = I2C_PINS[sdaIndex].gpio;
     const uint8_t scl = I2C_PINS[sclIndex].gpio;
     const uint32_t freq = I2C_FREQUENCIES[freqIndex];
@@ -155,5 +144,4 @@ void ScanI2CApp::scan() {
         if (state.a.justPressed || state.b.justPressed) break;
         taskYIELD();
     }
-#endif
 }

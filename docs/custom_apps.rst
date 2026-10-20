@@ -247,8 +247,8 @@ Keira підтримує завантаження та виконання про
 ~~~~~~~~~~
 
 Для компіляції потрібен крос-компілятор ``xtensa-esp32s3-elf-gcc``.
-Якщо у вас встановлено PlatformIO, він вже є за шляхом
-``~/.platformio/packages/toolchain-xtensa-esp32s3/bin/``.
+Він входить до складу ESP-IDF і доступний у ``PATH`` після ``. $IDF_PATH/export.sh``
+(або в Docker-образі ``espressif/idf:v4.4.7``).
 
 **За допомогою Make:**
 

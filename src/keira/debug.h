@@ -10,14 +10,14 @@
 
 // So far Keira OS supports various features to provide a bit easier debugging for custom apps.
 // Most of those come in a form of togglable macro, which you can use together with
-// PLATFORMIO_BUILD_FLAGS env variable, to set those options before Keira OS buildage
+// FLAGS make variable (KEIRA_BUILD_FLAGS for idf.py), to set those options before Keira OS buildage
 
 // example ===================================================================
-// PLATFORMIO_BUILD_FLAGS='-DFMANAGER_DEBUG' pio run -t upload
+// make FLAGS='-DFMANAGER_DEBUG' build flash
 // would define macro FMANAGER_DEBUG and build a firmware with it
 //============================================================================
 
-// Same thing could be also set directly in platformio.ini recipe file using build_flags option
+// Same thing with idf.py directly: idf.py -DKEIRA_BUILD_FLAGS='-DFMANAGER_DEBUG' build
 
 // Watchdog service
 
@@ -30,7 +30,7 @@
 // default launcher
 
 // example ===================================================================
-// PLATFORMIO_BUILD_FLAGS='-DKEIRA_DEBUG_APP=FileManagerApp -DKEIRA_DEBUG_APP_PARAMS=\"/sd\"'
+// make FLAGS='-DKEIRA_DEBUG_APP=FileManagerApp -DKEIRA_DEBUG_APP_PARAMS=\"/sd\"'
 // would allow u to autorun FileManagerApp and pass to it path to /sd folder
 //============================================================================
 
