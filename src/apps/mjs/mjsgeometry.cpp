@@ -12,14 +12,19 @@ static void mjs_geometry_intersect_lines(struct mjs* mjs) {
     float dx = mjs_get_double(mjs, mjs_arg(mjs, 6));
     float dy = mjs_get_double(mjs, mjs_arg(mjs, 7));
 
-    float denominator = (by - ay) * (dx - cx) - (bx - ax) * (dy - cy);
+    // Solve A + t * (B - A) = C + u * (D - C) using 2D cross products: segments intersect when t, u are in [0, 1]
+    float rx = bx - ax, ry = by - ay; // B - A
+    float sx = dx - cx, sy = dy - cy; // D - C
+    float qx = cx - ax, qy = cy - ay; // C - A
+
+    float denominator = rx * sy - ry * sx;
     if (denominator == 0) {
         mjs_return(mjs, mjs_mk_boolean(mjs, 0));
         return;
     }
 
-    float t = ((cy - ay) * (dx - cx) - (cx - ax) * (dy - cy)) / denominator;
-    float u = -((ay - by) * (cx - ax) - (ax - bx) * (cy - ay)) / denominator;
+    float t = (qx * sy - qy * sx) / denominator;
+    float u = (qx * ry - qy * rx) / denominator;
 
     mjs_return(mjs, mjs_mk_boolean(mjs, t >= 0 && t <= 1 && u >= 0 && u <= 1));
 }

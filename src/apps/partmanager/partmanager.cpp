@@ -571,19 +571,13 @@ void PartManagerApp::run() {
 // Drawing StatusBar //? Toolbar, right?
 /////////////////////////////////////////////////////////////////////////////
 void PartManagerApp::queueDraw() {
-    canvas->fillRect(
-        0, canvas->height() - STATUS_BAR_HEIGHT, canvas->width(), STATUS_BAR_HEIGHT, STATUS_BAR_FILL_COLOR
-    );
-
-    canvas->setCursor(STATUS_BAR_SAFE_DISTANCE, canvas->height() - 20 / 2); // FONT_Y / 2
-    canvas->setFont(FONT_8x13);
-
-    canvas->setTextBound(
-        STATUS_BAR_SAFE_DISTANCE, canvas->height() - STATUS_BAR_HEIGHT, STATUS_BAR_WIDTH, STATUS_BAR_HEIGHT
-    );
+    sToolBar = "";
     if (selectedParts.size() > 0) {
-        canvas->printf(K_S_PART_MGR_SELECTED_ENTRIES_FMT, selectedParts.size());
+        sToolBar = StringFormat(K_S_PART_MGR_SELECTED_ENTRIES_FMT, selectedParts.size());
     }
+
+    setToolBar(sToolBar);
+
     App::queueDraw();
 }
 /////////////////////////////////////////////////////////////////////////////

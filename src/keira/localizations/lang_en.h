@@ -95,6 +95,9 @@
 #define K_S_LAUNCHER_SD                "SD"
 #define K_S_LAUNCHER_SD_FORMAT         "Format SD"
 #define K_S_LAUNCHER_SD_SPEED          "SD card frequency"
+#define K_S_LAUNCHER_DISPLAY           "Display"
+#define K_S_LAUNCHER_DISPLAY_SPEED     "Display frequency"
+#define K_S_LAUNCHER_DISPLAY_SPI_MODE  "Display SPI mode"
 #define K_S_LAUNCHER_SOUND             "Sound"
 #define K_S_LAUNCHER_SERVICES          K_S_SERVICES
 #define K_S_LAUNCHER_WEB               K_S_WEB
@@ -179,6 +182,10 @@
 #define K_S_I2C_SCANNER_SCAN_START    "Starting I2C scan..."
 #define K_S_I2C_SCANNER_SCAN_DONE     "I2C scan done."
 #define K_S_I2C_SCANNER_DEVICES_FOUND "Found %d devices."
+#define K_S_I2C_SCANNER_SDA           "SDA"
+#define K_S_I2C_SCANNER_SCL           "SCL"
+#define K_S_I2C_SCANNER_FREQUENCY     "Frequency"
+#define K_S_I2C_SCANNER_SCAN          "Scan"
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // apps/demos/transform.cpp ///////////////////////////////////////////////////////////////////////////
@@ -255,6 +262,7 @@
 
 #define K_S_LILCATALOG_APPS                          "Apps"
 #define K_S_LILCATALOG_MODS                          "Mods"
+#define K_S_LILCATALOG_WALLPAPERS                    "Wallpapers"
 #define K_S_LILCATALOG_STOP                          "Exit"
 #define K_S_LILCATALOG_BACK                          "Back"
 #define K_S_LILCATALOG_EMPTY                         ""
@@ -263,6 +271,8 @@
 #define K_S_LILCATALOG_INSTALL                       "Install"
 #define K_S_LILCATALOG_REMOVE                        "Delete"
 #define K_S_LILCATALOG_UPDATE                        "Update"
+#define K_S_LILCATALOG_SET_WALLPAPER                 "Set as wallpaper"
+#define K_S_LILCATALOG_WALLPAPER_SET                 "Wallpaper set"
 #define K_S_LILCATALOG_SOURCE                        "Source"
 #define K_S_LILCATALOG_ENTRY_DESCRIPTION             "Description"
 #define K_S_LILCATALOG_LOADING                       "Downloading"
@@ -570,5 +580,19 @@
 
 #define K_S_PART_MGR_INTERRUPT_CONFIRM             "Do you want to interrupt that operation?"
 #define K_S_PART_MGR_SELECTED_ENTRIES_FMT          "Selected %d entries" 
+// Keira update //////////////////////////////////////////////////////////////////////////////////////
+#define K_S_LAUNCHER_KEIRA_UPDATE           "Update Keira"
+#define K_S_KEIRA_UPDATE                    "Keira update"
+#define K_S_KEIRA_UPDATE_CHECKING           "Checking for updates..."
+#define K_S_KEIRA_UPDATE_FETCH_FAILED       "Failed to fetch update info"
+#define K_S_KEIRA_UPDATE_PARSE_FAILED       "Invalid update info"
+#define K_S_KEIRA_UPDATE_NO_VERSIONS        "No firmware available"
+#define K_S_KEIRA_UPDATE_CURRENT            "current"
+#define K_S_KEIRA_UPDATE_LATEST             "latest"
+#define K_S_KEIRA_UPDATE_PRERELEASE         "pre"
+#define K_S_KEIRA_UPDATE_CONFIRM_FMT        "Install v%s?\n\nCurrent: v%s\nLanguage: %s\nSize: %s\nDate: %s\n\nSTART - continue\nB - exit"
+#define K_S_KEIRA_UPDATE_DOWNLOADING_FMT    "Installing v%s...\n\nB - cancel"
+#define K_S_KEIRA_UPDATE_ERROR_FMT          "Update failed\n\n%s"
+#define K_S_KEIRA_UPDATE_SUCCESS            "Update installed!\n\nSystem will reboot."
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // clang-format on

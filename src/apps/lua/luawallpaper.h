@@ -5,7 +5,8 @@
 
 // Home screen wallpaper driven by a Lua script.
 // Script uses the same lilka.init() / lilka.update(delta) / lilka.draw() callbacks as regular Lua apps,
-// but only has access to display, resources, math and geometry modules.
+// but only has access to display, resources, math, geometry, ws2812, sdcard, fs, wifi, http, audio, mqtt,
+// socket and state modules. State is loaded on open and saved on close, same as for Lua apps.
 // Buttons are not available to the script - they are handled by the launcher.
 class LuaWallpaper {
 public:

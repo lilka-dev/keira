@@ -9,7 +9,7 @@ idf_component_register(
         arduino lilka Arduino_GFX U8g2 ArduinoJson ESPTelnet ESP8266Audio AnimatedGIF JPEGDEC lua nofrendo mJS
         SimpleFTPServer qrcode arduino_tinyusb
         # ESP-IDF
-        app_update driver esp_http_client esp_http_server esp_wifi fatfs mbedtls mdns mqtt nvs_flash spiffs vfs
+        app_update driver esp_http_client esp_http_server esp_https_ota esp_wifi fatfs mbedtls mdns mqtt nvs_flash spiffs vfs
 )
 
 # While the composite CDC+MSC device owns the USB PHY, Serial (HWCDC) output is sent to its CDC port.

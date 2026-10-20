@@ -94,6 +94,9 @@
 #define K_S_LAUNCHER_SD                "SD"
 #define K_S_LAUNCHER_SD_FORMAT         "Форматування SD-карти"
 #define K_S_LAUNCHER_SD_SPEED          "Частота SD картки"
+#define K_S_LAUNCHER_DISPLAY           "Дисплей"
+#define K_S_LAUNCHER_DISPLAY_SPEED     "Частота дисплея"
+#define K_S_LAUNCHER_DISPLAY_SPI_MODE  "Режим SPI дисплея"
 #define K_S_LAUNCHER_SOUND             "Звук"
 #define K_S_LAUNCHER_SERVICES          K_S_SERVICES
 #define K_S_LAUNCHER_WEB               K_S_WEB
@@ -172,6 +175,10 @@
 #define K_S_I2C_SCANNER_SCAN_START    "Starting I2C scan..."
 #define K_S_I2C_SCANNER_SCAN_DONE     "I2C scan done."
 #define K_S_I2C_SCANNER_DEVICES_FOUND "Found %d devices."
+#define K_S_I2C_SCANNER_SDA           "SDA"
+#define K_S_I2C_SCANNER_SCL           "SCL"
+#define K_S_I2C_SCANNER_FREQUENCY     "Частота"
+#define K_S_I2C_SCANNER_SCAN          "Сканувати"
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // apps/demos/transform.cpp ///////////////////////////////////////////////////////////////////////////
@@ -246,6 +253,7 @@
 
 #define K_S_LILCATALOG_APPS                          "Додатки"
 #define K_S_LILCATALOG_MODS                          "Моди"
+#define K_S_LILCATALOG_WALLPAPERS                    "Шпалери"
 #define K_S_LILCATALOG_STOP                          "Вихід"
 #define K_S_LILCATALOG_BACK                          "Назад"
 #define K_S_LILCATALOG_EMPTY                         ""
@@ -254,6 +262,8 @@
 #define K_S_LILCATALOG_INSTALL                       "Встановити"
 #define K_S_LILCATALOG_REMOVE                        "Видалити"
 #define K_S_LILCATALOG_UPDATE                        "Оновити"
+#define K_S_LILCATALOG_SET_WALLPAPER                 "Встановити як шпалери"
+#define K_S_LILCATALOG_WALLPAPER_SET                 "Шпалери встановлено"
 #define K_S_LILCATALOG_SOURCE                        "Джерело"
 #define K_S_LILCATALOG_ENTRY_DESCRIPTION             "Опис"
 #define K_S_LILCATALOG_LOADING                       "Завантаження"
@@ -563,5 +573,19 @@
 
 #define K_S_PART_MGR_INTERRUPT_CONFIRM             "Чи бажаєте ви перервати операцію?"
 #define K_S_PART_MGR_SELECTED_ENTRIES_FMT          "Обрано %d розділ(ів)" 
+// Keira update //////////////////////////////////////////////////////////////////////////////////////
+#define K_S_LAUNCHER_KEIRA_UPDATE           "Оновити Keira"
+#define K_S_KEIRA_UPDATE                    "Оновлення Keira"
+#define K_S_KEIRA_UPDATE_CHECKING           "Перевірка оновлень..."
+#define K_S_KEIRA_UPDATE_FETCH_FAILED       "Не вдалося отримати інформацію про оновлення"
+#define K_S_KEIRA_UPDATE_PARSE_FAILED       "Некоректна інформація про оновлення"
+#define K_S_KEIRA_UPDATE_NO_VERSIONS        "Немає доступних прошивок"
+#define K_S_KEIRA_UPDATE_CURRENT            "поточна"
+#define K_S_KEIRA_UPDATE_LATEST             "остання"
+#define K_S_KEIRA_UPDATE_PRERELEASE         "пре"
+#define K_S_KEIRA_UPDATE_CONFIRM_FMT        "Встановити v%s?\n\nПоточна: v%s\nМова: %s\nРозмір: %s\nДата: %s\n\nSTART - продовжити\nB - скасувати"
+#define K_S_KEIRA_UPDATE_DOWNLOADING_FMT    "Встановлення v%s...\n\nB - скасувати"
+#define K_S_KEIRA_UPDATE_ERROR_FMT          "Помилка оновлення\n\n%s"
+#define K_S_KEIRA_UPDATE_SUCCESS            "Оновлення встановлено!\n\nСистему буде перезавантажено."
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // clang-format on

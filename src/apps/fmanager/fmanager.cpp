@@ -1328,7 +1328,8 @@ void FileManagerApp::run() {
 }
 
 void FileManagerApp::queueDraw() {
-    drawStatusBar();
+    // TODO: ToolBar part unified, so we can probably avoid overriding queueDraw at all
+    drawToolBar();
     App::queueDraw();
 }
 void FileManagerApp::spaceUsageUpdate() {
@@ -1344,43 +1345,39 @@ void FileManagerApp::spaceUsageUpdate() {
         }
     }
 }
-void FileManagerApp::drawStatusBar() {
-    spaceUsageUpdate();
-    canvas->fillRect(
-        0, canvas->height() - STATUS_BAR_HEIGHT, canvas->width(), STATUS_BAR_HEIGHT, STATUS_BAR_FILL_COLOR
-    );
-    // Uncomment those to get an idea where is x, and where is y
-    // Draw xy
-    //canvas->drawLine(0, 0, 50, 0, lilka::colors::Red);
-    //canvas->drawLine(0, 0, 0, 50, lilka::colors::Blue);
-    // canvas->printf("Height %d, width %d", canvas->height(), canvas->width());
+void FileManagerApp::drawToolBar() {
+    sToolBar = "";
 
-    canvas->setCursor(STATUS_BAR_SAFE_DISTANCE, canvas->height() - 20 / 2); // FONT_Y / 2
-    canvas->setFont(FONT_8x13);
+    uint16_t toolBarColor = lilka::colors::White;
+    uint16_t toolBarBgColor = lilka::colors::Black;
 
-    canvas->setTextBound(
-        STATUS_BAR_SAFE_DISTANCE, canvas->height() - STATUS_BAR_HEIGHT, STATUS_BAR_WIDTH, STATUS_BAR_HEIGHT
-    );
     // Show errno if set
     if (errno != 0) {
         errnoTime = millis();
         errnoStr = String(errno) + ":" + strerror(errno);
         errno = 0;
     }
+
     if ((millis() - errnoTime) <= FM_ERRNO_TIME) {
-        canvas->setTextColor(lilka::colors::Red);
-        canvas->printf("%s", errnoStr.c_str());
-        return;
+        toolBarColor = lilka::colors::Red;
+        sToolBar = errnoStr.c_str();
     }
+
     // Other significant data to show
-    if (mode == FM_MODE_SELECT) {
-        canvas->setTextColor(lilka::colors::White);
-        canvas->printf(K_S_FMANAGER_SELECTED_FILES_FMT, selectedDirEntries.size());
-    } else if (mode == FM_MODE_VIEW) {
-        canvas->setTextColor(lilka::colors::White);
+    if (sToolBar == "" && mode == FM_MODE_SELECT) {
+        sToolBar = StringFormat(K_S_FMANAGER_SELECTED_FILES_FMT, selectedDirEntries.size());
+    }
+
+    if (sToolBar == "" && mode == FM_MODE_VIEW) {
         auto fileListMenuIndex = fileListMenu.getCursor();
         auto dirLength = currentDirEntries.size();
-        if (fileListMenuIndex != dirLength)
-            canvas->printf("(%s) [ %d / %d ] ", spaceUsageStr.c_str(), fileListMenuIndex + 1, dirLength);
+        if (fileListMenuIndex != dirLength) {
+            spaceUsageUpdate();
+            sToolBar = StringFormat("(%s) [ %d / %d ] ", spaceUsageStr.c_str(), fileListMenuIndex + 1, dirLength);
+        }
     }
+
+    // Configure tool bar
+    setToolBarColor(toolBarColor, toolBarBgColor);
+    setToolBar(sToolBar);
 }

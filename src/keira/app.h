@@ -14,6 +14,11 @@
 #define APP_CAST(X)  reinterpret_cast<App>(X)
 #define APP_PCAST(X) reinterpret_cast<App*>(X)
 
+// Toolbar
+#define TOOL_BAR_HEIGHT        30
+#define TOOL_BAR_SAFE_DISTANCE 38
+#define TOOL_BAR_WIDTH         canvas->width() - TOOL_BAR_SAFE_DISTANCE * 2
+
 //============================================================================
 // App Flags
 //============================================================================
@@ -54,6 +59,8 @@ protected:
     //========================================================================
     void setFlags(AppFlags_t flags);
     AppFlags_t getFlags();
+    //////////////////////////////////////////////////////////////////////////
+
     //========================================================================
     //  App UI Dialogs:
     //========================================================================
@@ -68,14 +75,23 @@ protected:
     bool errnocheck();
     // Simple lilka::InputDialog
     String input(const String& title, const String& value = "", bool masked = false);
-
     //////////////////////////////////////////////////////////////////////////
+
+    //========================================================================
+    //  App UI Misc:
+    //========================================================================
+    // Set toolbar contents
+    void setToolBar(const String& toolbar);
+    // Set toolbar colors
+    void setToolBarColor(uint16_t color = lilka::colors::White, uint16_t bgcolor = lilka::colors::Black);
+    //////////////////////////////////////////////////////////////////////////
+
     //========================================================================
     //  App Canvas management
     //========================================================================
-    //  Retrieves current redraw status. true indicates redraw needed
+    // Retrieves current redraw status. true indicates redraw needed
     bool getRedraw();
-    //  Set redraw status
+    // Set redraw status
     void setRedraw(bool redraw);
     // Initializes canvas, recreates canvas on flag changes
     void initCanvas();
@@ -88,6 +104,13 @@ protected:
     // TODO: lastFrame, FPS meter
 private:
     SemaphoreHandle_t canvasMutex = xSemaphoreCreateMutex();
+
     bool redraw = false;
+
     AppFlags_t flags = AppFlags::APP_FLAG_NONE;
+
+    // Toolbar:
+    String toolBarLabel;
+    uint16_t toolBarColor = lilka::colors::White;
+    uint16_t toolBarBgColor = lilka::colors::Black;
 };

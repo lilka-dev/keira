@@ -28,6 +28,8 @@ protected:
     void luaSetup(const char* dir);
     void luaTeardown();
     int execute();
+    // Restore default text state on both canvas buffers, so scripts don't inherit runner UI settings
+    void resetCanvasState();
     lua_State* L;
 };
 
