@@ -14,6 +14,14 @@ KeiraOS, операційна система для консолей [![Lilka](h
 
 ## 🛠️ Як прошити Lilka (KeiraOS)
 
+Найпростіше прошити Лілку через [flasher.lilka.dev](https://flasher.lilka.dev/): виберіть версію, підключіть Лілку і натисніть «Прошити».
+
+`KeiraOS_merged*.bin` містить Keira разом із boot-меню та таблицею розділів [lilka-bootloader](https://github.com/lilka-dev/lilka-bootloader):
+- затисніть **START** під час увімкнення, щоб вибрати Keira OS, Retro-Go або прошивку з SD-картки;
+- Retro-Go встановлюється з самої Keira: відкрийте `retro-go_lilka.img` у файловому менеджері.
+
+Детальніше: [boot/README.md](boot/README.md). Нижче — прошивка вручну через ESPTool.
+
 ### 1. Відкрити інструмент прошивки  
 Перейдіть на сторінку [ESPTool (в браузері)](https://espressif.github.io/esptool-js/)  
 > ⚠️ Працює лише в Google Chrome або Chromium-браузерах.

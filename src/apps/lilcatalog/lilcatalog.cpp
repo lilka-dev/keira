@@ -897,7 +897,7 @@ ExecutionType LilCatalogApp::detectTypeByExtension(const String& location) {
     String loc = location;
     loc.toLowerCase();
     if (loc.endsWith(".lua")) return EXEC_TYPE_LUA;
-    if (loc.endsWith(".bin")) return EXEC_TYPE_BINARY;
+    if (loc.endsWith(".bin") || loc.endsWith(".img")) return EXEC_TYPE_BINARY;
     if (loc.endsWith(".so")) return EXEC_TYPE_DYNAPP;
     if (loc.endsWith(".zip") || loc.endsWith(".tar") || loc.endsWith(".gz")) return EXEC_TYPE_ARCHIVE;
     return EXEC_TYPE_UNKNOWN;

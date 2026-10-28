@@ -81,6 +81,7 @@
 #define K_S_LAUNCHER_LILCATALOG        "LilCatalogue"
 #define K_S_LAUNCHER_LILTRACKER        "LilTracker"
 #define K_S_LAUNCHER_LETRIS            "Letris"
+#define K_S_LAUNCHER_RETRO_GO          "Retro-Go"
 #define K_S_LAUNCHER_TAMAGOTCHI        "Tamagotchi"
 #define K_S_LAUNCHER_WEATHER           "Weather"
 #define K_S_LAUNCHER_PASTEBIN          "Pastebin"
@@ -236,6 +237,12 @@
 
 #define K_S_FMANAGER_MULTIBOOT_STARTING             "Starting..."
 #define K_S_FMANAGER_MULTIBOOT_ERROR_FMT            "Stage: %d\nCode: %d"
+#define K_S_FLASHIMAGE_TITLE                        "Install apps"
+#define K_S_FLASHIMAGE_CONFIRM_FMT                  "Install from image:\n%s\n\nSize: %s"
+#define K_S_FLASHIMAGE_DONE_FMT                     "Installed. Start %s now?"
+#define K_S_FLASHIMAGE_NO_PARTS                     "The image has no apps for this partition table"
+#define K_S_FLASHIMAGE_TOO_BIG_FMT                  "%s doesn't fit its partition"
+#define K_S_FLASHIMAGE_WRITE_ERROR_FMT              "%s: %s"
 #define K_S_FMANAGER_SORTING                        "Sorting..."
 #define K_S_FMANAGER_ALMOST_DONE                    "Almost ready..."
 #define K_S_FMANAGER_THIS_OP_WOULD_DELETE_FILE      "This operation would delete file\n"
@@ -594,6 +601,7 @@
 #define K_S_KEIRA_UPDATE_CONFIRM_FMT        "Install v%s?\n\nCurrent: v%s\nLanguage: %s\nSize: %s\nDate: %s\n\nSTART - continue\nB - exit"
 #define K_S_KEIRA_UPDATE_DOWNLOADING_FMT    "Installing v%s...\n\nB - cancel"
 #define K_S_KEIRA_UPDATE_ERROR_FMT          "Update failed\n\n%s"
+#define K_S_KEIRA_UPDATE_SLOT_ERROR         "Update would overwrite another app.\nUpdate via web interface or USB"
 #define K_S_KEIRA_UPDATE_SUCCESS            "Update installed!\n\nSystem will reboot."
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // clang-format on

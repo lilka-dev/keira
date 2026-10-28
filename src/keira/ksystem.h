@@ -13,6 +13,7 @@
 #include "keira/appmanager.h"
 // Libraries
 #include <lilka.h>
+#include <esp_partition.h>
 //#include <vector>
 
 // VFS(Virtual File Systems):
@@ -43,6 +44,16 @@ public:
     const String& getVersionStr() {
         return version;
     }
+
+    //========================================================================
+    //  Boot partitions
+    //========================================================================
+    // Slot to update Keira into: the other one of app0/app1. Don't rely on
+    // esp_ota_get_next_update_partition(): with other apps sharing the flash
+    // (e.g. Retro-Go next to Keira) the next OTA partition may belong to them.
+    static const esp_partition_t* getUpdatePartition();
+    // Restart into another app installed in its own OTA partition
+    static void bootPartition(const esp_partition_t* partition);
 
     //========================================================================
     //  Arduino-like entry points
