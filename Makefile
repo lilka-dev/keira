@@ -7,8 +7,10 @@ PORT ?=
 # Extra compile flags for one build, e.g. make FLAGS="-DLANG_EN -DFMANAGER_DEBUG"
 FLAGS ?=
 
-# ESP-IDF version pinned by the board, also used as the Docker image tag
-IDF_VERSION := $(shell sed -n 's/.*KEIRA_IDF_VERSION "\(.*\)".*/\1/p' boards/$(BOARD)/board.cmake)
+# ESP-IDF version pinned by the board (or the board it includes), also used as the Docker image tag
+BOARD_BASE := $(shell sed -n 's|.*include.*/\.\./\([^/]*\)/board\.cmake.*|\1|p' boards/$(BOARD)/board.cmake)
+IDF_VERSION := $(shell sed -n 's/.*KEIRA_IDF_VERSION "\(.*\)".*/\1/p' \
+	boards/$(BOARD)/board.cmake $(if $(BOARD_BASE),boards/$(BOARD_BASE)/board.cmake) | head -1)
 IDF_IMAGE ?= espressif/idf:v$(IDF_VERSION)
 DOCKER ?= docker
 
@@ -83,6 +85,43 @@ compile_commands: ## Link compile_commands.json from the build dir
 .PHONY: decode_backtrace
 decode_backtrace: ## Decode a backtrace: make decode_backtrace BT="0x4200...:0x3fc9... ..."
 	xtensa-esp32s3-elf-addr2line -pfiaC -e $(BUILD_DIR)/keira.elf $(BT)
+
+# QEMU (Espressif fork with ESP32-S3 support): https://github.com/espressif/qemu/releases
+QEMU_RELEASE ?= esp-develop-9.2.2-20260417
+QEMU_DIR ?= build-qemu
+QEMU_HOST := $(subst arm64,aarch64,$(shell uname -m))-$(if $(filter Darwin,$(shell uname -s)),apple-darwin,linux-gnu)
+QEMU_ARCHIVE := qemu-xtensa-softmmu-$(subst -,_,$(QEMU_RELEASE))-$(QEMU_HOST).tar.xz
+# The one from make qemu-install, if there is one, else from PATH
+QEMU ?= $(if $(wildcard $(QEMU_DIR)/qemu/bin/qemu-system-xtensa),$(QEMU_DIR)/qemu/bin/qemu-system-xtensa,qemu-system-xtensa)
+QEMU_BOARD ?= lilka_v2_qemu
+# Set NO_DOCKER=1 when already inside an ESP-IDF environment (e.g. the espressif/idf CI container)
+NO_DOCKER ?=
+QEMU_BUILD_DIR ?= build-$(QEMU_BOARD)$(if $(NO_DOCKER),,-docker)
+SPIFFS_OFFSET := $(shell sed -n 's/^spiffs, *data, *spiffs, *\([^,]*\),.*/\1/p' boards/lilka_v2/partitions.csv)
+# Runs a command in the QEMU build dir, inside the pinned ESP-IDF image unless NO_DOCKER is set
+IN_QEMU_BUILD_DIR = $(if $(NO_DOCKER),cd $(QEMU_BUILD_DIR) &&,$(DOCKER) run --rm -u $$(id -u):$$(id -g) -e HOME=/tmp \
+	-v "$(CURDIR)":/project -w /project/$(QEMU_BUILD_DIR) $(IDF_IMAGE))
+
+.PHONY: qemu-install qemu-build qemu-image qemu-run
+qemu-install: ## Download Espressif QEMU to build-qemu/ (macOS: brew install libgcrypt glib pixman sdl2 libslirp)
+	rm -rf $(QEMU_DIR) && mkdir -p $(QEMU_DIR)
+	curl -fsSL "https://github.com/espressif/qemu/releases/download/$(QEMU_RELEASE)/$(QEMU_ARCHIVE)" | tar -xJ -C $(QEMU_DIR)
+	$(QEMU_DIR)/qemu/bin/qemu-system-xtensa --version
+
+qemu-build: ## Build the QEMU firmware (board lilka_v2_qemu), in Docker unless NO_DOCKER=1
+	$(MAKE) $(if $(NO_DOCKER),build,docker-build) BOARD=$(QEMU_BOARD)
+
+qemu-image: ## Merge the QEMU firmware and data/spiffs/ into one 16 MB flash image
+	$(IN_QEMU_BUILD_DIR) esptool.py --chip esp32s3 merge_bin --fill-flash-size 16MB -o flash_image.bin \
+		@flash_args $(SPIFFS_OFFSET) spiffs.bin
+	@echo "Flash image: $(QEMU_BUILD_DIR)/flash_image.bin"
+
+qemu-run: ## Run Keira in QEMU, commands from stdin or SCRIPT=file
+	python3 tools/emu/keira_emu.py --qemu $(QEMU) --image $(QEMU_BUILD_DIR)/flash_image.bin $(SCRIPT)
+
+.PHONY: qemu-test
+qemu-test: ## Run the emulator tests in tests/emu (needs pytest)
+	KEIRA_QEMU_IMAGE=$(QEMU_BUILD_DIR)/flash_image.bin QEMU=$(QEMU) python3 -m pytest -v tests/emu
 
 .PHONY: clang-format
 clang-format: ## Run clang-format check

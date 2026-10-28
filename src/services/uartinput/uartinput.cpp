@@ -1,4 +1,8 @@
+#include <mbedtls/base64.h>
+
 #include "uartinput.h"
+#include "keira/ksystem.h"
+#include "services/screenshot/screenshot.h"
 
 typedef struct {
     const char* name;
@@ -29,6 +33,8 @@ static bool parseButton(const String& name, lilka::Button& button) {
 }
 
 UARTInputService::UARTInputService() : Service("uartinput") {
+    // PNG encoding for @screenshot needs more than the default stack
+    setktStackSize(8192);
 }
 
 void UARTInputService::run() {
@@ -69,6 +75,15 @@ void UARTInputService::handleCommand(const String& line) {
     String buttonName = space < 0 ? args : args.substring(0, space);
     String param = space < 0 ? "" : args.substring(space + 1);
     param.trim();
+
+    if (command == "screenshot" && buttonName.isEmpty()) {
+        if (sendScreenshot()) {
+            lilka::serial.log("@ok %s", line.c_str());
+        } else {
+            lilka::serial.err("@err screenshot failed: %s", line.c_str());
+        }
+        return;
+    }
 
     if (command == "release" && buttonName.isEmpty()) {
         releaseAll();
@@ -112,4 +127,31 @@ void UARTInputService::releaseAll() {
         lilka::controller.setVirtualPressed(entry.button, false);
     }
     vTaskDelay(UART_INPUT_SETTLE_MS / portTICK_PERIOD_MS);
+}
+
+bool UARTInputService::sendScreenshot() {
+    lilka::Canvas canvas(lilka::display.width(), lilka::display.height());
+    canvas.fillScreen(lilka::colors::Black);
+    ksystem.apps.renderToCanvas(&canvas);
+
+    std::vector<uint8_t> png;
+    if (!ScreenshotService::encodePNG(&canvas, png)) {
+        return false;
+    }
+
+    // lilka::serial formats into a fixed-size buffer, so the image goes out as a series of short lines.
+    // Each chunk is a multiple of 3 bytes, so the chunks are valid base64 on their own
+    char encoded[UART_INPUT_PNG_CHUNK / 3 * 4 + 1];
+    for (size_t offset = 0; offset < png.size(); offset += UART_INPUT_PNG_CHUNK) {
+        size_t chunk = std::min(static_cast<size_t>(UART_INPUT_PNG_CHUNK), png.size() - offset);
+        size_t written = 0;
+        if (mbedtls_base64_encode(
+                reinterpret_cast<unsigned char*>(encoded), sizeof(encoded), &written, png.data() + offset, chunk
+            ) != 0) {
+            return false;
+        }
+        lilka::serial.log("@png %s", encoded);
+    }
+    lilka::serial.log("@png end %d", png.size());
+    return true;
 }

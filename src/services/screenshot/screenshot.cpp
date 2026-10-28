@@ -99,21 +99,7 @@ ScreenshotService::ScreenshotService() : Service("screenshot") {
     setktPriority(KT_PRIO_DEFAULT);
 }
 
-bool ScreenshotService::saveScreenshot(lilka::Canvas* canvas) {
-#if defined(KEIRA_SCREENSHOT_BMP)
-    BMPEncoder encoder(canvas->getFramebuffer(), canvas->width(), canvas->height());
-
-    uint32_t length = encoder.getLength();
-    uint8_t* buffer = new uint8_t[length];
-    std::unique_ptr<uint8_t[]> bufferPtr(buffer);
-
-    if (encoder.encode(buffer)) {
-        return writeScreenshot(buffer, length, "bmp");
-    }
-
-    return false;
-
-#elif defined(KEIRA_SCREENSHOT_PNG)
+bool ScreenshotService::encodePNG(lilka::Canvas* canvas, std::vector<uint8_t>& png) {
     int16_t width = canvas->width();
     int16_t height = canvas->height();
 
@@ -129,8 +115,26 @@ bool ScreenshotService::saveScreenshot(lilka::Canvas* canvas) {
             image[4 * width * y + 4 * x + 3] = 255;
         }
     }
+    return lodepng::encode(png, image, width, height) == 0;
+}
+
+bool ScreenshotService::saveScreenshot(lilka::Canvas* canvas) {
+#if defined(KEIRA_SCREENSHOT_BMP)
+    BMPEncoder encoder(canvas->getFramebuffer(), canvas->width(), canvas->height());
+
+    uint32_t length = encoder.getLength();
+    uint8_t* buffer = new uint8_t[length];
+    std::unique_ptr<uint8_t[]> bufferPtr(buffer);
+
+    if (encoder.encode(buffer)) {
+        return writeScreenshot(buffer, length, "bmp");
+    }
+
+    return false;
+
+#elif defined(KEIRA_SCREENSHOT_PNG)
     std::vector<uint8_t> compressedImage;
-    if (!lodepng::encode(compressedImage, image, width, height)) {
+    if (encodePNG(canvas, compressedImage)) {
         return writeScreenshot(compressedImage.data(), compressedImage.size(), "png");
     }
 

@@ -40,6 +40,7 @@
 - sdkconfig is generated in the build dir and is not refreshed from defaults; after changing `boards/<board>/sdkconfig.defaults` run `make fullclean`
 - One-off compile flags: `make FLAGS="-DLANG_EN -DFMANAGER_DEBUG"` (`-DKEIRA_BUILD_FLAGS=...` for `idf.py`)
 - **v2** (ESP32-S3) is the only supported board; v1 support was removed
+- `lilka_v2_qemu` is `lilka_v2` for Espressif QEMU (UI tests, `make qemu-test`): it layers its `sdkconfig.defaults` on top of `lilka_v2`'s and has no `partitions.csv` of its own — see `tools/emu/README.md`
 - `clang-format` and `cppcheck` are enforced in CI — run `make clang-format` and `make cppcheck` before committing
 
 ## Arduino vs esp-idf

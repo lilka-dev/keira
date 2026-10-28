@@ -1,0 +1,17 @@
+# Applied on top of boards/lilka_v2/sdkconfig.defaults (see board.cmake), so partitions.csv is shared too.
+
+# QEMU emulates quad PSRAM; octal PSRAM init hangs (run QEMU with -m 8M)
+# CONFIG_SPIRAM_MODE_OCT is not set
+CONFIG_SPIRAM_MODE_QUAD=y
+# CONFIG_SPIRAM_SPEED_80M is not set
+CONFIG_SPIRAM_SPEED_40M=y
+
+# Hashing the whole app on every boot takes several seconds under emulation
+CONFIG_BOOTLOADER_SKIP_VALIDATE_ON_POWER_ON=y
+
+# Emulation is slower than the real chip: a busy task must not reset the board in the middle of a test
+# CONFIG_ESP_TASK_WDT_PANIC is not set
+
+# Boot logs, to see where an emulated boot gets stuck
+CONFIG_BOOTLOADER_LOG_LEVEL_INFO=y
+CONFIG_LOG_DEFAULT_LEVEL_INFO=y

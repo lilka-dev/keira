@@ -4,3 +4,4 @@ compile_commands.json
 build/
 build-*/
 build.log
+test_output/

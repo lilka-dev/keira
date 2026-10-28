@@ -21,3 +21,8 @@ target_link_libraries(
         "-Wl,--wrap=_ZN5HWCDC17availableForWriteEv"
         "-Wl,--wrap=_ZN5HWCDC5flushEv"
 )
+
+# QEMU has no ADC: analogRead() would wait for a conversion forever. See keira/emulator.cpp
+if(KEIRA_EMULATOR)
+    target_link_libraries(${COMPONENT_LIB} INTERFACE "-Wl,--wrap=analogRead")
+endif()

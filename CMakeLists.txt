@@ -23,13 +23,15 @@ if(NOT EXISTS "${KEIRA_BOARD_DIR}/board.cmake")
     message(FATAL_ERROR "Unknown board '${KEIRA_BOARD}': ${KEIRA_BOARD_DIR}/board.cmake not found")
 endif()
 
-# Sets IDF_TARGET, KEIRA_IDF_VERSION and KEIRA_BOARD_DEFINITIONS
+# Sets IDF_TARGET, KEIRA_IDF_VERSION and KEIRA_BOARD_DEFINITIONS,
+# optionally KEIRA_SDKCONFIG_DEFAULTS (a board derived from another one layers its defaults on top)
+set(KEIRA_SDKCONFIG_DEFAULTS "${KEIRA_BOARD_DIR}/sdkconfig.defaults")
 include("${KEIRA_BOARD_DIR}/board.cmake")
 
 # Extra flags for a single build, e.g. -DKEIRA_BUILD_FLAGS="-DLANG_EN;-DFMANAGER_DEBUG"
 set(KEIRA_BUILD_FLAGS "" CACHE STRING "Extra compile flags (semicolon separated)")
 
-set(SDKCONFIG_DEFAULTS "${KEIRA_BOARD_DIR}/sdkconfig.defaults")
+set(SDKCONFIG_DEFAULTS "${KEIRA_SDKCONFIG_DEFAULTS}")
 # Keep the generated sdkconfig next to the build, so switching boards is just switching build dirs
 set(SDKCONFIG "${CMAKE_BINARY_DIR}/sdkconfig")
 

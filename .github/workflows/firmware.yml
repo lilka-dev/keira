@@ -143,6 +143,50 @@ jobs:
             out/*.bin
             out/keira_firmware.json
 
+  # Boots the lilka_v2_qemu firmware in Espressif's QEMU and runs tests/emu (see tools/emu/README.md)
+  emulator-tests:
+    runs-on: ubuntu-latest
+    # Must match KEIRA_IDF_VERSION in boards/lilka_v2/board.cmake
+    container: espressif/idf:v4.4.7
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - uses: actions/cache@v4
+        with:
+          path: .ccache
+          key: ccache-qemu-${{ hashFiles('.gitmodules', 'boards/**') }}-${{ github.sha }}
+          restore-keys: ccache-qemu-${{ hashFiles('.gitmodules', 'boards/**') }}-
+
+      - name: Build QEMU firmware
+        run: |
+          . "$IDF_PATH/export.sh"
+          export CCACHE_DIR="$GITHUB_WORKSPACE/.ccache"
+          make qemu-build qemu-image NO_DOCKER=1
+
+      - name: Install QEMU
+        run: |
+          apt-get update -y
+          apt-get install -y --no-install-recommends libglib2.0-0 libpixman-1-0 libslirp0 libsdl2-2.0-0 libgcrypt20
+          make qemu-install
+
+      - name: Run emulator tests
+        run: |
+          . "$IDF_PATH/export.sh"
+          python -m pip install pytest
+          make qemu-test NO_DOCKER=1
+
+      - name: Upload screenshots and serial logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: emulator-tests
+          path: test_output/emu
+
   github-releases-to-discord:
     needs: keira
     runs-on: ubuntu-latest
