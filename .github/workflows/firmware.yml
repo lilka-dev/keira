@@ -16,7 +16,8 @@ permissions:
 
 jobs:
   keira:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
+
     steps:
       - uses: actions/checkout@v3
         with:
@@ -33,8 +34,7 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          # 3.9 isn't available for the current ubuntu-latest image
-          python-version: '3.11'
+          python-version: '3.12'
 
       - name: Install PlatformIO Core
         run: pip install --upgrade platformio
