@@ -1,0 +1,16 @@
+# Lilka v2 (16 MB): Keira OS + Keira multiboot slot + Retro-Go, booted by lilka_boot.
+# Retro-Go finds its apps by label, Keira expects app0/app1 as ota_0/ota_1.
+# Name,      Type, SubType,  Offset,   Size
+nvs,         data, nvs,      0x9000,   0x5000
+otadata,     data, ota,      0xe000,   0x2000
+app0,        app,  ota_0,    0x10000,  0x400000
+app1,        app,  ota_1,    0x410000, 0x300000
+launcher,    app,  ota_2,    0x710000, 0x100000
+retro-core,  app,  ota_3,    0x810000, 0xd0000
+prboom-go,   app,  ota_4,    0x8e0000, 0xd0000
+snes9x,      app,  ota_5,    0x9b0000, 0xa0000
+gwenesis,    app,  ota_6,    0xa50000, 0x100000
+fmsx,        app,  ota_7,    0xb50000, 0xa0000
+gbsp,        app,  ota_8,    0xbf0000, 0xd0000
+spiffs,      data, spiffs,   0xcc0000, 0x330000
+coredump,    data, coredump, 0xff0000, 0x10000

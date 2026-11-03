@@ -305,7 +305,7 @@ FMEntry FileManagerApp::pathToEntry(const String& path) {
         newEntry.type = FT_NES_ROM;
         newEntry.icon = FT_NES_ICON;
         newEntry.color = FT_NES_ROM_COLOR;
-    } else if (lowerCasedPath.endsWith(".bin")) {
+    } else if (lowerCasedPath.endsWith(".bin") || lowerCasedPath.endsWith(".img")) {
         newEntry.type = FT_BIN;
         newEntry.icon = FT_BIN_ICON;
         newEntry.color = FT_BIN_COLOR;

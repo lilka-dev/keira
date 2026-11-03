@@ -3,6 +3,7 @@
 // Boot:
 #include <lilka/multiboot.h>
 #include <esp_ota_ops.h>
+#include <esp_netif.h>
 
 // Services:
 #ifdef KEIRA_WATCHDOG
@@ -35,9 +36,6 @@
 
 // Utils:
 #include "keira/utils/string.h"
-
-// VFS
-#include "keira/vfs/spiram/spiram.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // GUIDELINE: external libraries to use <> in includes
@@ -176,9 +174,25 @@ void KeiraSystem::verifyOTA() {
     }
 }
 
+const esp_partition_t* KeiraSystem::getUpdatePartition() {
+    const esp_partition_t* running = esp_ota_get_running_partition();
+    const char* other = strcmp(running->label, "app0") == 0 ? "app1" : "app0";
+    return esp_partition_find_first(ESP_PARTITION_TYPE_APP, ESP_PARTITION_SUBTYPE_ANY, other);
+}
+
+void KeiraSystem::bootPartition(const esp_partition_t* partition) {
+    esp_err_t err = esp_ota_set_boot_partition(partition);
+    if (err != ESP_OK) {
+        lilka::serial.err("Failed to set boot partition %s: %s", partition->label, esp_err_to_name(err));
+        return;
+    }
+    esp_restart();
+}
+
 void KeiraSystem::registerFileSystems() {
-    // TODO:To be registered as a system unit
-    this->vfs.push_back(new SPIRamVFS(LILKA_TMP_ROOT));
+    // SPIRamVFS (/tmp) isn't registered: ESP-IDF 4.4 has only 8 VFS slots (VFS_MAX_COUNT),
+    // console + stdio + SD + SPIFFS + RootVFS + lwip sockets already take all of them.
+    // TODO: register it again once a slot is free (e.g. by serving /tmp from RootVFS)
 
     // Prepare RootVFS. Better to register it last
     this->rootVFS = new RootVFS("");
@@ -211,6 +225,13 @@ void KeiraSystem::showStartupScreen() {
 
 // Prepare system to launch
 void KeiraSystem::setup() {
+    // Init the network stack before any filesystem gets mounted: lwip sockets take one of the 8
+    // VFS slots, and WiFi aborts on start if the filesystems have used them all up
+    esp_err_t err = esp_netif_init();
+    if (err != ESP_OK) {
+        lilka::serial.err("esp_netif_init failed: %s", esp_err_to_name(err));
+    }
+
     // Init Hardware
     lilka::begin();
 

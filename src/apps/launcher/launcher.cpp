@@ -1,6 +1,7 @@
 #include <ff.h>
 #include <FS.h>
 #include <qrcode.h>
+#include <esp_ota_ops.h>
 #include "keira/utils/mem.h"
 #include "keira/keira.h"
 #include "launcher.h"
@@ -67,6 +68,9 @@
 
 #include "keira/ksystem.h"
 #include "keira/utils/string.h"
+
+// Partition label of Retro-Go's launcher (see boot/lilka_v2/partitions.csv)
+static constexpr const char* RETRO_GO_PARTITION = "launcher";
 
 // Home screen wallpaper, Lua script takes priority over images, first existing image is used
 static const char* const WALLPAPER_LUA_PATH = "/sd/wallpaper.lua";
@@ -144,6 +148,17 @@ void LauncherApp::run() {
     // Insert it into the Applications menu
     if (!lastOTA.isEmpty()) {
         appsItems.insert(appsItems.begin(), ITEM::APP(lastOTA.c_str(), [this]() { this->runApp<MultiBootApp>(); }));
+    }
+
+    // Retro-Go installed next to Keira (see FlashImageApp) has its launcher in its own partition.
+    // The app description check skips empty partitions and leftovers of an older layout.
+    const esp_partition_t* retroGo =
+        esp_partition_find_first(ESP_PARTITION_TYPE_APP, ESP_PARTITION_SUBTYPE_ANY, RETRO_GO_PARTITION);
+    esp_app_desc_t retroGoDesc;
+    if (retroGo && esp_ota_get_partition_description(retroGo, &retroGoDesc) == ESP_OK) {
+        appsItems.insert(appsItems.begin(), ITEM::APP(K_S_LAUNCHER_RETRO_GO, [retroGo]() {
+                             KeiraSystem::bootPartition(retroGo);
+                         }));
     }
 
     item_t root_item = ITEM::SUBMENU(

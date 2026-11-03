@@ -32,7 +32,7 @@ jobs:
             ./.pio
           key: ${{ runner.os }}-keira
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
@@ -98,12 +98,14 @@ jobs:
               PLATFORMIO_BUILD_FLAGS=-D$lang pio run -e v2
               cp .pio/build/v2/firmware.bin out/keira_${lang}.bin
               cp .pio/build/v2/partitions.bin out/partitions.bin
-              cp .pio/build/v2/bootloader.bin out/bootloader.bin
+              cp boot/lilka_v2/bootloader.bin out/bootloader.bin
               pip install esptool
+              # boot_app0.bin is a blank otadata: the board starts Keira (app0) after flashing
               esptool.py --chip esp32s3 merge_bin \
                 -o out/KeiraOS_merged_${lang}.bin \
                 0x0 out/bootloader.bin \
                 0x8000 out/partitions.bin \
+                0xe000 ~/.platformio/packages/framework-arduinoespressif32/tools/partitions/boot_app0.bin \
                 0x10000 out/keira_${lang}.bin
             done
           else
@@ -111,12 +113,13 @@ jobs:
             pio run -e v2
             cp .pio/build/v2/firmware.bin out/keira.bin
             cp .pio/build/v2/partitions.bin out/partitions.bin
-            cp .pio/build/v2/bootloader.bin out/bootloader.bin
+            cp boot/lilka_v2/bootloader.bin out/bootloader.bin
             pip install esptool
             esptool.py --chip esp32s3 merge_bin \
               -o out/KeiraOS_merged.bin \
               0x0 out/bootloader.bin \
               0x8000 out/partitions.bin \
+              0xe000 ~/.platformio/packages/framework-arduinoespressif32/tools/partitions/boot_app0.bin \
               0x10000 out/keira.bin
           fi
 

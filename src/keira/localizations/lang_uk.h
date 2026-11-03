@@ -80,6 +80,7 @@
 #define K_S_LAUNCHER_LILCATALOG        "ЛілКаталог"
 #define K_S_LAUNCHER_LILTRACKER        "ЛілТрекер"
 #define K_S_LAUNCHER_LETRIS            "Летріс"
+#define K_S_LAUNCHER_RETRO_GO          "Retro-Go"
 #define K_S_LAUNCHER_TAMAGOTCHI        "Тамагочі"
 #define K_S_LAUNCHER_WEATHER           "Погода"
 #define K_S_LAUNCHER_PASTEBIN          "Pastebin"
@@ -228,6 +229,12 @@
 
 #define K_S_FMANAGER_MULTIBOOT_STARTING             "Починаємо..."
 #define K_S_FMANAGER_MULTIBOOT_ERROR_FMT            "Етап: %d\nКод: %d"
+#define K_S_FLASHIMAGE_TITLE                        "Встановлення застосунків"
+#define K_S_FLASHIMAGE_CONFIRM_FMT                  "Встановити з образу:\n%s\n\nРозмір: %s"
+#define K_S_FLASHIMAGE_DONE_FMT                     "Встановлено. Запустити %s?"
+#define K_S_FLASHIMAGE_NO_PARTS                     "В образі немає застосунків для цієї таблиці розділів"
+#define K_S_FLASHIMAGE_TOO_BIG_FMT                  "%s не вміщається у свій розділ"
+#define K_S_FLASHIMAGE_WRITE_ERROR_FMT              "%s: %s"
 #define K_S_FMANAGER_SORTING                        "Сортування..."
 #define K_S_FMANAGER_ALMOST_DONE                    "Майже готово..."
 #define K_S_FMANAGER_THIS_OP_WOULD_DELETE_FILE      "Ця операція видалить файл\n"
@@ -586,6 +593,7 @@
 #define K_S_KEIRA_UPDATE_CONFIRM_FMT        "Встановити v%s?\n\nПоточна: v%s\nМова: %s\nРозмір: %s\nДата: %s\n\nSTART - продовжити\nB - скасувати"
 #define K_S_KEIRA_UPDATE_DOWNLOADING_FMT    "Встановлення v%s...\n\nB - скасувати"
 #define K_S_KEIRA_UPDATE_ERROR_FMT          "Помилка оновлення\n\n%s"
+#define K_S_KEIRA_UPDATE_SLOT_ERROR         "Оновлення перезапише інший застосунок.\nОновіть через веб-інтерфейс або USB"
 #define K_S_KEIRA_UPDATE_SUCCESS            "Оновлення встановлено!\n\nСистему буде перезавантажено."
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // clang-format on

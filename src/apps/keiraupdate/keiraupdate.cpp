@@ -182,6 +182,12 @@ void KeiraUpdateApp::install(const FirmwareVersion& fw) {
     httpConfig.buffer_size_tx = KEIRA_UPDATE_TX_BUFFER;
     httpConfig.keep_alive_enable = true;
 
+    // esp_https_ota always writes the next OTA partition, which isn't Keira's when other apps share the flash
+    if (esp_ota_get_next_update_partition(NULL) != KeiraSystem::getUpdatePartition()) {
+        alert(K_S_ERROR, K_S_KEIRA_UPDATE_SLOT_ERROR);
+        return;
+    }
+
     esp_https_ota_config_t otaConfig = {};
     otaConfig.http_config = &httpConfig;
 

@@ -1015,9 +1015,8 @@ static esp_err_t upload_handler(httpd_req_t* req) {
     int contentLength = getContentLength(req);
     lilka::serial.log("FW upload binary size %d", contentLength);
 
-    auto current_partition = esp_ota_get_running_partition();
-    auto ota_partition = esp_ota_get_next_update_partition(current_partition);
-    esp_err_t err = esp_ota_begin(ota_partition, contentLength, &ota_handle);
+    auto ota_partition = KeiraSystem::getUpdatePartition();
+    esp_err_t err = ota_partition ? esp_ota_begin(ota_partition, contentLength, &ota_handle) : ESP_ERR_NOT_FOUND;
 
     if (err == ESP_OK) {
         char* buf = static_cast<char*>(malloc(WEB_BUFFER_FLASH_OP));
