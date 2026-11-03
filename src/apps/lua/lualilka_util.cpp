@@ -1,6 +1,7 @@
 #include <csetjmp>
 
 #include "lualilka_util.h"
+#include "keira/keira.h"
 
 extern jmp_buf stopjmp;
 
@@ -34,12 +35,22 @@ int lualilka_util_totalRAM(lua_State* L) {
     return 1;
 }
 
+int lualilka_util_multiboot(lua_State* L) {
+    const char* binPath = luaL_checkstring(L, 1);
+    const char* args = luaL_optstring(L, 2, "");
+
+    lilka::multiboot.setCMDParams(args);
+    K_FT_BIN_HANDLER(binPath);
+    return 0;
+}
+
 static const luaL_Reg lualilka_util[] = {
     {"time", lualilka_util_time},
     {"sleep", lualilka_util_sleep},
     {"exit", lualilka_util_exit},
     {"free_ram", lualilka_util_freeRAM},
     {"total_ram", lualilka_util_totalRAM},
+    {"multiboot", lualilka_util_multiboot},
     {NULL, NULL},
 };
 
