@@ -24,6 +24,8 @@
 #include "lualilka_httpserver.h"
 #include "lualilka_state.h"
 #include "lualilka_service.h"
+#include "lualilka_hw.h"
+#include "lualilka_modules.h"
 #include "keira/utils/defer.h"
 
 // Number of VM instructions between checks for a stop request
@@ -98,7 +100,12 @@ void LuaService::run() {
         lilka::serial.err("Lua service %s: failed to create Lua state", getName());
         return;
     }
-    Defer closeState([L]() { lua_close(L); });
+    const void* hwOwner = lualilka_hw_owner(L);
+    Defer closeState([L, hwOwner]() {
+        lua_close(L);
+        // Hardware objects release their pins in __gc; this catches anything left over
+        lualilka_hw_releaseOwner(hwOwner);
+    });
     luaL_openlibs(L);
 
     // Relative paths and require() are resolved against the script directory
@@ -137,6 +144,7 @@ void LuaService::run() {
     lualilka_httpserver_register(L);
     lualilka_state_register(L);
     lualilka_service_register(L);
+    lualilka_modules_register(L);
 
     lua_getglobal(L, "util");
     lua_pushcfunction(L, luaservice_sleep);

@@ -1,0 +1,31 @@
+``cc1101`` - Радіо CC1101
+=========================
+
+Робота з модулем 004 RF з CC1101 (300-348, 387-464, 779-928 МГц) на шині SPI2.
+Див. також :doc:`modules`.
+
+.. warning::
+
+    Перевірте, які частоти й потужності дозволені у вашій країні.
+
+Приклад - індикатор сигналу на 433.92 МГц:
+
+.. code-block:: lua
+
+    local radio = assert(cc1101.new({frequency = 433.92}))
+
+    function lilka.update(delta)
+        if controller.get_state().b.just_pressed then
+            util.exit()
+        end
+    end
+
+    function lilka.draw()
+        local rssi = radio:rssi()
+        display.fill_screen(display.color565(0, 0, 0))
+        display.set_cursor(10, 40)
+        display.print(string.format("%.1f dBm", rssi))
+        display.fill_rect(10, 80, math.max(0, (rssi + 110) * 3), 20, display.color565(255, 128, 0))
+    end
+
+.. lua:autoclass:: cc1101

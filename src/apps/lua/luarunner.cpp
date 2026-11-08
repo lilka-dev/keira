@@ -32,6 +32,8 @@
 #include "lualilka_mqtt.h"
 #include "lualilka_httpserver.h"
 #include "lualilka_service.h"
+#include "lualilka_hw.h"
+#include "lualilka_modules.h"
 #include "keira/ksound/sound.h"
 #define SERIAL_DELAY 1000
 
@@ -187,6 +189,7 @@ void AbstractLuaRunnerApp::luaSetup(const char* dir) {
     lualilka_httpserver_register(L);
     lualilka_state_register(L);
     lualilka_service_register(L);
+    lualilka_modules_register(L);
 
     // lilka::serial.log("lua: init canvas");
     // lilka::Canvas* canvas = new lilka::Canvas();
@@ -240,7 +243,10 @@ void AbstractLuaRunnerApp::luaTeardown() {
     // lilka::Canvas* canvas = (lilka::Canvas*)lua_touserdata(L, lua_getfield(L, LUA_REGISTRYINDEX, "canvas"));
     // delete canvas;
 
+    // Hardware objects release their pins in __gc; anything left over is released after the state is gone
+    const void* hwOwner = lualilka_hw_owner(L);
     lua_close(L);
+    lualilka_hw_releaseOwner(hwOwner);
 }
 
 void AbstractLuaRunnerApp::resetCanvasState() {
