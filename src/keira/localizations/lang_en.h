@@ -212,10 +212,8 @@
 #define K_S_FMANAGER_NES_EMULATOR                  "NES Emulator"
 #define K_S_FMANAGER_FIRMWARE_LOADER               "Flash loader"
 #define K_S_FMANAGER_LUA                           "Lua"
-#define K_S_FMANAGER_MJS                           "mJS"
 #define K_S_FMANAGER_LILTRACKER                    K_S_LAUNCHER_LILTRACKER
 #define K_S_FMANAGER_MAD_PLAYER                    "MadPlayer"
-#define K_S_FMANAGER_DYNAPP                        "DynApp (.so)"
 #define K_S_FMANAGER_IMAGE_VIEWER                  K_S_IMAGEVIEWER_NAME
 #define K_S_FMANAGER_ACTIONS_ON_SELECTED           "Actions on selected"
 #define K_S_FMANAGER_COPY_SELECTED                 "Copy selected"
@@ -442,11 +440,7 @@
 #define K_S_PASTEBIN_REQUEST_FAIL_FMT             "HTTP Error\n%s"
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// apps/mjs/mjsrunner.cpp /////////////////////////////////////////////////////////////////////////////
-#define K_S_MJS_ERROR                             "Error: "
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// apps/mjs/luarunner.cpp /////////////////////////////////////////////////////////////////////////////
+// apps/lua/luarunner.cpp /////////////////////////////////////////////////////////////////////////////
 #define K_S_LUA_ERROR                             "Error: "
 #define K_S_LUA_AWAIT_CODE_FROM_UART              "Awaiting code\nfrom UART...\n\nPress [A]\nto exit."
 #define K_S_LUA_DOWNLOAD                          "Downloading..."

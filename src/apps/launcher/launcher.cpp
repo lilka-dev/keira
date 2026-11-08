@@ -37,7 +37,6 @@
 #include "apps/tamagotchi/tamagotchi.h"
 #include "apps/lua/luarunner.h"
 #include "apps/lua/luawallpaper.h"
-#include "apps/mjs/mjsrunner.h"
 #include "apps/nes/nesapp.h"
 #include "apps/weather/weather.h"
 #include "apps/madplayer/madplayer.h"
@@ -672,14 +671,11 @@ ITEM_LIST LauncherApp::loadCatalogItems() {
             execType = EXEC_TYPE_LUA;
         } else if (execTypeStr == "binary") {
             execType = EXEC_TYPE_BINARY;
-        } else if (execTypeStr == "dynapp" || execTypeStr == "so") {
-            execType = EXEC_TYPE_DYNAPP;
         } else {
             String loc = execLocation;
             loc.toLowerCase();
             if (loc.endsWith(".lua")) execType = EXEC_TYPE_LUA;
             else if (loc.endsWith(".bin")) execType = EXEC_TYPE_BINARY;
-            else if (loc.endsWith(".so")) execType = EXEC_TYPE_DYNAPP;
         }
 
         if (execType == EXEC_TYPE_UNKNOWN) {
@@ -707,9 +703,6 @@ ITEM_LIST LauncherApp::loadCatalogItems() {
                             break;
                         case EXEC_TYPE_BINARY:
                             ksystem.apps.spawn(new MultiBootApp(execPath));
-                            break;
-                        case EXEC_TYPE_DYNAPP:
-                            ksystem.apps.spawn(new DynApp(execPath));
                             break;
                         default:
                             break;

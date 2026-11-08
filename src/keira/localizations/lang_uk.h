@@ -205,10 +205,8 @@
 #define K_S_FMANAGER_NES_EMULATOR                         "Емулятор NES"
 #define K_S_FMANAGER_FIRMWARE_LOADER                      "Завантажувач прошивок"
 #define K_S_FMANAGER_LUA                                  "Lua"
-#define K_S_FMANAGER_MJS                                  "mJS"
 #define K_S_FMANAGER_LILTRACKER                           K_S_LAUNCHER_LILTRACKER
 #define K_S_FMANAGER_MAD_PLAYER                           "MadPlayer"
-#define K_S_FMANAGER_DYNAPP                                "DynApp (.so)"
 #define K_S_FMANAGER_IMAGE_VIEWER                         K_S_IMAGEVIEWER_NAME
 #define K_S_FMANAGER_ACTIONS_ON_SELECTED                  "Дії над вибраним"
 #define K_S_FMANAGER_COPY_SELECTED                        "Копіювати вибране"
@@ -435,11 +433,7 @@
 #define K_S_PASTEBIN_REQUEST_FAIL_FMT             "Помилка HTTP\n%s"
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// apps/mjs/mjsrunner.cpp /////////////////////////////////////////////////////////////////////////////
-#define K_S_MJS_ERROR                             "Помилка: "
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// apps/mjs/luarunner.cpp /////////////////////////////////////////////////////////////////////////////
+// apps/lua/luarunner.cpp /////////////////////////////////////////////////////////////////////////////
 #define K_S_LUA_ERROR                             "Помилка: "
 #define K_S_LUA_AWAIT_CODE_FROM_UART              "Очікування коду\nз  UART...\n\nНатисність [A]\nдля виходу."
 #define K_S_LUA_DOWNLOAD                          "Завантаження..."
