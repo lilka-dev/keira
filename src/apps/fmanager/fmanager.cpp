@@ -297,10 +297,8 @@ FMEntry FileManagerApp::pathToEntry(const String& path) {
         newEntry.type = FT_LUA_SCRIPT;
         newEntry.icon = FT_LUA_SCRIPT_ICON;
         newEntry.color = FT_LUA_SCRIPT_COLOR;
-    } else if (
-        lowerCasedPath.endsWith(".mod") || lowerCasedPath.endsWith(".wav") || lowerCasedPath.endsWith(".mp3") ||
-        lowerCasedPath.endsWith(".aac") || lowerCasedPath.endsWith(".flac")
-    ) {
+    } else if (lowerCasedPath.endsWith(".mod") || lowerCasedPath.endsWith(".wav") || lowerCasedPath.endsWith(".mp3") ||
+               lowerCasedPath.endsWith(".aac") || lowerCasedPath.endsWith(".flac")) {
         newEntry.type = FT_SOUND;
         newEntry.icon = FT_SOUND_ICON;
         newEntry.color = FT_SOUND_COLOR;
@@ -308,10 +306,8 @@ FMEntry FileManagerApp::pathToEntry(const String& path) {
         newEntry.type = FT_LT;
         newEntry.icon = FT_LT_ICON;
         newEntry.color = FT_LT_COLOR;
-    } else if (
-        lowerCasedPath.endsWith(".png") || lowerCasedPath.endsWith(".jpg") || lowerCasedPath.endsWith(".jpeg") ||
-        lowerCasedPath.endsWith(".gif") || lowerCasedPath.endsWith(".bmp")
-    ) {
+    } else if (lowerCasedPath.endsWith(".png") || lowerCasedPath.endsWith(".jpg") || lowerCasedPath.endsWith(".jpeg") ||
+               lowerCasedPath.endsWith(".gif") || lowerCasedPath.endsWith(".bmp")) {
         newEntry.type = FT_IMAGE;
         newEntry.icon = FT_IMAGE_ICON;
         newEntry.color = FT_IMAGE_COLOR;
