@@ -5,36 +5,19 @@
 Розпізнає NEC, Samsung і Sony SIRC; будь-який інший сигнал можна прийняти й повторити як сирі тривалості.
 Див. також :doc:`modules`.
 
-Приклад - "навчити й повторити":
+Приклад:
 
 .. code-block:: lua
 
     local remote = assert(ir.new())
-    local learned = nil
+    remote:send("NEC", 0x04, 0x08)
 
-    function lilka.update(delta)
-        local code = remote:receive()
-        if code and not code["repeat"] then
-            learned = code
-        end
-        local state = controller.get_state()
-        if state.a.just_pressed and learned then
-            remote:send_raw(learned.raw)
-        end
-        if state.b.just_pressed then
-            util.exit()
-        end
+    local code = remote:receive() -- nil, якщо нічого не прийшло
+    if code then
+        print(code.protocol, code.address, code.command)
+        remote:send_raw(code.raw) -- повторити як є
     end
 
-    function lilka.draw()
-        display.fill_screen(display.color565(0, 0, 0))
-        display.set_cursor(10, 40)
-        if learned then
-            display.print(string.format("%s 0x%X 0x%X\nA - повторити", learned.protocol,
-                learned.address or 0, learned.command or 0))
-        else
-            display.print("Натисніть кнопку на пульті")
-        end
-    end
+Повний приклад: `LUA/modules/ir.lua <https://github.com/lilka-dev/examples/blob/main/LUA/modules/ir.lua>`_.
 
 .. lua:autoclass:: ir

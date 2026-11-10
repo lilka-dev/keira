@@ -65,12 +65,20 @@ static int lualilka_cc1101_new(lua_State* L) {
     cfg.crc = lualilka_opt_bool(L, 1, "crc", cfg.crc);
     luaL_argcheck(L, cfg.dataRate >= 600 && cfg.dataRate <= 500000, 1, "rate must be 600-500000");
 
+    // Pins come from lilka::config ([rf] in /sd/.lilka/config overrides the built-in v2 values)
+    int sck = pins::get("rf", "sck");
+    int miso = pins::get("rf", "miso");
+    int mosi = pins::get("rf", "mosi");
+    if (sck < 0 || miso < 0 || mosi < 0 || cfg.csn < 0) {
+        return luaL_error(L, "cc1101: pins are not configured (section [rf] in %s)", LILKA_CONFIG_DIR);
+    }
+
     LuaCc1101* o = new (lua_newuserdatauv(L, sizeof(LuaCc1101), 0)) LuaCc1101();
     o->dev = nullptr;
     lualilka_hw_initClaim(L, &o->claim);
     luaL_setmetatable(L, CC1101_MT);
-    lualilka_hw_claimPins(L, &o->claim, {pins::SPI_SCK, pins::SPI_MISO, pins::SPI_MOSI, cfg.csn, cfg.gdo0, cfg.gdo2});
-    lualilka_hw_beginSpi(L, &o->claim, pins::SPI_SCK, pins::SPI_MISO, pins::SPI_MOSI);
+    lualilka_hw_claimPins(L, &o->claim, {sck, miso, mosi, cfg.csn, cfg.gdo0, cfg.gdo2});
+    lualilka_hw_beginSpi(L, &o->claim, sck, miso, mosi);
     cfg.spi = &lilka::SPI2;
 
     o->dev = new (std::nothrow) Cc1101();

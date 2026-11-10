@@ -71,14 +71,20 @@ static int lualilka_lora_new(lua_State* L) {
     cfg.crc = lualilka_opt_bool(L, 1, "crc", cfg.crc);
     cfg.invertIq = lualilka_opt_bool(L, 1, "invert_iq", cfg.invertIq);
 
+    // Pins come from lilka::config ([lora] in /sd/.lilka/config overrides the built-in v2 values)
+    int sck = pins::get("lora", "sck");
+    int miso = pins::get("lora", "miso");
+    int mosi = pins::get("lora", "mosi");
+    if (sck < 0 || miso < 0 || mosi < 0 || cfg.nss < 0) {
+        return luaL_error(L, "lora: pins are not configured (section [lora] in %s)", LILKA_CONFIG_DIR);
+    }
+
     LuaLora* o = new (lua_newuserdatauv(L, sizeof(LuaLora), 0)) LuaLora();
     o->dev = nullptr;
     lualilka_hw_initClaim(L, &o->claim);
     luaL_setmetatable(L, LORA_MT);
-    lualilka_hw_claimPins(
-        L, &o->claim, {pins::SPI_SCK, pins::SPI_MISO, pins::SPI_MOSI, cfg.nss, cfg.busy, cfg.nrst, cfg.rxen, cfg.txen}
-    );
-    lualilka_hw_beginSpi(L, &o->claim, pins::SPI_SCK, pins::SPI_MISO, pins::SPI_MOSI);
+    lualilka_hw_claimPins(L, &o->claim, {sck, miso, mosi, cfg.nss, cfg.busy, cfg.nrst, cfg.rxen, cfg.txen});
+    lualilka_hw_beginSpi(L, &o->claim, sck, miso, mosi);
     cfg.spi = &lilka::SPI2;
 
     o->dev = new (std::nothrow) SX126x();

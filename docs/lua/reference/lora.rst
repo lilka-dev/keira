@@ -9,31 +9,18 @@
     Перевірте, які частоти й потужності дозволені у вашій країні, і не передавайте без антени.
     Обидві Лілки мають використовувати однакові ``frequency``, ``sf``, ``bandwidth``, ``cr`` і ``sync_word``.
 
-Приклад - чат між двома Лілками:
+Приклад:
 
 .. code-block:: lua
 
     local radio = assert(lora.new({chip = "sx1262", frequency = 868100000, sf = 7}))
-    local last = "-"
+    radio:send("Привіт!")
 
-    function lilka.update(delta)
-        local packet = radio:receive()
-        if packet then
-            last = string.format("%s (%.0f dBm, SNR %.1f)", packet.data, packet.rssi, packet.snr)
-        end
-        local state = controller.get_state()
-        if state.a.just_pressed then
-            radio:send("Привіт від Лілки!")
-        end
-        if state.b.just_pressed then
-            util.exit()
-        end
+    local packet = radio:receive() -- nil, якщо пакета немає
+    if packet then
+        print(packet.data, packet.rssi, packet.snr)
     end
 
-    function lilka.draw()
-        display.fill_screen(display.color565(0, 0, 0))
-        display.set_cursor(10, 40)
-        display.print("A - надіслати\n" .. last)
-    end
+Повний приклад: `LUA/modules/lora.lua <https://github.com/lilka-dev/examples/blob/main/LUA/modules/lora.lua>`_.
 
 .. lua:autoclass:: lora

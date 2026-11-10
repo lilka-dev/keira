@@ -8,22 +8,16 @@
     На чужій шині (наприклад, в автомобілі) почніть з ``mode = "listen"``: тоді Лілка нічого не передає
     і не підтверджує кадри. Перемичка J3 вмикає термінатор 120 Ом - замикайте її, лише якщо вузол на кінці шини.
 
-Приклад - сніфер:
+Приклад:
 
 .. code-block:: lua
 
     local bus = assert(can.new({bitrate = 500000, mode = "listen"}))
-
-    function lilka.update(delta)
-        local msg = bus:receive()
-        while msg do
-            local hex = msg.data:gsub(".", function(c) return string.format("%02X ", c:byte()) end)
-            console.print(string.format("%03X [%d] %s", msg.id, msg.dlc, hex))
-            msg = bus:receive()
-        end
-        if controller.get_state().b.just_pressed then
-            util.exit()
-        end
+    local msg = bus:receive(100) -- чекати до 100 мс
+    if msg then
+        print(string.format("%03X", msg.id), #msg.data)
     end
+
+Повний приклад: `LUA/modules/can.lua <https://github.com/lilka-dev/examples/blob/main/LUA/modules/can.lua>`_.
 
 .. lua:autoclass:: can

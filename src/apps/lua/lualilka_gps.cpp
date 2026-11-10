@@ -31,7 +31,7 @@ static int lualilka_gps_close(lua_State* L) {
 // gps.new([{baud = 9600, rx = 44, tx = 43}]) -> gps | nil, error
 static int lualilka_gps_new(lua_State* L) {
     Gps::Config cfg;
-    cfg.baud = (uint32_t)lualilka_opt_int(L, 1, "baud", 9600);
+    cfg.baud = (uint32_t)lualilka_opt_int(L, 1, "baud", cfg.baud);
     cfg.rx = lualilka_opt_pin(L, 1, "rx", cfg.rx);
     cfg.tx = lualilka_opt_pin(L, 1, "tx", cfg.tx);
     if (cfg.rx < 0) return luaL_error(L, "gps: rx pin is required");

@@ -60,8 +60,8 @@ static uint8_t* loadBlob(lua_State* L, const char* path, size_t* length) {
 //           accel_range = 8, gyro_range = 2000, accel_odr = 100, gyro_odr = 200}]) -> imu | nil, error
 static int lualilka_imu_new(lua_State* L) {
     Bmi260::Config cfg;
-    int sda = lualilka_opt_pin(L, 1, "sda", pins::I2C_SDA);
-    int scl = lualilka_opt_pin(L, 1, "scl", pins::I2C_SCL);
+    int sda = lualilka_opt_pin(L, 1, "sda", pins::get("gyro_magnet", "sda"));
+    int scl = lualilka_opt_pin(L, 1, "scl", pins::get("gyro_magnet", "scl"));
     if (sda < 0 || scl < 0) return luaL_error(L, "imu: sda and scl pins are required");
     cfg.address = (uint8_t)lualilka_opt_int(L, 1, "address", 0);
     cfg.accelRangeG = (uint8_t)lualilka_opt_int(L, 1, "accel_range", cfg.accelRangeG);

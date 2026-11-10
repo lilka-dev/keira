@@ -36,8 +36,8 @@ static int lualilka_mag_close(lua_State* L) {
 // mag.new([{sda = 44, scl = 43, address = 0x35, range = "low"|"high", averaging = 5}]) -> mag | nil, error
 static int lualilka_mag_new(lua_State* L) {
     Tmag5273::Config cfg;
-    int sda = lualilka_opt_pin(L, 1, "sda", pins::I2C_SDA);
-    int scl = lualilka_opt_pin(L, 1, "scl", pins::I2C_SCL);
+    int sda = lualilka_opt_pin(L, 1, "sda", pins::get("gyro_magnet", "sda"));
+    int scl = lualilka_opt_pin(L, 1, "scl", pins::get("gyro_magnet", "scl"));
     if (sda < 0 || scl < 0) return luaL_error(L, "mag: sda and scl pins are required");
     cfg.address = (uint8_t)lualilka_opt_int(L, 1, "address", cfg.address);
     const char* range = lualilka_opt_str(L, 1, "range", "low");

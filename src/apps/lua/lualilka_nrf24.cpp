@@ -73,13 +73,21 @@ static int lualilka_nrf24_new(lua_State* L) {
     luaL_argcheck(L, cfg.addressWidth >= 3 && cfg.addressWidth <= 5, 1, "address_width must be 3-5");
     luaL_argcheck(L, cfg.crcBytes <= 2, 1, "crc must be 0, 1 or 2");
 
+    // Pins come from lilka::config ([rf] in /sd/.lilka/config overrides the built-in v2 values)
+    int sck = pins::get("rf", "sck");
+    int miso = pins::get("rf", "miso");
+    int mosi = pins::get("rf", "mosi");
+    if (sck < 0 || miso < 0 || mosi < 0 || cfg.csn < 0) {
+        return luaL_error(L, "nrf24: pins are not configured (section [rf] in %s)", LILKA_CONFIG_DIR);
+    }
+
     LuaNrf24* o = new (lua_newuserdatauv(L, sizeof(LuaNrf24), 0)) LuaNrf24();
     o->dev = nullptr;
     o->addressWidth = cfg.addressWidth;
     lualilka_hw_initClaim(L, &o->claim);
     luaL_setmetatable(L, NRF24_MT);
-    lualilka_hw_claimPins(L, &o->claim, {pins::SPI_SCK, pins::SPI_MISO, pins::SPI_MOSI, cfg.csn, cfg.ce, cfg.irq});
-    lualilka_hw_beginSpi(L, &o->claim, pins::SPI_SCK, pins::SPI_MISO, pins::SPI_MOSI);
+    lualilka_hw_claimPins(L, &o->claim, {sck, miso, mosi, cfg.csn, cfg.ce, cfg.irq});
+    lualilka_hw_beginSpi(L, &o->claim, sck, miso, mosi);
     cfg.spi = &lilka::SPI2;
 
     o->dev = new (std::nothrow) Nrf24();
