@@ -20,8 +20,6 @@
     custom_apps
     lua/intro
     lua/reference/index
-    mjs/intro
-    mjs/reference/index
 
 .. toctree::
     :caption: Посилання

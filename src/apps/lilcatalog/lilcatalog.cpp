@@ -465,7 +465,6 @@ ExecutionType LilCatalogApp::parseExecutionType(const String& typeStr) {
     if (typeStr == "binary") return EXEC_TYPE_BINARY;
     if (typeStr == "archive") return EXEC_TYPE_ARCHIVE;
     if (typeStr == "image") return EXEC_TYPE_IMAGE;
-    if (typeStr == "dynapp" || typeStr == "so") return EXEC_TYPE_DYNAPP;
     return EXEC_TYPE_UNKNOWN;
 }
 
@@ -898,7 +897,6 @@ ExecutionType LilCatalogApp::detectTypeByExtension(const String& location) {
     loc.toLowerCase();
     if (loc.endsWith(".lua")) return EXEC_TYPE_LUA;
     if (loc.endsWith(".bin")) return EXEC_TYPE_BINARY;
-    if (loc.endsWith(".so")) return EXEC_TYPE_DYNAPP;
     if (loc.endsWith(".zip") || loc.endsWith(".tar") || loc.endsWith(".gz")) return EXEC_TYPE_ARCHIVE;
     return EXEC_TYPE_UNKNOWN;
 }
@@ -923,9 +921,6 @@ void LilCatalogApp::executeEntry() {
             break;
         case EXEC_TYPE_BINARY:
             K_FT_BIN_HANDLER(canonicalPath);
-            break;
-        case EXEC_TYPE_DYNAPP:
-            K_FT_SO_HANDLER(canonicalPath);
             break;
         case EXEC_TYPE_ARCHIVE:
             showAlert(K_S_LILCATALOG_ARCHIVE_NOTICE);
@@ -998,10 +993,6 @@ void LilCatalogApp::showInstalledMenu() {
             case EXEC_TYPE_BINARY:
                 color = lilka::colors::Mint_green;
                 badge = "BIN";
-                break;
-            case EXEC_TYPE_DYNAPP:
-                color = lilka::colors::Aquamarine;
-                badge = "SO";
                 break;
             default:
                 color = lilka::colors::Light_gray;
@@ -1204,9 +1195,6 @@ void LilCatalogApp::drawAppView() {
             break;
         case EXEC_TYPE_BINARY:
             typeStr = "BIN";
-            break;
-        case EXEC_TYPE_DYNAPP:
-            typeStr = "SO";
             break;
         default:
             break;

@@ -4,7 +4,6 @@
 #include "keira/ksystem.h"
 #include "keira/utils/string.h"
 #include "apps/lua/luaservice.h"
-#include "apps/mjs/mjsservice.h"
 
 struct AutorunScript {
     const char* prefix;
@@ -13,7 +12,6 @@ struct AutorunScript {
 
 static const AutorunScript AUTORUN_SCRIPTS[] = {
     {K_SCRIPT_SERVICE_LUA_PREFIX, K_SCRIPT_AUTORUN_LUA_PATH},
-    {K_SCRIPT_SERVICE_JS_PREFIX, K_SCRIPT_AUTORUN_JS_PATH},
 };
 
 ScriptService::ScriptService(const char* prefix, const String& path) :
@@ -60,8 +58,7 @@ bool ScriptService::sleep(uint32_t ms) {
 }
 
 bool ScriptService::isScriptService(const char* name) {
-    return strncmp(name, K_SCRIPT_SERVICE_LUA_PREFIX, strlen(K_SCRIPT_SERVICE_LUA_PREFIX)) == 0 ||
-           strncmp(name, K_SCRIPT_SERVICE_JS_PREFIX, strlen(K_SCRIPT_SERVICE_JS_PREFIX)) == 0;
+    return strncmp(name, K_SCRIPT_SERVICE_LUA_PREFIX, strlen(K_SCRIPT_SERVICE_LUA_PREFIX)) == 0;
 }
 
 String ScriptService::spawn(const String& path, String& err) {
@@ -72,13 +69,12 @@ String ScriptService::spawn(const String& path, String& err) {
 
     String lowerPath = path;
     lowerPath.toLowerCase();
-    bool isLua = lowerPath.endsWith(".lua");
-    if (!isLua && !lowerPath.endsWith(".js")) {
+    if (!lowerPath.endsWith(".lua")) {
         err = StringFormat("unsupported script type: %s", path.c_str());
         return "";
     }
 
-    String name = makeName(isLua ? K_SCRIPT_SERVICE_LUA_PREFIX : K_SCRIPT_SERVICE_JS_PREFIX, path);
+    String name = makeName(K_SCRIPT_SERVICE_LUA_PREFIX, path);
     // Service that is still stopping counts as running, two threads with the same name would be ambiguous
     bool exists = false;
     ksystem.services.forEach([&](KeiraThread* thread) {
@@ -89,11 +85,7 @@ String ScriptService::spawn(const String& path, String& err) {
         return "";
     }
 
-    if (isLua) {
-        ksystem.services.spawn(new LuaService(path));
-    } else {
-        ksystem.services.spawn(new MJSService(path));
-    }
+    ksystem.services.spawn(new LuaService(path));
     lilka::serial.log("Script service %s started from %s", name.c_str(), path.c_str());
     return name;
 }

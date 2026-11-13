@@ -8,10 +8,8 @@
 #include "../madplayer/madplayer.h"
 #include "../liltracker/liltracker.h"
 #include "../lua/luarunner.h"
-#include "../mjs/mjsrunner.h"
 #include "../nes/nesapp.h"
 #include "../fmanager/fmanager.h"
-#include "../dynapp/dynapp.h"
 
 // Base URL for catalog API
 #define CATALOG_BASE_URL "https://catalog.lilka.dev"
@@ -37,14 +35,7 @@
 #define CATALOG_DOWNLOAD_BUFFER_SIZE 2048
 
 // Execution file types
-typedef enum {
-    EXEC_TYPE_UNKNOWN,
-    EXEC_TYPE_LUA,
-    EXEC_TYPE_BINARY,
-    EXEC_TYPE_ARCHIVE,
-    EXEC_TYPE_IMAGE,
-    EXEC_TYPE_DYNAPP
-} ExecutionType;
+typedef enum { EXEC_TYPE_UNKNOWN, EXEC_TYPE_LUA, EXEC_TYPE_BINARY, EXEC_TYPE_ARCHIVE, EXEC_TYPE_IMAGE } ExecutionType;
 
 // Catalog categories
 typedef enum { CATALOG_CATEGORY_APPS, CATALOG_CATEGORY_WALLPAPERS } CatalogCategory;

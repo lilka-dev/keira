@@ -35,7 +35,6 @@ clang-format: ## Run clang-format check
 		-not \( -name .pio -prune \) \
 		-not \( -name doomgeneric -prune \) \
 		-not \( -name bak -prune \) \
-		-not \( -name mJS -prune \) \
 		-not \( -name SimpleFTPServer -prune \) \
 		-not \( -name LodePNG -prune \) \
 		-iname *.h \
@@ -47,7 +46,7 @@ clang-format: ## Run clang-format check
 
 .PHONY: cppcheck
 cppcheck: ## Run cppcheck check
-	$(CPPCHECK) . -i.ccls-cache -i.pio -idoomgeneric -ibak -imJS -iSimpleFTPServer -iLodePNG \
+	$(CPPCHECK) . -i.ccls-cache -i.pio -idoomgeneric -ibak -iSimpleFTPServer -iLodePNG \
 		--enable=performance,style \
 		--suppress=knownPointerToBool \
 		--suppress=noCopyConstructor \
