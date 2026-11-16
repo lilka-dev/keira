@@ -1,0 +1,180 @@
+{
+  "description": "Keira (lilka-dev/keira) architecture, complexity and convention audit rules. Run from the repo root: python3 tools/layer_audit.py -r tools/layer_audit_rules.json. Derived from the EOS generic rules and Keira's AGENTS.md.",
+  "rules": [
+    {
+      "id": "no-arduino-delay",
+      "name": "Use vTaskDelay() instead of Arduino delay()",
+      "type": "forbidden_patterns",
+      "paths": ["src"],
+      "file_extensions": [".cpp", ".h"],
+      "exclude_dirs": [".git", ".pio", "build", "icons"],
+      "patterns": ["(?<![.\\w:>])delay\\s*\\("]
+    },
+    {
+      "id": "no-arduino-wifi-http",
+      "name": "Prefer esp_wifi_* / esp_http_client_* over WiFi.* / HTTPClient",
+      "type": "forbidden_patterns",
+      "paths": ["src"],
+      "file_extensions": [".cpp", ".h"],
+      "exclude_dirs": [".git", ".pio", "build", "icons"],
+      "patterns": ["\\bWiFi\\s*\\.", "\\bHTTPClient\\b"]
+    },
+    {
+      "id": "no-arduino-filesystem",
+      "name": "Use C-style file API (fopen/fread/...) with /sd/ or /spiffs/ paths, not SD.open() etc.",
+      "type": "forbidden_patterns",
+      "paths": ["src"],
+      "file_extensions": [".cpp", ".h"],
+      "exclude_dirs": [".git", ".pio", "build", "icons"],
+      "patterns": ["\\b(SD|SPIFFS|LittleFS|FFat)\\s*\\.\\s*(open|exists|remove|mkdir|rmdir|rename)\\b"]
+    },
+    {
+      "id": "no-sprintf",
+      "name": "Use StringFormat() instead of sprintf()",
+      "type": "forbidden_patterns",
+      "paths": ["src"],
+      "file_extensions": [".cpp", ".h"],
+      "exclude_dirs": [".git", ".pio", "build", "icons"],
+      "exclude_files": ["tamalib.c", "hw.c", "cpu.c"],
+      "patterns": ["\\bv?sprintf\\s*\\("]
+    },
+    {
+      "id": "no-ifndef-include-guards",
+      "name": "Use #pragma once, never #ifndef include guards",
+      "type": "forbidden_patterns",
+      "paths": ["src"],
+      "file_extensions": [".h"],
+      "exclude_dirs": [".git", ".pio", "build", "icons"],
+      "exclude_files": ["keira_version_auto_gen.h"],
+      "patterns": ["^\\s*#\\s*ifndef\\s+[A-Za-z0-9_]+_H(PP)?_?\\s*$"]
+    },
+    {
+      "id": "include-guards-present",
+      "name": "Every header has #pragma once",
+      "type": "mandatory_include_guards",
+      "paths": ["src"],
+      "exclude_dirs": [".git", ".pio", "build", "icons"],
+      "exclude_files": ["keira_version_auto_gen.h"]
+    },
+    {
+      "id": "no-using-namespace-in-headers",
+      "name": "No 'using namespace' in headers",
+      "type": "forbidden_patterns",
+      "paths": ["src"],
+      "file_extensions": [".h"],
+      "exclude_dirs": [".git", ".pio", "build", "icons"],
+      "patterns": ["^\\s*using\\s+namespace\\b"]
+    },
+    {
+      "id": "no-raw-button-indexing",
+      "name": "Read buttons via named lilka::State fields (state.a, state.up, ...), not K_BTN_* indexing",
+      "type": "forbidden_patterns",
+      "paths": ["src"],
+      "file_extensions": [".cpp", ".h"],
+      "exclude_dirs": [".git", ".pio", "build", "icons"],
+      "patterns": ["\\[\\s*K_BTN_\\w+\\s*\\]"]
+    },
+    {
+      "id": "use-acquire-raii-lock",
+      "name": "Use acquire (RAII) instead of raw xSemaphoreTake/Give",
+      "type": "forbidden_patterns",
+      "paths": ["src"],
+      "file_extensions": [".cpp", ".h"],
+      "exclude_dirs": [".git", ".pio", "build", "icons"],
+      "exclude_files": ["mutex.h", "acquire.h"],
+      "patterns": ["\\bxSemaphore(Take|Give)\\w*\\s*\\("]
+    },
+    {
+      "id": "no-blocking-io-under-lock",
+      "name": "No blocking I/O or sleeping while a raw mutex is held",
+      "type": "no_calls_between_patterns",
+      "paths": ["src"],
+      "file_extensions": [".cpp", ".h"],
+      "exclude_dirs": [".git", ".pio", "build", "icons"],
+      "lock_patterns": ["\\bxSemaphoreTake\\w*\\s*\\(", "\\.lock\\s*\\("],
+      "unlock_patterns": ["\\bxSemaphoreGive\\w*\\s*\\(", "\\.unlock\\s*\\("],
+      "forbidden_calls": [
+        "\\bvTaskDelay\\s*\\(",
+        "(?<![.\\w:>])delay\\s*\\(",
+        "\\bf(open|read|write|close)\\s*\\(",
+        "\\besp_http_client_perform\\s*\\(",
+        "\\bHTTPClient\\b",
+        "\\bSerial\\s*\\.\\s*print"
+      ]
+    },
+    {
+      "id": "no-globals-in-apps-services",
+      "name": "No mutable globals in src/apps and src/services (state belongs in App/Service members)",
+      "type": "no_globals",
+      "paths": ["src/apps", "src/services"],
+      "file_extensions": [".cpp", ".h"],
+      "exclude_dirs": [".git", ".pio", "build", "icons"],
+      "exclude_files": ["tamalib.c", "hw.c", "cpu.c"]
+    },
+    {
+      "id": "limit-serial-prints",
+      "name": "Limit raw Serial.print* usage per file (use the debug facility in keira/debug.h)",
+      "type": "max_pattern_occurrences_per_file",
+      "paths": ["src"],
+      "file_extensions": [".cpp", ".h"],
+      "exclude_dirs": [".git", ".pio", "build", "icons"],
+      "exclude_files": ["debug.h"],
+      "pattern": "\\bSerial\\s*\\.\\s*(print|println|printf|write)\\b",
+      "max_count": 3
+    },
+    {
+      "id": "function-complexity",
+      "name": "Function size and complexity limits",
+      "type": "function_metrics",
+      "paths": ["src"],
+      "file_extensions": [".cpp"],
+      "exclude_dirs": [".git", ".pio", "build", "icons"],
+      "exclude_files": ["tamalib.c", "hw.c", "cpu.c"],
+      "max_lines": 100,
+      "max_branches": 25,
+      "max_indent_levels": 5,
+      "max_case_labels": 30
+    },
+    {
+      "id": "duplicate-code",
+      "name": "Cross-file duplicate code blocks",
+      "type": "duplicate_blocks",
+      "paths": ["src"],
+      "file_extensions": [".cpp", ".h"],
+      "exclude_dirs": [".git", ".pio", "build", "icons", "localizations"],
+      "exclude_files": ["keira_version_auto_gen.h"],
+      "min_normalized_lines": 12,
+      "cross_file_only": true
+    },
+    {
+      "id": "macros-in-headers",
+      "name": "#define macros belong in headers, not .cpp files",
+      "type": "macros_in_headers_only",
+      "paths": ["src"],
+      "file_extensions": [".cpp"],
+      "exclude_dirs": [".git", ".pio", "build", "icons"],
+      "exclude_files": ["tamalib.c", "hw.c", "cpu.c"],
+      "allowed_macros": ["STR", "STRX", "STR_HELPER"],
+      "allowed_patterns": ["^_[A-Z_]+$"]
+    },
+    {
+      "id": "magic-numbers",
+      "name": "Named constants instead of magic numbers",
+      "type": "magic_numbers",
+      "paths": ["src"],
+      "file_extensions": [".cpp"],
+      "exclude_dirs": [".git", ".pio", "build", "icons", "localizations"],
+      "exclude_files": ["tamalib.c", "hw.c", "cpu.c"],
+      "ignore_const_tables": true,
+      "flag_array_declarators": true,
+      "allowed_array_sizes": [1, 2, 3, 4, 6, 8, 16],
+      "allowed_literals": [-1, 0, 1, 2, 3, 4, 5, 8, 10, 16, 100, 255, 256, 1000],
+      "flagged_literals": {
+        "280": "display width: use lilka::display.width()",
+        "240": "display height: use lilka::display.height()"
+      },
+      "min_cross_file_value": 36,
+      "max_cross_file_occurrences": 4
+    }
+  ]
+}
