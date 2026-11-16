@@ -1,5 +1,26 @@
 #include "lualilka_i2c.h"
+#include "lualilka_hw.h"
 #include <Wire.h>
+
+#define I2C_STATE_MT "lilka.i2c.state"
+
+// I2C0 claim of one script. Lives in the registry, so it is released when the Lua state is closed.
+struct LuaI2cState {
+    LuaHwClaim claim; // must be first
+};
+
+static int lualilka_i2c_stateGc(lua_State* L) {
+    LuaI2cState* s = static_cast<LuaI2cState*>(luaL_checkudata(L, 1, I2C_STATE_MT));
+    lualilka_hw_endI2c(&s->claim);
+    return 0;
+}
+
+static LuaI2cState* lualilka_i2c_state(lua_State* L) {
+    lua_getfield(L, LUA_REGISTRYINDEX, I2C_STATE_MT);
+    LuaI2cState* s = static_cast<LuaI2cState*>(lua_touserdata(L, -1));
+    lua_pop(L, 1);
+    return s;
+}
 
 // Reads a Lua argument (at index `idx`) that is either a single byte (number)
 // or a table/array of bytes into `buf`. Returns the number of bytes read.
@@ -27,12 +48,16 @@ static int lualilka_i2c_readBytesArg(lua_State* L, int idx, uint8_t* buf, int ma
 // i2c.begin([sda, scl[, freq]])
 static int lualilka_i2c_begin(lua_State* L) {
     int n = lua_gettop(L);
+    LuaI2cState* s = lualilka_i2c_state(L);
+    lualilka_hw_release(&s->claim);
+    lualilka_hw_claimPeriph(L, &s->claim, lilka::mod::Periph::I2C0, "I2C0");
     if (n == 0) {
         Wire.begin();
     } else {
         int sda = luaL_checkinteger(L, 1);
         int scl = luaL_checkinteger(L, 2);
         uint32_t freq = (uint32_t)luaL_optinteger(L, 3, 100000);
+        lualilka_hw_claimPins(L, &s->claim, {sda, scl});
         Wire.begin(sda, scl, freq);
     }
     return 0;
@@ -120,6 +145,14 @@ static const luaL_Reg lualilka_i2c[] = {
 };
 
 int lualilka_i2c_register(lua_State* L) {
+    LuaI2cState* s = static_cast<LuaI2cState*>(lua_newuserdatauv(L, sizeof(LuaI2cState), 0));
+    lualilka_hw_initClaim(L, &s->claim);
+    luaL_newmetatable(L, I2C_STATE_MT);
+    lua_pushcfunction(L, lualilka_i2c_stateGc);
+    lua_setfield(L, -2, "__gc");
+    lua_setmetatable(L, -2);
+    lua_setfield(L, LUA_REGISTRYINDEX, I2C_STATE_MT);
+
     luaL_newlib(L, lualilka_i2c);
     lua_setglobal(L, "i2c");
     return 0;

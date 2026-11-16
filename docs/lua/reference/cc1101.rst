@@ -1,0 +1,21 @@
+``cc1101`` - Радіо CC1101
+=========================
+
+Робота з модулем 004 RF з CC1101 (300-348, 387-464, 779-928 МГц) на шині SPI2.
+Див. також :doc:`modules`.
+
+.. warning::
+
+    Перевірте, які частоти й потужності дозволені у вашій країні.
+
+Приклад:
+
+.. code-block:: lua
+
+    local radio = assert(cc1101.new({frequency = 433.92}))
+    print(radio:rssi())
+    radio:send("hello")
+
+Повний приклад: `LUA/modules/cc1101.lua <https://github.com/lilka-dev/examples/blob/main/LUA/modules/cc1101.lua>`_.
+
+.. lua:autoclass:: cc1101
