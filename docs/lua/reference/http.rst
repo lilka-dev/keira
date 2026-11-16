@@ -23,4 +23,9 @@
     local response = http.execute(request)
     console.print(response.code, response.response)
 
+Відповідь містить поля ``code`` (HTTP статус), ``size`` (кількість отриманих байтів)
+і, для запитів без ``file``, ``response``. Якщо з'єднання обірвалося або завантаження
+не завершилося повністю, ``code`` буде від'ємним, ``error`` міститиме опис помилки,
+а неповний файл буде видалено.
+
 .. lua:autoclass:: http
