@@ -57,3 +57,7 @@ cppcheck: ## Run cppcheck check
 .PHONY: checklang
 checklang: ## Run localization files check
 	python tools/checklang.py
+
+.PHONY: layer_audit
+layer_audit: ## Run audit on source code
+	python tools/layer_audit.py
