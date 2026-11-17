@@ -1,3 +1,4 @@
+#include "keira/recclock.h"
 #include <csetjmp>
 
 #include <lua.hpp>
@@ -299,7 +300,7 @@ int AbstractLuaRunnerApp::execute() {
         bool prevFullscreen = true;
         uint32_t delta = perfectDelta; // Delta for first frame is always 1/30
         while (true) {
-            uint32_t now = millis();
+            uint32_t now = RecClock::nowMs();
 
             if (!callUpdate(L, delta) || !callDraw(L)) {
                 // No update or draw function - we're done
@@ -338,9 +339,12 @@ int AbstractLuaRunnerApp::execute() {
 
             // Calculate time spent in update & gargage collection
             // TODO: Split time spent in update, time spent in draw, time spent in GC?
-            uint32_t elapsed = millis() - now;
-            // If we're too fast, delay to keep 30 FPS
-            if (elapsed < perfectDelta) {
+            uint32_t elapsed = RecClock::nowMs() - now;
+            if (RecClock::active()) {
+                // recording: queueDraw() already waited for the next frame step, time moved by exactly one frame
+                delta = perfectDelta;
+            } else if (elapsed < perfectDelta) {
+                // If we're too fast, delay to keep 30 FPS
                 vTaskDelay((perfectDelta - elapsed) / portTICK_PERIOD_MS);
                 // delay(perfectDelta - elapsed);
                 delta = perfectDelta;

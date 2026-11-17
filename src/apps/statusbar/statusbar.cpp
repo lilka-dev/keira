@@ -1,5 +1,6 @@
 #include "statusbar.h"
 #include "keira/ksystem.h"
+#include "keira/recclock.h"
 // Icons:
 #include "apps/icons/battery.h"
 #include "apps/icons/battery_danger.h"
@@ -225,8 +226,13 @@ int StatusBarApp::drawNetwork(lilka::Canvas* canvas) {
     return 24;
 }
 
+// Video recording (RecClock active): show an emulated battery, the recording Lilka runs without one
+static constexpr int REC_BATTERY_LEVEL = 87;
+static constexpr float REC_BATTERY_VOLTAGE = 4.02f;
+
 int StatusBarApp::drawBattery(lilka::Canvas* canvas) {
-    auto level = lilka::battery.readLevel();
+    const bool emulated = RecClock::active();
+    auto level = emulated ? REC_BATTERY_LEVEL : lilka::battery.readLevel();
     auto xOffset = 0;
     const uint16_t* icon = nullptr;
     if (batteryMode == 1 || batteryMode == 2) {
@@ -268,8 +274,11 @@ int StatusBarApp::drawBattery(lilka::Canvas* canvas) {
 
     if (batteryMode == 4) {
         canvas->setCursor(xOffset, 17);
-        uint16_t raw = lilka::battery.readRawValue();
-        float voltage = (float)raw / 4095.0 * LILKA_BATTERY_MAX_MEASURABLE_VOLTAGE;
+        float voltage = REC_BATTERY_VOLTAGE;
+        if (!emulated) {
+            uint16_t raw = lilka::battery.readRawValue();
+            voltage = (float)raw / 4095.0 * LILKA_BATTERY_MAX_MEASURABLE_VOLTAGE;
+        }
         canvas->print(String(voltage, 2) + "v");
         xOffset = canvas->getCursorX() + 2;
     }

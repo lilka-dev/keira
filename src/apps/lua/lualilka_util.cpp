@@ -2,11 +2,12 @@
 
 #include "lualilka_util.h"
 #include "keira/keira.h"
+#include "keira/recclock.h"
 
 extern jmp_buf stopjmp;
 
 int lualilka_util_time(lua_State* L) {
-    float time = micros() / 1000000.0;
+    float time = RecClock::nowUs() / 1000000.0; // virtual while recording the video frame by frame
     lua_pushnumber(L, time);
     return 1;
 }

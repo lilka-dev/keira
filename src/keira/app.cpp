@@ -1,5 +1,5 @@
-
 #include "keira/app.h"
+#include "keira/recclock.h"
 
 #include <lilka/colors565.h>
 #include <lilka/display.h>
@@ -258,6 +258,9 @@ void App::queueDraw() {
     setRedraw(true);
 
     KMTX_UNLOCK(canvasMutex);
+
+    // Frame-by-frame recording: hand this frame to the recorder and wait for the next step
+    RecClock::frameBarrier(this);
 
     // Switch to a drawing task
     taskYIELD();

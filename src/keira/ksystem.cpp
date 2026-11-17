@@ -11,6 +11,7 @@
 #include "services/clock/clock.h"
 #include "services/network/network.h"
 #include "services/screenshot/screenshot.h"
+#include "services/screenstream/screenstream.h"
 #include "services/telnet/telnet.h"
 #include "services/ftp/ftp.h"
 #include "services/web/web.h"
@@ -152,6 +153,7 @@ void KeiraSystem::launchServices() {
     services.spawn(new NetworkService());
     services.spawn(new ClockService());
     services.spawn(new ScreenshotService());
+    services.spawn(new ScreenStreamService());
     services.spawn(new TelnetService());
     services.spawn(new FTPService());
     services.spawn(new WebService());
@@ -212,6 +214,10 @@ void KeiraSystem::showStartupScreen() {
 // Prepare system to launch
 void KeiraSystem::setup() {
     // Init Hardware
+    // ScreenStreamService pushes ~30 KB frames through USB-Serial-JTAG. The default 256-byte TX ring makes the
+    // writer sleep a tick every 4 USB packets (~250 KB/s); a bigger ring lets the ISR keep the bus busy.
+    Serial.flush();
+    Serial.setTxBufferSize(32768);
     lilka::begin();
 
     // Display splash [Should be done as fast as possible]

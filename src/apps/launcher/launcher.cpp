@@ -1,3 +1,4 @@
+#include "keira/recclock.h"
 #include <ff.h>
 #include <FS.h>
 #include <qrcode.h>
@@ -506,13 +507,13 @@ void LauncherApp::homeScreen(item_t& mainMenu) {
             }
         }
 
-        TickType_t lastFrame = xTaskGetTickCount();
+        uint32_t lastFrame = RecClock::nowMs();
         while (1) {
             int delayMs = 0;
-            TickType_t now = xTaskGetTickCount();
+            uint32_t now = RecClock::nowMs(); // virtual while recording the video frame by frame
             if (luaWallpaper.isOpen()) {
                 // Script error closes Lua wallpaper, black screen is shown instead
-                if (!luaWallpaper.frame(pdTICKS_TO_MS(now - lastFrame))) {
+                if (!luaWallpaper.frame(now - lastFrame)) {
                     canvas->fillScreen(lilka::colors::Black);
                 }
             } else if (wallpaper.isOpen()) {
@@ -530,7 +531,9 @@ void LauncherApp::homeScreen(item_t& mainMenu) {
             queueDraw();
 
             // Wait for the next frame while staying responsive to buttons
-            TickType_t frameEnd = xTaskGetTickCount() + pdMS_TO_TICKS(delayMs > 0 ? delayMs : 30);
+            // (while recording, queueDraw() already paced this frame)
+            TickType_t frameEnd =
+                xTaskGetTickCount() + pdMS_TO_TICKS(RecClock::active() ? 10 : (delayMs > 0 ? delayMs : 30));
             bool openMenu = false;
             do {
                 if (lilka::controller.getState().a.justPressed) {

@@ -1,3 +1,4 @@
+#include "keira/recclock.h"
 #include "clock.h"
 #include "services/network/network.h"
 #include "keira/ksystem.h"
@@ -23,10 +24,8 @@ void ClockService::run() {
 }
 
 struct tm ClockService::getTime() {
-    struct timeval tv;
     struct tm timeinfo;
-    gettimeofday(&tv, NULL);
-    time_t now = tv.tv_sec;
+    time_t now = static_cast<time_t>(RecClock::epochUs() / 1000000); // follows the video clock while recording
     localtime_r(&now, &timeinfo);
     return timeinfo;
 }

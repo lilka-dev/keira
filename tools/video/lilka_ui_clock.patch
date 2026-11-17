@@ -1,0 +1,110 @@
+--- a/src/lilka/menu.cpp	2026-11-17 11:07:25
++++ b/src/lilka/menu.cpp	2026-11-17 11:07:25
+@@ -1,5 +1,10 @@
+ #include "ui.h"
+ 
++// UI animation clock. Weak: firmware may override it (Keira does, to record video frame by frame).
++extern "C" __attribute__((weak)) unsigned long lilka_ui_millis() {
++    return millis();
++}
++
+ namespace lilka {
+ 
+ #define MENU_HEIGHT 5
+@@ -13,7 +18,7 @@
+     this->done = false;
+     this->iconImage = new Image(menu_icon_width, menu_icon_height, bgColor, menu_icon_width / 2, menu_icon_height / 2);
+     this->iconCanvas = new Canvas(menu_icon_width, menu_icon_height);
+-    this->lastCursorMove = millis();
++    this->lastCursorMove = lilka_ui_millis();
+     this->button = Button::COUNT;
+     this->activationButtons.push_back(Button::A);
+     this->firstRender = -1;
+@@ -75,7 +80,7 @@
+         if (cursor == items.size() - 1) cursor = 0;
+         else cursor = (cursor + MENU_HEIGHT) >= items.size() - 1 ? items.size() - 1 : (cursor + MENU_HEIGHT);
+     }
+-    if (cursorLastPos != cursor) lastCursorMove = millis();
++    if (cursorLastPos != cursor) lastCursorMove = lilka_ui_millis();
+     if (cursor < scroll) {
+         scroll = cursor;
+     } else if (cursor > scroll + MENU_HEIGHT - 1) {
+@@ -123,7 +128,7 @@
+ 
+ void Menu::draw(Arduino_GFX* canvas) {
+     if (this->firstRender == -1) {
+-        this->firstRender = millis();
++        this->firstRender = lilka_ui_millis();
+     }
+ 
+     constexpr int16_t scrollbarWidth = 8;
+@@ -137,7 +142,7 @@
+     const bool needsScrollbar = menu_size > MENU_HEIGHT;
+ 
+     canvas->fillScreen(bgColor);
+-    int8_t angleShift = sin(millis() / 1000.0) * 16;
++    int8_t angleShift = sin(lilka_ui_millis() / 1000.0) * 16;
+     // Draw triangle in top-left
+     canvas->fillTriangle(0, 0, 48 - angleShift, 0, 0, 48 + angleShift, lilka::colors::Blue);
+     // Draw triangle in top-right
+@@ -160,7 +165,7 @@
+         marquee.setFont(FONT_6x13);
+         marquee.setTextSize(2);
+         marquee.setCursor(
+-            calculateMarqueeShift(millis() - firstRender, titleWidth - titleWidthAvailable, 50), titleTextHeight
++            calculateMarqueeShift(lilka_ui_millis() - firstRender, titleWidth - titleWidthAvailable, 50), titleTextHeight
+         );
+         marquee.setTextColor(this->color);
+         marquee.println(title);
+@@ -192,8 +197,8 @@
+         if (icon) {
+             if (cursor == i) {
+                 memcpy(iconImage->pixels, *icon, sizeof(menu_icon_t));
+-                // Transform t = Transform().rotate(millis() * 30);
+-                Transform t = Transform().rotate(sin((millis() - lastCursorMove) * PI / 1000) * 30);
++                // Transform t = Transform().rotate(lilka_ui_millis() * 30);
++                Transform t = Transform().rotate(sin((lilka_ui_millis() - lastCursorMove) * PI / 1000) * 30);
+                 iconCanvas->fillScreen(bgColor);
+                 iconCanvas->drawImageTransformed(iconImage, 12, 12, t);
+                 canvas->draw16bitRGBBitmapWithTranColor(
+@@ -248,7 +253,7 @@
+             Canvas marquee(widthAvailable, itemHeight);
+             marquee.fillScreen(bgColor);
+             marquee.setFont(FONT_10x20);
+-            marquee.setCursor(calculateMarqueeShift(millis() - lastCursorMove, nameWidth - widthAvailable, 50), 20);
++            marquee.setCursor(calculateMarqueeShift(lilka_ui_millis() - lastCursorMove, nameWidth - widthAvailable, 50), 20);
+             marquee.setTextColor(this->color);
+             marquee.println(items[i].title);
+             canvas->draw16bitRGBBitmapWithTranColor(
+--- a/src/lilka/inputdialog.cpp	2026-11-17 11:07:25
++++ b/src/lilka/inputdialog.cpp	2026-11-17 11:07:25
+@@ -5,6 +5,9 @@
+ #include "icons/backspace.h"
+ #include "icons/whitespace.h"
+ #include "stringutils.h"
++
++// UI animation clock. Weak: firmware may override it (Keira does, to record video frame by frame).
++extern "C" unsigned long lilka_ui_millis();
+ namespace lilka {
+ 
+ #define LILKA_KB_LANGS  2
+@@ -96,8 +99,8 @@
+ }
+ 
+ void InputDialog::update() {
+-    if (millis() - lastBlink > 300) {
+-        lastBlink = millis();
++    if (lilka_ui_millis() - lastBlink > 300) {
++        lastBlink = lilka_ui_millis();
+         blinkPhase = !blinkPhase;
+     }
+ 
+@@ -303,7 +306,7 @@
+ }
+ 
+ void InputDialog::resetBlink() {
+-    lastBlink = millis();
++    lastBlink = lilka_ui_millis();
+     blinkPhase = true;
+ }
+ 
